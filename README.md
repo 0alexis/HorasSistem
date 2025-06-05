@@ -1,97 +1,132 @@
-# Sistema de Turnos - Backend
+# 🏢 Sistema de Gestión Empresarial - Backend
 
-Backend del sistema de turnos desarrollado con Django y MySQL.
+Backend del sistema de gestión empresarial desarrollado con Django y MySQL.
 
-## Requisitos
+## ⚡ Tecnologías Principales
 
-- Python 3.11+
-- MySQL 8.0+
-- Git
+- 🐍 Python 3.11+
+- 🎯 Django 4.2+
+- 🗄️ MySQL 8.0+
+- 🔄 Django REST Framework
+- 🔒 JWT Authentication
+- 📝 Swagger/OpenAPI
 
-## Instalación
+## 📋 Requisitos Previos
 
-1. Clonar el repositorio:
+- 🐍 Python 3.11+
+- 🗄️ MySQL 8.0+
+- 📦 Git
+
+## 🚀 Instalación
+
+1. **Clonar el repositorio:**
 ```bash
-git clone [URL_DEL_REPOSITORIO]
+git clone https://github.com/RegencyRRHH/HorasSistem.git
 cd HorasSistem_Backend
 ```
 
-2. Crear y activar el entorno virtual:
+2. **Crear y activar el entorno virtual:**
 ```bash
 python -m venv venv
-.\venv\Scripts\activate  # Windows
-source venv/bin/activate  # Linux/Mac
+.\venv\Scripts\activate
 ```
 
-3. Instalar dependencias:
+3. **Instalar dependencias:**
 ```bash
 pip install -r requirements.txt
 ```
 
-4. Configurar la base de datos:
-- Crear una base de datos MySQL llamada 'turnos'
-- Configurar las credenciales en el archivo `.env`
+4. **Configurar variables de entorno:**
+   - 📝 Crear archivo `.env` en la raíz
+   - ⚙️ Configurar las siguientes variables:
+```env
+DEBUG=True
+SECRET_KEY=your-secret-key
+DB_NAME=horassistema
+DB_USER=your_user
+DB_PASSWORD=your_password
+DB_HOST=localhost
+DB_PORT=3306
+```
 
-5. Ejecutar migraciones:
+5. **Ejecutar migraciones:**
 ```bash
 python manage.py migrate
 ```
 
-6. Iniciar el servidor:
+6. **Crear superusuario:**
+```bash
+python manage.py createsuperuser
+```
+
+7. **Iniciar servidor:**
 ```bash
 python manage.py runserver
 ```
 
-## Documentación de la API
+## 📚 Documentación API
 
-La documentación de la API está disponible en:
-- Swagger UI: `http://localhost:8000/swagger/`
-- ReDoc: `http://localhost:8000/redoc/`
+- 📘 Swagger UI: `http://localhost:8000/swagger/`
+- 📗 ReDoc: `http://localhost:8000/redoc/`
 
-## Estructura del Proyecto
+## 📁 Estructura del Proyecto
 
 ```
 HorasSistem_Backend/
-├── venv/                  # Entorno virtual
-├── horas_sistema/        # Proyecto Django
-│   ├── settings.py       # Configuraciones
-│   ├── urls.py          # URLs principales
-│   └── wsgi.py          # Configuración WSGI
-├── prueba/              # Aplicación de prueba
-├── manage.py            # Script de administración
-├── requirements.txt     # Dependencias
-├── .env                # Variables de entorno
-└── .gitignore         # Archivos a ignorar en git
+├── 📂 empresas/          # Gestión empresarial
+├── 👥 usuarios/          # Autenticación y usuarios
+├── ⚙️ horas_sistema/     # Configuración principal
+│   ├── settings/        # Configuraciones
+│   ├── urls.py         # URLs principales
+│   └── wsgi.py         # Config WSGI
+├── 📝 requirements/     # Requisitos
+└── ⚡ manage.py         # Script admin
 ```
 
-## Características
+## 🔑 Características Principales
 
-- API REST con Django REST Framework
-- Documentación con Swagger/OpenAPI
-- Base de datos MySQL
-- CORS configurado
-- Autenticación y autorización
-- Panel de administración Django
+- 🔒 Autenticación JWT
+- 📊 Panel administrativo personalizado
+- 🌐 API REST completa
+- 📝 Documentación automática
+- 🛡️ CORS configurado
+- 🔐 Gestión de permisos
 
-## Desarrollo
+## 🛣️ Endpoints Principales
 
-Para contribuir al proyecto:
+- 🏢 `/api/empresas/` - Gestión de empresas
+- 📊 `/api/unidades/` - Unidades de negocio
+- 📋 `/api/proyectos/` - Gestión de proyectos
+- 🏗️ `/api/centros-operativos/` - Centros operativos
+- 👥 `/api/cargos/` - Catálogo de cargos
 
-1. Crear una rama para tu feature:
+## 🤝 Contribución
+
+1. **Crear rama feature:**
 ```bash
 git checkout -b feature/nueva-funcionalidad
 ```
 
-2. Hacer commit de tus cambios:
+2. **Commits significativos:**
 ```bash
-git commit -m "Añade nueva funcionalidad"
+git commit -m "feat: añade nueva funcionalidad"
 ```
 
-3. Subir los cambios:
+3. **Push de cambios:**
 ```bash
 git push origin feature/nueva-funcionalidad
 ```
 
-## Licencia
+## 📜 Convenciones
 
-Este proyecto está bajo la Licencia MIT. 
+- 📝 Commits siguiendo [Conventional Commits](https://www.conventionalcommits.org/)
+- 🐍 Código siguiendo [PEP 8](https://www.python.org/dev/peps/pep-0008/)
+- 📚 Documentación en español
+
+## ⚖️ Licencia
+
+Este proyecto está bajo la Licencia Regency SaS.
+
+## 💬 Soporte
+
+Para reportar problemas o sugerir mejoras, por favor crear un issue en el repositorio.
