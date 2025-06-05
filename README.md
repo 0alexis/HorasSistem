@@ -127,6 +127,6 @@ git push origin feature/nueva-funcionalidad
 
 Este proyecto está bajo la Licencia Regency SaS.
 
-## 💬 Soporte
 
-Para reportar problemas o sugerir mejoras, por favor crear un issue en el repositorio.
+
+
