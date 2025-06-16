@@ -7,7 +7,7 @@ router.register(r'empresas', EmpresaViewSet)
 router.register(r'unidades', UnidadNegocioViewSet)
 router.register(r'proyectos', ProyectoViewSet)
 router.register(r'centros-operativos', CentroOperativoViewSet)
-router.register(r'cargos', CargoViewSet)
+router.register(r'cargo', CargoViewSet)
 
 urlpatterns = [
     path('', include(router.urls)),

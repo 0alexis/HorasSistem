@@ -54,22 +54,31 @@ class ProyectoSerializer(serializers.ModelSerializer):
         ]
 
 class CentroOperativoSerializer(serializers.ModelSerializer):
+    cargos_asignados = serializers.SerializerMethodField()
     proyectos_info = serializers.SerializerMethodField()
-    nombre = serializers.CharField(validators=[validate_text_no_script], max_length=200)
-    
+
     class Meta:
         model = CentroOperativo
         fields = '__all__'
+
+    def get_cargos_asignados(self, obj):
+        return [
+            {
+                'id': cargo.id,
+                'cargo': cargo.cargo_predefinido.nombre,
+                'nivel': cargo.cargo_predefinido.get_nivel_display(),
+                'area': cargo.cargo_predefinido.get_area_display(),
+                'activo': cargo.activo,
+                'descripcion_especifica': cargo.descripcion_especifica
+            }
+            for cargo in obj.cargos.all().select_related('cargo_predefinido')
+        ]
 
     def get_proyectos_info(self, obj):
         return [
             {
                 'id': proyecto.id,
-                'nombre': proyecto.nombre,
-                'unidades_negocio': [
-                    {'id': un.id, 'nombre': un.nombre}
-                    for un in proyecto.unidades_negocio.all()
-                ]
+                'nombre': proyecto.nombre
             }
             for proyecto in obj.proyectos.all()
         ]

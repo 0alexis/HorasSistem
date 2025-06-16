@@ -12,7 +12,6 @@ ENV/
 local_settings.py
 db.sqlite3
 db.sqlite3-journal
-media/
 
 # Environment variables
 .env
@@ -25,4 +24,11 @@ media/
 
 # OS
 .DS_Store
-Thumbs.db 
+Thumbs.db
+
+# Directories
+logs/
+backups/
+media/
+static/
+!static/.gitkeep

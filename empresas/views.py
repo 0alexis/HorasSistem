@@ -1,5 +1,11 @@
+from django.db import connections
+from django.db.utils import OperationalError
 from rest_framework import viewsets, filters
+from rest_framework.decorators import api_view
 from rest_framework.permissions import IsAuthenticated
+from rest_framework.response import Response
+from rest_framework import status
+
 from .models import Empresa, UnidadNegocio, Proyecto, CentroOperativo, Cargo
 from .serializers import EmpresaSerializer, UnidadNegocioSerializer, ProyectoSerializer, CentroOperativoSerializer, CargoSerializer
 
@@ -63,3 +69,18 @@ class CargoViewSet(viewsets.ModelViewSet):
     filter_backends = [filters.SearchFilter, filters.OrderingFilter]
     search_fields = ['nombre', 'centro_operativo__nombre']
     ordering_fields = ['nombre', 'creado_en']
+
+@api_view(['GET'])
+def database_health_check(request):
+    try:
+        db_conn = connections['default']
+        db_conn.cursor()
+        return Response(
+            {"status": "healthy", "message": "Database connection successful"},
+            status=status.HTTP_200_OK
+        )
+    except OperationalError:
+        return Response(
+            {"status": "unhealthy", "message": "Database connection failed"},
+            status=status.HTTP_503_SERVICE_UNAVAILABLE
+        )

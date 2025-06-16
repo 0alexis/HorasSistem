@@ -1,5 +1,12 @@
 from django.contrib import admin
-from .models import Empresa, UnidadNegocio, Proyecto, CentroOperativo, CargoPredefinido, Cargo
+from .models import (
+    Empresa, 
+    UnidadNegocio, 
+    Proyecto, 
+    CentroOperativo, 
+    CargoPredefinido, 
+    Cargo
+)
 
 @admin.register(Empresa)
 class EmpresaAdmin(admin.ModelAdmin):
@@ -9,43 +16,44 @@ class EmpresaAdmin(admin.ModelAdmin):
 
 @admin.register(UnidadNegocio)
 class UnidadNegocioAdmin(admin.ModelAdmin):
-    list_display = ('nombre', 'get_empresas', 'fecha_inicio', 'activo')
-    list_filter = ('activo', 'fecha_inicio')
-    search_fields = ('nombre', 'empresas__nombre')
-    filter_horizontal = ('empresas',)
-
-    def get_empresas(self, obj):
-        return ", ".join([empresa.nombre for empresa in obj.empresas.all()])
-    get_empresas.short_description = 'Empresas'
+    list_display = ('nombre', 'fecha_inicio', 'responsable', 'activo')
+    list_filter = ('activo', 'estado_uen')
+    search_fields = ('nombre', 'descripcion')
+    filter_horizontal = ('empresas',)  # Mantiene la facilidad de asignar empresas
+    fieldsets = (
+        (None, {
+            'fields': ('nombre', 'descripcion')
+        }),
+        ('Fechas', {
+            'fields': ('fecha_inicio', 'fecha_fin')
+        }),
+        ('Estado y Asignaciones', {
+            'fields': ('responsable', 'empresas', 'activo', 'estado_uen')
+        })
+    )
 
 @admin.register(Proyecto)
 class ProyectoAdmin(admin.ModelAdmin):
-    list_display = ('nombre', 'get_unidades_negocio', 'fecha_inicio', 'responsable', 'activo')
-    list_filter = ('activo', 'fecha_inicio', 'unidades_negocio')
-    search_fields = ('nombre', 'unidades_negocio__nombre', 'unidades_negocio__empresas__nombre')
-    filter_horizontal = ('unidades_negocio',)
-    readonly_fields = ('get_empresas_relacionadas',)
-
-    def get_unidades_negocio(self, obj):
-        return ", ".join([un.nombre for un in obj.unidades_negocio.all()])
-    get_unidades_negocio.short_description = 'Unidades de Negocio'
-
-    def get_empresas_relacionadas(self, obj):
-        empresas = set()
-        for unidad in obj.unidades_negocio.all():
-            empresas.update(unidad.empresas.all())
-        return ", ".join([emp.nombre for emp in empresas])
-    get_empresas_relacionadas.short_description = 'Empresas Relacionadas'
-
+    list_display = ('nombre', 'id_empresa_proyecto', 'fecha_inicio', 'responsable', 'activo')
+    list_filter = ('activo', 'id_empresa_proyecto')
+    search_fields = ('nombre', 'descripcion')
+    
     fieldsets = (
         (None, {
-            'fields': ('nombre', 'descripcion', 'fecha_inicio', 'fecha_fin', 'responsable', 'activo')
+            'fields': ('nombre', 'descripcion', 'id_empresa_proyecto')
         }),
-        ('Relaciones', {
-            'fields': ('unidades_negocio', 'get_empresas_relacionadas'),
-            'classes': ('collapse',)
+        ('Fechas', {
+            'fields': ('fecha_inicio', 'fecha_fin')
         }),
+        ('Asignaciones', {
+            'fields': ('responsable', 'activo')
+        })
     )
+
+    def get_form(self, request, obj=None, **kwargs):
+        form = super().get_form(request, obj, **kwargs)
+        form.base_fields['id_empresa_proyecto'].required = True
+        return form
 
 @admin.register(CentroOperativo)
 class CentroOperativoAdmin(admin.ModelAdmin):

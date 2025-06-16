@@ -1,35 +1,37 @@
 from django.contrib import admin
-from django.contrib.auth import get_user_model
 from django.contrib.auth.admin import UserAdmin
-
-Usuario = get_user_model()
+from .models import Usuario, Tercero, CodigoTurno
 
 @admin.register(Usuario)
 class CustomUserAdmin(UserAdmin):
-    list_display = ('username', 'email', 'get_full_name', 'is_active', 'get_groups')
-    list_filter = ('is_active', 'groups', 'is_staff')
-    search_fields = ('username', 'first_name', 'last_name', 'email')
-    ordering = ('username',)
-    filter_horizontal = ('groups', 'user_permissions')
-
+    list_display = ('username', 'email', 'nombre_usuario', 'estado')
+    list_filter = ('estado', 'is_staff', 'is_superuser')
+    search_fields = ('username', 'email', 'nombre_usuario')
     fieldsets = (
-        ('Información Personal', {
-            'fields': ('username', 'password', 'first_name', 'last_name', 'email')
-        }),
-        ('Permisos', {
-            'fields': ('is_active', 'is_staff', 'is_superuser', 'groups', 'user_permissions'),
-            'classes': ('collapse',)
-        }),
-        ('Fechas Importantes', {
-            'fields': ('last_login', 'date_joined'),
-            'classes': ('collapse',)
+        (None, {'fields': ('username', 'password')}),
+        ('Información Personal', {'fields': ('nombre_usuario', 'email', 'tercero')}),
+        ('Permisos', {'fields': ('is_active', 'is_staff', 'is_superuser', 'groups', 'user_permissions')}),
+        ('Estado', {'fields': ('estado',)}),
+    )
+    add_fieldsets = (
+        (None, {
+            'classes': ('wide',),
+            'fields': ('username', 'password1', 'password2', 'nombre_usuario', 'email', 'tercero', 'estado'),
         }),
     )
 
-    def get_full_name(self, obj):
-        return f"{obj.first_name} {obj.last_name}".strip() or "-"
-    get_full_name.short_description = "Nombre Completo"
+@admin.register(Tercero)
+class TerceroAdmin(admin.ModelAdmin):
+    list_display = ('nombre_tercero', 'apellido_tercero', 'documento', 'estado_tercero')
+    list_filter = ('estado_tercero',)  # Removido 'id_empresa_tercero'
+    search_fields = ('nombre_tercero', 'apellido_tercero', 'documento')
 
-    def get_groups(self, obj):
-        return ", ".join([group.name for group in obj.groups.all()]) or "-"
-    get_groups.short_description = "Grupos"
+    def get_empresas(self, obj):
+        return ", ".join([asignacion.empresa.nombre for asignacion in obj.empresas.through.objects.filter(tercero=obj)])
+    get_empresas.short_description = 'Empresas'
+
+@admin.register(CodigoTurno)
+class CodigoTurnoAdmin(admin.ModelAdmin):
+    list_display = ('letra_turno', 'hora_inicio', 'hora_final', 'estado_codigo')
+    list_filter = ('estado_codigo',)
+    search_fields = ('letra_turno',)

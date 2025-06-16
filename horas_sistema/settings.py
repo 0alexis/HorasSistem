@@ -11,22 +11,98 @@ https://docs.djangoproject.com/en/5.0/ref/settings/
 """
 
 from pathlib import Path
+import os
+from dotenv import load_dotenv
 from datetime import timedelta
+
+
+# Load environment variables
+load_dotenv()
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
+LOGS_DIR = BASE_DIR / 'logs'
+BACKUP_DIR = BASE_DIR / 'backups'
 
-
-# Quick-start development settings - unsuitable for production
-# See https://docs.djangoproject.com/en/5.0/howto/deployment/checklist/
+# Ensure directories exist
+for directory in [LOGS_DIR, BACKUP_DIR]:
+    directory.mkdir(parents=True, exist_ok=True)
 
 # SECURITY WARNING: keep the secret key used in production secret!
-SECRET_KEY = 'django-insecure-oypfk^n0g5533z9n+$xvssf#w^ky2li-wp263cn5jx*4*da4gx'
+SECRET_KEY = os.getenv('SECRET_KEY')
 
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
+ALLOWED_HOSTS = ['*']
 
-ALLOWED_HOSTS = []
+# Database Configuration
+DATABASES = {
+    'default': {
+        'ENGINE': 'django.db.backends.mysql',
+        'NAME': os.getenv('DB_NAME', 'horassistema'),
+        'USER': os.getenv('DB_USER', 'root'),
+        'PASSWORD': os.getenv('DB_PASSWORD', 'root'),
+        'HOST': os.getenv('DB_HOST', 'localhost'),
+        'PORT': os.getenv('DB_PORT', '3306'),
+        'OPTIONS': {
+            'init_command': "SET sql_mode='STRICT_TRANS_TABLES'",
+            'charset': 'utf8mb4',
+        }
+    }
+}
+
+# Cache Configuration
+CACHES = {
+    'default': {
+        'BACKEND': 'django.core.cache.backends.db.DatabaseCache',
+        'LOCATION': 'django_cache',
+        'TIMEOUT': 300,
+        'OPTIONS': {
+            'MAX_ENTRIES': 1000,
+            'CULL_FREQUENCY': 3,
+        }
+    }
+}
+
+# Logging Configuration 
+LOGGING = {
+    'version': 1,
+    'disable_existing_loggers': False,
+    'handlers': {
+        'db_file': {
+            'level': 'DEBUG',
+            'class': 'logging.FileHandler',
+            'filename': str(LOGS_DIR / 'db.log'),
+            'formatter': 'verbose',
+        }
+    },
+    'formatters': {
+        'verbose': {
+            'format': '{levelname} {asctime} {module} {message}',
+            'style': '{',
+        }
+    },
+    'loggers': {
+        'django.db.backends': {
+            'handlers': ['db_file'],
+            'level': 'DEBUG',
+            'propagate': False,
+        }
+    }
+}
+
+# Database Backup Settings
+DBBACKUP_STORAGE = 'django.core.files.storage.FileSystemStorage'
+DBBACKUP_STORAGE_OPTIONS = {'location': str(BACKUP_DIR)}
+DBBACKUP_DATE_FORMAT = '%Y-%m-%d-%H%M%S'
+DBBACKUP_CLEANUP_KEEP = 5  # Keep last 5 backups
+
+# Database Constraints
+DB_CONSTRAINTS = {
+    'MAX_STRING_LENGTH': 255,
+    'MAX_TEXT_LENGTH': 65535,
+    'MAX_UPLOAD_SIZE': 5242880,  # 5MB
+}
 
 
 # Application definition
@@ -42,7 +118,7 @@ INSTALLED_APPS = [
     'rest_framework',
     'drf_yasg',
     'usuarios',
-    'empresas',
+    'empresas'
 ]
 
 MIDDLEWARE = [
@@ -76,22 +152,6 @@ TEMPLATES = [
 WSGI_APPLICATION = 'horas_sistema.wsgi.application'
 
 
-# Database
-# https://docs.djangoproject.com/en/5.0/ref/settings/#databases
-
-# Configuración de la base de datos MySQL
-DATABASES = {
-    'default': {
-        'ENGINE': 'django.db.backends.mysql',
-        'NAME': 'horassistema',
-        'USER': 'root',
-        'PASSWORD': 'root',
-        'HOST': 'localhost',
-        'PORT': '3306',
-    }
-}
-
-
 # Password validation
 # https://docs.djangoproject.com/en/5.0/ref/settings/#auth-password-validators
 
@@ -111,12 +171,21 @@ AUTH_PASSWORD_VALIDATORS = [
 ]
 
 
-# Internationalization
-# https://docs.djangoproject.com/en/5.0/topics/i18n/
+# Migration settings
+#MIGRATION_MODULES = {
+#    'usuarios': 'usuarios.migrations',
+#    'empresas': 'empresas.migrations',
+#}
 
-LANGUAGE_CODE = 'en-us'
+# Configuración de autenticación
+AUTH_USER_MODEL = 'usuarios.Usuario'
 
-TIME_ZONE = 'UTC'
+# Database migration locking
+DATABASES['default']['ATOMIC_REQUESTS'] = True
+
+# Internationalization (actualizar para español)
+LANGUAGE_CODE = 'es-co'
+TIME_ZONE = 'America/Bogota'
 
 USE_I18N = True
 
@@ -127,14 +196,16 @@ USE_TZ = True
 # https://docs.djangoproject.com/en/5.0/howto/static-files/
 
 STATIC_URL = 'static/'
+STATIC_ROOT = BASE_DIR / 'static'
+MEDIA_ROOT = BASE_DIR / 'media'
+MEDIA_URL = '/media/'
 
 # Default primary key field type
 # https://docs.djangoproject.com/en/5.0/ref/settings/#default-auto-field
 
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 
-# Configuración de autenticación
-AUTH_USER_MODEL = 'usuarios.Usuario'
+
 
 # Configuración de CORS
 CORS_ALLOW_ALL_ORIGINS = True

@@ -1,21 +1,21 @@
-from django.contrib.auth.models import AbstractUser, Group, Permission
+from django.contrib.auth.models import AbstractUser, Permission
 from django.db import models
 
 class Usuario(AbstractUser):
     """
     Modelo de usuario personalizado que extiende el modelo de usuario de Django
     """
-    email = models.EmailField(unique=True)
-    is_active = models.BooleanField(default=True)
+    nombre_usuario = models.CharField(max_length=200)
+    tercero = models.ForeignKey('Tercero', on_delete=models.CASCADE, null=True)
+    estado = models.BooleanField(default=True)
     fecha_creacion = models.DateTimeField(auto_now_add=True)
     fecha_actualizacion = models.DateTimeField(auto_now=True)
-    telefono = models.CharField(max_length=15, blank=True, null=True)
-    direccion = models.TextField(blank=True, null=True)
 
     class Meta:
         verbose_name = 'Usuario'
         verbose_name_plural = 'Usuarios'
-        ordering = ['-fecha_creacion']
+        db_table = 'usuarios_usuario'
+        swappable = 'AUTH_USER_MODEL'
 
     def __str__(self):
         return self.username
@@ -28,22 +28,36 @@ class Rol(models.Model):
     descripcion = models.TextField(blank=True)
     permisos = models.ManyToManyField(Permission, blank=True)
     fecha_creacion = models.DateTimeField(auto_now_add=True)
-    fecha_actualizacion = models.DateTimeField(auto_now=True)
+    activo = models.BooleanField(default=True)
 
     class Meta:
         verbose_name = 'Rol'
         verbose_name_plural = 'Roles'
-        ordering = ['nombre']
 
     def __str__(self):
         return self.nombre
 
 class Tercero(models.Model):
-    nombre = models.CharField(max_length=200)
-    identificacion = models.CharField(max_length=20, unique=True)
-    email = models.EmailField(blank=True)
-    telefono = models.CharField(max_length=20, blank=True)
-    direccion = models.CharField(max_length=200, blank=True)
+    id_tercero = models.AutoField(primary_key=True)
+    documento = models.CharField(max_length=20)
+    nombre_tercero = models.CharField(max_length=200)
+    apellido_tercero = models.CharField(max_length=200)
+    correo_tercero = models.EmailField(max_length=300)
+    estado_tercero = models.IntegerField(default=1)
+
+    class Meta:
+        verbose_name = 'Tercero'
+        verbose_name_plural = 'Terceros'
 
     def __str__(self):
-        return self.nombre
+        return f"{self.nombre_tercero} {self.apellido_tercero}"
+
+class CodigoTurno(models.Model):
+    id_codigo_turnos = models.AutoField(primary_key=True)
+    letra_turno = models.CharField(max_length=10)
+    hora_inicio = models.TimeField()
+    hora_final = models.TimeField()
+    estado_codigo = models.IntegerField(default=1)
+
+    def __str__(self):
+        return self.letra_turno
