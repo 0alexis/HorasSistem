@@ -57,10 +57,14 @@ class ProyectoAdmin(admin.ModelAdmin):
 
 @admin.register(CentroOperativo)
 class CentroOperativoAdmin(admin.ModelAdmin):
-    list_display = ('nombre', 'ciudad', 'get_proyectos', 'responsable', 'activo')
+    list_display = ('nombre', 'ciudad', 'get_proyectos', 'get_terceros_count', 'responsable', 'activo')
     list_filter = ('activo', 'ciudad', 'proyectos')
     search_fields = ('nombre', 'ciudad', 'proyectos__nombre')
     filter_horizontal = ('proyectos',)
+
+    def get_terceros_count(self, obj):
+        return obj.terceros.count()
+    get_terceros_count.short_description = 'Terceros'
 
     def get_proyectos(self, obj):
         return ", ".join([proyecto.nombre for proyecto in obj.proyectos.all()])
@@ -85,7 +89,11 @@ class CargoPredefinidoAdmin(admin.ModelAdmin):
 
 @admin.register(Cargo)
 class CargoAdmin(admin.ModelAdmin):
-    list_display = ('cargo_predefinido', 'centro_operativo', 'activo')
-    list_filter = ('cargo_predefinido__nivel', 'cargo_predefinido__area', 'centro_operativo', 'activo')
-    search_fields = ('cargo_predefinido__nombre', 'centro_operativo__nombre')
-    ordering = ('cargo_predefinido__nivel', 'cargo_predefinido__nombre')
+    list_display = ('nombre', 'activo', 'get_terceros_count')
+    list_filter = ('activo',)
+    search_fields = ('nombre', 'descripcion')
+    ordering = ['nombre']
+
+    def get_terceros_count(self, obj):
+        return obj.terceros.count()
+    get_terceros_count.short_description = 'Terceros Asignados'

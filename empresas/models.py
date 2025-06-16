@@ -146,23 +146,20 @@ class CargoPredefinido(models.Model):
 
 # Modelo para Cargo
 class Cargo(models.Model):
-    id_cargo = models.AutoField(primary_key=True)  # Del diagrama
-    centro_operativo = models.ForeignKey(CentroOperativo, on_delete=models.CASCADE, related_name='cargos')
-    cargo_predefinido = models.ForeignKey(CargoPredefinido, on_delete=models.PROTECT, related_name='cargos_asignados')
-    descripcion_especifica = models.TextField(blank=True)
+    id_cargo = models.AutoField(primary_key=True)
+    nombre = models.CharField(max_length=200)
+    descripcion = models.TextField(blank=True)
     activo = models.BooleanField(default=True)
     creado_en = models.DateTimeField(auto_now_add=True)
     actualizado_en = models.DateTimeField(auto_now=True)
-    estado_cargo = models.IntegerField(default=1)  # Del diagrama
-
-    def __str__(self):
-        return f"{self.cargo_predefinido.nombre} en {self.centro_operativo.nombre}"
 
     class Meta:
         verbose_name = 'Cargo'
         verbose_name_plural = 'Cargos'
-        ordering = ['cargo_predefinido__nivel', 'cargo_predefinido__nombre']
-        unique_together = ['centro_operativo', 'cargo_predefinido']
+        ordering = ['nombre']
+
+    def __str__(self):
+        return self.nombre
 
 # Modelo para AsignacionTerceroEmpresa
 class AsignacionTerceroEmpresa(models.Model):

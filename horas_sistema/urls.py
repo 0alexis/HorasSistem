@@ -22,12 +22,12 @@ from drf_yasg import openapi
 
 schema_view = get_schema_view(
     openapi.Info(
-        title="API de Sistema de Turnos",
+        title="Horas Sistema API",
         default_version='v1',
-        description="API para el sistema de turnos",
+        description="API Documentation for Horas Sistema",
         terms_of_service="https://www.google.com/policies/terms/",
-        contact=openapi.Contact(email="alexisguaza07@gmail.com"),
-        license=openapi.License(name="Regency S.A License"),
+        contact=openapi.Contact(email="contact@snippets.local"),
+        license=openapi.License(name="BSD License"),
     ),
     public=True,
     permission_classes=(permissions.AllowAny,),

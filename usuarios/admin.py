@@ -22,16 +22,31 @@ class CustomUserAdmin(UserAdmin):
 
 @admin.register(Tercero)
 class TerceroAdmin(admin.ModelAdmin):
-    list_display = ('nombre_tercero', 'apellido_tercero', 'documento', 'estado_tercero')
-    list_filter = ('estado_tercero',)  # Removido 'id_empresa_tercero'
+    list_display = ('nombre_tercero', 'apellido_tercero', 'documento', 'cargo', 'centro_operativo', 'estado_tercero')
+    list_filter = ('estado_tercero', 'cargo', 'centro_operativo')
     search_fields = ('nombre_tercero', 'apellido_tercero', 'documento')
+    raw_id_fields = ('cargo', 'centro_operativo')
 
-    def get_empresas(self, obj):
-        return ", ".join([asignacion.empresa.nombre for asignacion in obj.empresas.through.objects.filter(tercero=obj)])
-    get_empresas.short_description = 'Empresas'
+    fieldsets = (
+        (None, {
+            'fields': ('documento', 'nombre_tercero', 'apellido_tercero', 'correo_tercero')
+        }),
+        ('Asignaciones', {
+            'fields': ('cargo', 'centro_operativo')
+        }),
+        ('Estado', {
+            'fields': ('estado_tercero',)
+        })
+    )
 
 @admin.register(CodigoTurno)
 class CodigoTurnoAdmin(admin.ModelAdmin):
-    list_display = ('letra_turno', 'hora_inicio', 'hora_final', 'estado_codigo')
-    list_filter = ('estado_codigo',)
+    list_display = ('letra_turno', 'tipo', 'get_horario', 'estado_codigo')
+    list_filter = ('tipo', 'estado_codigo')
     search_fields = ('letra_turno',)
+
+    def get_horario(self, obj):
+        if obj.tipo == 'D':
+            return 'Descanso'
+        return f"{obj.hora_inicio} - {obj.hora_final}"
+    get_horario.short_description = 'Horario'
