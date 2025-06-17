@@ -152,6 +152,11 @@ class Cargo(models.Model):
     activo = models.BooleanField(default=True)
     creado_en = models.DateTimeField(auto_now_add=True)
     actualizado_en = models.DateTimeField(auto_now=True)
+    centro_operativo = models.ForeignKey(
+        CentroOperativo,
+        on_delete=models.PROTECT,
+        related_name='cargos'  # Changed from cargo_set to cargos
+    )
 
     class Meta:
         verbose_name = 'Cargo'

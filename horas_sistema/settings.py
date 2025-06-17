@@ -120,6 +120,7 @@ INSTALLED_APPS = [
     'usuarios',
     'empresas',
     'programacion',
+    'programacion_models',
 ]
 
 MIDDLEWARE = [
@@ -137,7 +138,9 @@ ROOT_URLCONF = 'horas_sistema.urls'
 TEMPLATES = [
     {
         'BACKEND': 'django.template.backends.django.DjangoTemplates',
-        'DIRS': [],
+        'DIRS': [
+            BASE_DIR / 'templates', # template de html para visualizar la programacion de turnos en el administrador, luego en el front debe cambiarse y mejorarse para consumirse y ser optimo
+        ],
         'APP_DIRS': True,
         'OPTIONS': {
             'context_processors': [
