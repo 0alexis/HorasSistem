@@ -1,0 +1,9 @@
+<h1>Patrones Base</h1>
+<ul>
+  {% for patron in object_list %}
+    <li>
+      <a href="{% url 'patronbase-detail' patron.pk %}">{{ patron.nombre }}</a>
+      ({{ patron.tipo_patron }})
+    </li>
+  {% endfor %}
+</ul>

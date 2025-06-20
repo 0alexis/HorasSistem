@@ -119,7 +119,7 @@ INSTALLED_APPS = [
     'drf_yasg',
     'usuarios',
     'empresas',
-    'programacion',
+    
     'programacion_models',
 ]
 

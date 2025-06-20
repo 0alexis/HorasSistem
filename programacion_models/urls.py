@@ -1,9 +1,9 @@
 from django.urls import path
-from .views import ModeloTurnoListView, ModeloTurnoDetailView
+from .views import PatronBaseListView, PatronBaseDetailView
 
 app_name = 'programacion_models'
 
 urlpatterns = [
-    path('', ModeloTurnoListView.as_view(), name='modelo_list'),
-    path('<int:pk>/', ModeloTurnoDetailView.as_view(), name='modelo_detail'),
+    path('patrones/', PatronBaseListView.as_view(), name='patronbase-list'),
+    path('patrones/<int:pk>/', PatronBaseDetailView.as_view(), name='patronbase-detail'),
 ]
