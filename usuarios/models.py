@@ -1,4 +1,4 @@
-from django.contrib.auth.models import AbstractUser, Permission
+from django.contrib.auth.models import AbstractUser, Permission, Group
 from django.db import models
 from django.core.exceptions import ValidationError
 
@@ -7,6 +7,8 @@ class Usuario(AbstractUser):
     Modelo de usuario personalizado que extiende el modelo de usuario de Django
     """
     nombre_usuario = models.CharField(max_length=200)
+    centro_operativo = models.ForeignKey('empresas.CentroOperativo', on_delete=models.PROTECT, null=True, blank=True)
+    cargo = models.ForeignKey('empresas.Cargo', on_delete=models.PROTECT, null=True, blank=True)
     tercero = models.ForeignKey('Tercero', on_delete=models.CASCADE, null=True)
     estado = models.BooleanField(default=True)
     fecha_creacion = models.DateTimeField(auto_now_add=True)
@@ -106,3 +108,27 @@ class CodigoTurno(models.Model):
         if self.tipo == 'D':
             return f"{self.letra_turno} (Descanso)"
         return f"{self.letra_turno} ({self.hora_inicio} - {self.hora_final})"
+
+def crear_usuario_desde_tercero(tercero, username, password, grupo_nombre):
+    """
+    Crea un usuario del sistema a partir de un tercero existente.
+    """
+    # Importa aquí para evitar problemas de importación circular
+    from .models import Usuario
+
+    # Busca el grupo de permisos
+    grupo = Group.objects.get(name=grupo_nombre)
+
+    usuario = Usuario.objects.create_user(
+        username=username,
+        password=password,
+        nombre_usuario=f"{tercero.nombre_tercero} {tercero.apellido_tercero}",
+        tercero=tercero,
+        email=tercero.correo_tercero,
+        estado=True,
+    )
+    usuario.cargo = tercero.cargo  # Si tienes este campo en Usuario
+    usuario.centro_operativo = tercero.centro_operativo  # Si tienes este campo en Usuario
+    usuario.save()
+    usuario.groups.add(grupo)
+    return usuario
