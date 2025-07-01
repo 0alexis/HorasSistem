@@ -1,6 +1,6 @@
 from django.contrib import admin
 from django.utils.html import format_html
-from .modelos_turnos.patrones_base import PatronBase
+from .patrones_base.patrones_base import PatronBase
 from .models import ModeloTurno
 from .forms import ModeloTurnoForm
 

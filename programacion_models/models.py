@@ -1,7 +1,8 @@
 from django.db import models
 from empresas.models import CentroOperativo, UnidadNegocio
-from .modelos_turnos.patrones_base import PatronBase
+from .patrones_base.patrones_base import PatronBase
 
+#creacion de modelos en base a los patrones de turnos
 TIPO_MODELO = [
     ('F', 'Fijo'),
     ('V', 'Variable'),

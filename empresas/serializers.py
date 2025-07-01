@@ -64,20 +64,18 @@ class CentroOperativoSerializer(serializers.ModelSerializer):
     def get_cargos_asignados(self, obj):
         return [
             {
-                'id': cargo.id,
-                'cargo': cargo.cargo_predefinido.nombre,
-                'nivel': cargo.cargo_predefinido.get_nivel_display(),
-                'area': cargo.cargo_predefinido.get_area_display(),
-                'activo': cargo.activo,
-                'descripcion_especifica': cargo.descripcion_especifica
+                'id': cargo.id_cargo,
+                'nombre': cargo.nombre,
+                'descripcion': cargo.descripcion,
+                'activo': cargo.activo
             }
-            for cargo in obj.cargos.all().select_related('cargo_predefinido')
+            for cargo in obj.cargos.all()
         ]
 
     def get_proyectos_info(self, obj):
         return [
             {
-                'id': proyecto.id,
+                'id': proyecto.id_proyecto,
                 'nombre': proyecto.nombre
             }
             for proyecto in obj.proyectos.all()
@@ -89,15 +87,6 @@ class CargoPredefinidoSerializer(serializers.ModelSerializer):
         fields = '__all__'
 
 class CargoSerializer(serializers.ModelSerializer):
-    cargo_predefinido_info = serializers.SerializerMethodField()
-
     class Meta:
         model = Cargo
         fields = '__all__'
-
-    def get_cargo_predefinido_info(self, obj):
-        return {
-            'id': obj.cargo_predefinido.id,
-            'nombre': obj.cargo_predefinido.nombre,
-            'nivel': obj.cargo_predefinido.get_nivel_display()
-        }
