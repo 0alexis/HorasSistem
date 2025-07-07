@@ -1,0 +1,19 @@
+{% load dict_get %}
+<table border="1" style="border-collapse: collapse;">
+    <tr>
+        <th>Empleado</th>
+        {% for fecha in fechas %}
+            <th>{{ fecha|date:"d/m" }}</th>
+        {% endfor %}
+    </tr>
+    {% for emp in empleados %}
+    <tr>
+        <td>{{ emp.nombre_tercero }}</td>
+        {% for fecha in fechas %}
+            <td style="text-align:center;">
+                {{ malla|dict_get:emp.id_tercero|dict_get:fecha }}
+            </td>
+        {% endfor %}
+    </tr>
+    {% endfor %}
+</table> 

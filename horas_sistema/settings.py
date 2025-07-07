@@ -119,8 +119,8 @@ INSTALLED_APPS = [
     'drf_yasg',
     'usuarios',
     'empresas',
-    
     'programacion_models',
+    'programacion_turnos',
 ]
 
 MIDDLEWARE = [

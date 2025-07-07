@@ -1,20 +1,16 @@
 from django.contrib import admin
-from django.utils.html import format_html
-from .patrones_base.patrones_base import PatronBase
-from .models import ModeloTurno
+from .models import ModeloTurno, LetraTurno
 from .forms import ModeloTurnoForm
 
-
-
-
-@admin.register(PatronBase)
-class PatronBaseAdmin(admin.ModelAdmin):
-    list_display = ('nombre', 'tipo_patron', 'descripcion')
-    search_fields = ('nombre',)
-    exclude = ('matriz',)  # Oculta la matriz en el formulario, ya que se genera automáticamente
+class LetraTurnoInline(admin.TabularInline):
+    model = LetraTurno
+    extra = 0
+    readonly_fields = ('fila', 'columna', 'valor')
+    can_delete = False
 
 @admin.register(ModeloTurno)
 class ModeloTurnoAdmin(admin.ModelAdmin):
     form = ModeloTurnoForm
-    list_display = ('nombre', 'patron_base', 'centro_operativo', 'unidad_negocio', 'tipo')
+    list_display = ('nombre', 'unidad_negocio', 'tipo')
     search_fields = ('nombre',)
+    inlines = [LetraTurnoInline]

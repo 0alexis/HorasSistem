@@ -1,6 +1,5 @@
 from django.db import models
 from empresas.models import CentroOperativo, UnidadNegocio
-from .patrones_base.patrones_base import PatronBase
 
 #creacion de modelos en base a los patrones de turnos
 TIPO_MODELO = [
@@ -11,22 +10,25 @@ TIPO_MODELO = [
 class ModeloTurno(models.Model):
     nombre = models.CharField(max_length=100, unique=True)
     descripcion = models.TextField(blank=True)
-    patron_base = models.ForeignKey(PatronBase, on_delete=models.PROTECT)
-    centro_operativo = models.ForeignKey(CentroOperativo, on_delete=models.PROTECT)
-    unidad_negocio = models.ForeignKey(UnidadNegocio, on_delete=models.PROTECT)
-    tipo = models.CharField(max_length=1, choices=TIPO_MODELO, default='F')
-    matriz_letras = models.JSONField(
-        blank=True, null=True,
-        help_text="Matriz personalizada para este modelo de turno, basada en el patrón base."
-    )
+    unidad_negocio = models.ForeignKey('empresas.UnidadNegocio', on_delete=models.PROTECT)
+    tipo = models.CharField(max_length=1, choices=[('F', 'Fijo'), ('V', 'Variable')], default='F')
     creado_en = models.DateTimeField(auto_now_add=True)
     actualizado_en = models.DateTimeField(auto_now=True)
 
-    def save(self, *args, **kwargs):
-        # Si no hay matriz personalizada, inicializarla copiando la del patrón base
-        if not self.matriz_letras and self.patron_base:
-            self.matriz_letras = [fila.copy() for fila in self.patron_base.matriz]
-        super().save(*args, **kwargs)
+   # def save(self, *args, **kwargs):
+   #     super().save(*args, **kwargs)
 
     def __str__(self):
         return self.nombre
+#modelo para las letras de los turnos por coordenas en eje x y 
+class LetraTurno(models.Model):
+    modelo_turno = models.ForeignKey(ModeloTurno, related_name='letras', on_delete=models.CASCADE)
+    fila = models.PositiveIntegerField()
+    columna = models.PositiveIntegerField()
+    valor = models.CharField(max_length=2)
+
+    class Meta:
+        unique_together = ('modelo_turno', 'fila', 'columna')
+
+    def __str__(self):
+        return f"{self.valor} ({self.fila}, {self.columna})"
