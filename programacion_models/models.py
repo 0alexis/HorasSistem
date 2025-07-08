@@ -15,8 +15,8 @@ class ModeloTurno(models.Model):
     creado_en = models.DateTimeField(auto_now_add=True)
     actualizado_en = models.DateTimeField(auto_now=True)
 
-   # def save(self, *args, **kwargs):
-   #     super().save(*args, **kwargs)
+    def save(self, *args, **kwargs):
+        super().save(*args, **kwargs)
 
     def __str__(self):
         return self.nombre
@@ -32,3 +32,4 @@ class LetraTurno(models.Model):
 
     def __str__(self):
         return f"{self.valor} ({self.fila}, {self.columna})"
+

@@ -7,6 +7,7 @@ from .serializers import ProgramacionHorarioSerializer, AsignacionTurnoSerialize
 from datetime import timedelta
 from usuarios.models import Tercero
 from .utils import programar_turnos
+from .serializers import generar_asignaciones
 
 
 class ProgramacionHorarioViewSet(viewsets.ModelViewSet):
@@ -14,8 +15,11 @@ class ProgramacionHorarioViewSet(viewsets.ModelViewSet):
     serializer_class = ProgramacionHorarioSerializer
 
     def perform_create(self, serializer):
-        print("creacion asignacion turnos para probar que funcione")
+        print("Entrando a perform_create de ProgramacionHorarioViewSet")
         programacion = serializer.save()
+        print(f"Programacion creada: {programacion}")
+        generar_asignaciones(programacion)
+        print("Fin de perform_create")
         empleados = list(Tercero.objects.filter(centro_operativo=programacion.centro_operativo))
         programar_turnos(
             programacion.modelo_turno,

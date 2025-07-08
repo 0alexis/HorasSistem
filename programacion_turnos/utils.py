@@ -1,6 +1,7 @@
 from datetime import timedelta
 from .models import AsignacionTurno
 
+
 def obtener_patron(modelo_turno):
     # Devuelve una matriz de letras (lista de listas) desde la base de datos
     letras = modelo_turno.letras.order_by('fila', 'columna')
@@ -62,28 +63,24 @@ class ProgramadorTurnos:
         return gen.generar(empleados, semanas, patron)
 
 def programar_turnos(modelo_turno, empleados, fecha_inicio, fecha_fin, programacion):
-    print("===> Entrando a programar_turnos")
     letras = modelo_turno.letras.order_by('fila', 'columna')
-    print(f"===> Letras encontradas: {list(letras)}")
+    
     filas = {}
     for l in letras:
         filas.setdefault(l.fila, []).append(l.valor)
     filas_ordenadas = [filas[k] for k in sorted(filas.keys())]
-    print(f"===> Filas ordenadas: {filas_ordenadas}")
     dias = (fecha_fin - fecha_inicio).days + 1
-    print(f"===> Dias a programar: {dias}")
 
     for idx, empleado in enumerate(empleados):
-        print(f"===> Programando para empleado: {empleado}")
-        fila = filas_ordenadas[idx % len(filas_ordenadas)]
+        fila_idx = idx % len(filas_ordenadas)
+        fila = filas_ordenadas[fila_idx]
         for dia_offset in range(dias):
             fecha = fecha_inicio + timedelta(days=dia_offset)
             letra = fila[dia_offset % len(fila)]
-            print(f"===> Asignando {letra} a {empleado} en {fecha}")
             AsignacionTurno.objects.create(
                 programacion=programacion,
                 tercero=empleado,
                 dia=fecha,
-                letra_turno=letra
+                letra_turno=letra,
+                fila = fila_idx
             )
-    print("===> Fin de programar_turnos")

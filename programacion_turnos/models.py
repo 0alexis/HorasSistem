@@ -19,6 +19,8 @@ class AsignacionTurno(models.Model):
     tercero = models.ForeignKey('usuarios.Tercero', on_delete=models.CASCADE)
     dia = models.DateField()
     letra_turno = models.CharField(max_length=2)
+    fila = models.PositiveIntegerField(null= True, blank= True)
+    columna = models.PositiveIntegerField(null= True, blank= True)
 
     def __str__(self):
         return f"{self.tercero} - {self.dia}: {self.letra_turno}"

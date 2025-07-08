@@ -37,6 +37,7 @@ class Migration(migrations.Migration):
                 ('letra_turno', models.CharField(max_length=2)),
                 ('tercero', models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, to='usuarios.tercero')),
                 ('programacion', models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, related_name='asignaciones', to='programacion_turnos.programacionhorario')),
+                
             ],
         ),
     ]

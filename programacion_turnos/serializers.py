@@ -35,40 +35,64 @@ class ModeloTurnoSerializer(serializers.ModelSerializer):
         return instance
 
 def generar_asignaciones(programacion):
-    """
-    Genera las asignaciones de turnos para los terceros de un centro operativo,
-    usando la matriz del modelo base y el rango de fechas de la programación.
-    """
-    terceros = list(programacion.centro_operativo.terceros.all())  # Ajusta según tu modelo
-    matriz = programacion.modelo_turno.matriz_letras  # Matriz de letras (lista de listas)
+    print("Entrando a generar_asignaciones")
+    terceros = list(programacion.centro_operativo.terceros.all())
+    print(f"Terceros encontrados: {terceros}")
     fecha_inicio = programacion.fecha_inicio
     fecha_fin = programacion.fecha_fin
 
+    letras_qs = LetraTurno.objects.filter(modelo_turno=programacion.modelo_turno)
+    print(f"Letras encontradas: {list(letras_qs)}")
+    matriz = {}
+    max_fila = 0
+    max_col = 0
+
+    for letra in letras_qs:
+        if isinstance(letra.valor, list):
+            print(f"Error: valor {letra.valor} es una lista, usando el primer elemento.")
+            matriz[(letra.fila, letra.columna)] = letra.valor[0] if letra.valor else ''
+        else:
+            matriz[(letra.fila, letra.columna)] = letra.valor
+        max_fila = max(max_fila, letra.fila)
+        max_col = max(max_col, letra.columna)
+
     dias = (fecha_fin - fecha_inicio).days + 1
     num_terceros = len(terceros)
-    num_filas = len(matriz)
-    num_columnas = len(matriz[0]) if matriz else 0
+    print(f"Dias: {dias}, Num terceros: {num_terceros}, Max fila: {max_fila}, Max col: {max_col}")
 
-    # Validación básica
-    if num_terceros == 0 or num_filas == 0 or num_columnas == 0:
+    if num_terceros == 0 or not matriz:
+        print("No hay terceros o matriz vacía, no se crean asignaciones.")
         return
 
-    # Asignar turnos ( aqui esta la logica para la programacion de turnos en  base a los terceros de cada centro operativo)
     for idx, tercero in enumerate(terceros):
-        fila = idx % num_filas  # Rota sobre las filas de la matriz
+        fila = idx % (max_fila + 1)
         for dia_offset in range(dias):
             fecha = fecha_inicio + timedelta(days=dia_offset)
-            columna = dia_offset % num_columnas
-            letra = matriz[fila][columna]
-            # Crea la asignación en la base de datos
-            AsignacionTurno.objects.create(
-                programacion=programacion,
-                tercero=tercero,
-                dia=fecha,
-                letra_turno=letra
-            #revisar que en la base de datos no esta tomando las letras de la matriz creada como modelo base
-            )
+            columna = dia_offset % (max_col + 1)
+            letra = matriz.get((fila, columna))
+            #se prueba cambio en la parametrizacion de la columna
+            #columna = dia_offset % len(fila)
+            #letra = fila[columna]
+            print(f"Asignando: tercero={tercero}, fecha={fecha}, letra={letra}, fila={fila}, columna={columna}")
+            if letra: 
+            # try: 
+      #datos a guardar en la tabla, revisar      
+               AsignacionTurno.objects.create(
+                    programacion=programacion, #probando con ProgramacionHorario, iba programacion instanciado
+                    tercero=tercero,
+                    dia=fecha,
+                    letra_turno=letra,
+                    fila=fila,
+                    columna=columna
+                )
+           # except Exception as e:
+            #        print(f"Error al crear asignación: {e}")
+           # else:
+           #     print(f"Skipping invalid letra: {letra}")
+    print("Fin de generar_asignaciones")
 
 def perform_create(self, serializer):
     programacion = serializer.save()
     generar_asignaciones(programacion)
+    #guardar la asignacion que se cree
+    #esta presentando problemas al guardar la asignacion
