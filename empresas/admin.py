@@ -57,7 +57,7 @@ class ProyectoAdmin(admin.ModelAdmin):
 
 @admin.register(CentroOperativo)
 class CentroOperativoAdmin(admin.ModelAdmin):
-    list_display = ('nombre', 'ciudad', 'get_proyectos', 'get_terceros_count', 'responsable', 'activo')
+    list_display = ('nombre', 'ciudad', 'get_proyectos', 'get_terceros_count', 'responsable', 'activo', 'promesa_valor')
     list_filter = ('activo', 'ciudad', 'proyectos')
     search_fields = ('nombre', 'ciudad', 'proyectos__nombre')
     filter_horizontal = ('proyectos',)
@@ -72,7 +72,7 @@ class CentroOperativoAdmin(admin.ModelAdmin):
 
     fieldsets = (
         (None, {
-            'fields': ('nombre', 'descripcion', 'direccion', 'ciudad', 'responsable', 'activo')
+            'fields': ('nombre', 'descripcion', 'direccion', 'ciudad', 'responsable', 'activo', 'promesa_valor')
         }),
         ('Relaciones', {
             'fields': ('proyectos',),

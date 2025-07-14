@@ -1,0 +1,42 @@
+{% extends "admin/change_form.html" %}
+{% block object-tools %}
+  {{ extra_button|safe }}
+  <a class="button" href="http://127.0.0.1:8000/api/malla/{{ original.id }}/" target="_blank">Ver programación</a>
+  {{ block.super }}
+{% endblock %}
+
+{% block content %}
+  <div style="margin-bottom: 1em; padding: 8px; background: #f8f8f8; border: 1px solid #eee;">
+    <strong>Modelo de Turno en uso:</strong>
+    {{ original.modelo_turno }}
+  </div>
+  <div style="margin-bottom: 1em;">
+    <strong>Matriz de Letras:</strong><br>
+    {% with letras=original.modelo_turno.letras.all %}
+      {% if letras %}
+        {% regroup letras by fila as filas %}
+        {% with num_filas=filas|length %}
+          {% with primera_fila=filas.0.list %}
+            {% with num_columnas=primera_fila|length %}
+              <span style="font-size: 90%; color: #666;">Tamaño: {{ num_filas }} x {{ num_columnas }}</span>
+              <table style="border-collapse: collapse; margin-top: 6px;">
+                {% for fila in filas %}
+                  <tr>
+                    {% for letra in fila.list|dictsort:'columna' %}
+                      <td style="border:1px solid #ccc;padding:2px;min-width:24px;text-align:center;">
+                        {{ letra.valor }}
+                      </td>
+                    {% endfor %}
+                  </tr>
+                {% endfor %}
+              </table>
+            {% endwith %}
+          {% endwith %}
+        {% endwith %}
+      {% else %}
+        <span style="color: #a00;">No hay letras configuradas para este modelo.</span>
+      {% endif %}
+    {% endwith %}
+  </div>
+  {{ block.super }}
+{% endblock %} 

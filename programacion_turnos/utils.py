@@ -1,3 +1,16 @@
+"""
+utils.py
+
+Este archivo contiene funciones y clases utilitarias para la programación automática de turnos.
+Permite asignar turnos a empleados según diferentes patrones definidos en los modelos de turno,
+facilitando la extensión a nuevos tipos de patrones y centralizando la lógica de asignación.
+
+Componentes principales:
+- Función para obtener el patrón de turnos desde la base de datos.
+- Generadores de turnos para distintos tipos de patrones (ej: 16D, 6D, etc.).
+- Clase principal para programar turnos usando el generador adecuado.
+- Función utilitaria para crear las asignaciones de turnos en la base de datos.
+"""
 from datetime import timedelta
 from .models import AsignacionTurno
 
@@ -46,6 +59,7 @@ class Generador16D:
         return horarios
 
 # ... (puedes adaptar Generador6D y Generador18D_H igual)
+#pendiente adaptar las demas generadores
 
 class ProgramadorTurnos:
     def __init__(self):
@@ -63,6 +77,22 @@ class ProgramadorTurnos:
         return gen.generar(empleados, semanas, patron)
 
 def programar_turnos(modelo_turno, empleados, fecha_inicio, fecha_fin, programacion):
+    # Obtener el centro operativo desde la instancia de programacion
+    centro_operativo = programacion.centro_operativo if hasattr(programacion, 'centro_operativo') else None
+    pv = getattr(centro_operativo, 'promesa_valor', None)
+    tipo = getattr(modelo_turno, 'tipo', None)
+#calculo para promesa de valor cuando el modelo es fijo
+    if tipo == 'F' and pv is not None:
+        min_personas = pv * 4 #valor predetermiando para puntos fijos
+        if len(empleados) < min_personas:
+            raise ValueError(f"Para modelos de tipo FIJO se requieren al menos {min_personas} personas para realizar esta programacion. Solo hay {len(empleados)} empleados disponibles.")
+   
+   
+    # Dejar la puerta abierta para lógica futura en modelos variables
+    elif tipo == 'V':
+        # TODO: Implementar lógica de validación para modelos variables cuando esté definida
+        pass
+#################################################################
     letras = modelo_turno.letras.order_by('fila', 'columna')
     
     filas = {}
@@ -77,10 +107,12 @@ def programar_turnos(modelo_turno, empleados, fecha_inicio, fecha_fin, programac
         for dia_offset in range(dias):
             fecha = fecha_inicio + timedelta(days=dia_offset)
             letra = fila[dia_offset % len(fila)]
+            columna = dia_offset % len(fila)  #  cálculo correcto según tu lógica
             AsignacionTurno.objects.create(
                 programacion=programacion,
                 tercero=empleado,
                 dia=fecha,
                 letra_turno=letra,
-                fila = fila_idx
+                fila=fila_idx,
+                columna=columna
             )

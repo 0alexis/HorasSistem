@@ -100,6 +100,12 @@ class CentroOperativo(models.Model):
         related_name='centros_operativos',
         verbose_name='Proyectos'
     )
+    promesa_valor = models.IntegerField(
+        verbose_name='Promesa de Valor (Pv)',
+        null=True,
+        blank=True,
+        help_text='Valor informativo de promesa de valor para el centro operativo.'
+    )
 
     class Meta:
         verbose_name = 'Centro Operativo'

@@ -65,7 +65,10 @@ class Tercero(models.Model):
         null=True,
         verbose_name='Centro Operativo'
     )
-    estado_tercero = models.IntegerField(default=1)
+    
+    Estado_Activo = 1
+    Estado_Inactivo = 0
+    estado_tercero = models.IntegerField(default=Estado_Activo)
 
     class Meta:
         verbose_name = 'Tercero'

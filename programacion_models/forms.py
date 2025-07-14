@@ -1,10 +1,11 @@
 from django import forms
 from .models import ModeloTurno
+from django.utils.safestring import mark_safe
 
 class MatrizLetrasWidget(forms.Widget):
     def render(self, name, value, attrs=None, renderer=None):
         if not value:
-            return "<p>La matriz se inicializará después de guardar y editar este modelo.</p>"
+            return mark_safe("<p>La matriz se inicializará después de guardar y editar este modelo.</p>")
         html = '<table style="border-collapse: collapse;">'
         for i, fila in enumerate(value):
             html += '<tr>'
@@ -16,7 +17,7 @@ class MatrizLetrasWidget(forms.Widget):
                 )
             html += '</tr>'
         html += '</table>'
-        return html
+        return mark_safe(html)
 
     def value_from_datadict(self, data, files, name):
         filas = []
@@ -39,9 +40,38 @@ class MatrizLetrasWidget(forms.Widget):
         return filas
 
 class ModeloTurnoForm(forms.ModelForm):
+    matriz_letras = forms.Field(
+        required=False,
+        widget=MatrizLetrasWidget,
+        label="Matriz de Letras"
+    )
+
     class Meta:
         model = ModeloTurno
-        fields = '__all__'
-        widgets = {
-            'matriz_letras': MatrizLetrasWidget(),
-        }
+        fields = ['nombre', 'descripcion', 'unidad_negocio', 'tipo', 'matriz_letras']
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        # Si ya existe el modelo, cargar la matriz actual
+        if self.instance.pk:
+            letras = self.instance.letras.order_by('fila', 'columna')
+            matriz = {}
+            for letra in letras:
+                matriz.setdefault(letra.fila, []).append(letra.valor)
+            self.initial['matriz_letras'] = [matriz[k] for k in sorted(matriz.keys())]
+        else:
+            self.initial['matriz_letras'] = [["" for _ in range(3)] for _ in range(3)]  # Por defecto 3x3
+
+    def save(self, commit=True):
+        instance = super().save(commit=False)
+        matriz = self.cleaned_data.get('matriz_letras', [])
+        if commit:
+            instance.save()  # Asegura que tenga un ID
+            if matriz:
+                # Eliminar letras anteriores
+                instance.letras.all().delete()
+                for fila_idx, fila in enumerate(matriz):
+                    for col_idx, valor in enumerate(fila):
+                        if valor:
+                            instance.letras.create(fila=fila_idx, columna=col_idx, valor=valor)
+        return instance

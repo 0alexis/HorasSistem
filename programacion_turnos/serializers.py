@@ -33,6 +33,15 @@ class ModeloTurnoSerializer(serializers.ModelSerializer):
                             valor=valor
                         )
         return instance
+#extender las fechas dentro de una misma programacion ya antes realizada
+class ProgramacionExtensionSerializer(serializers.Serializer):
+    fecha_inicio_ext = serializers.DateField()
+    fecha_fin_ext = serializers.DateField()
+
+    def validate(self, data):
+        if data['fecha_inicio_ext'] > data['fecha_fin_ext']:
+            raise serializers.ValidationError("La fecha de inicio debe ser anterior o igual a la fecha de fin.")
+        return data
 
 def generar_asignaciones(programacion):
     print("Entrando a generar_asignaciones")

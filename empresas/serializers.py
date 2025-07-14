@@ -56,6 +56,7 @@ class ProyectoSerializer(serializers.ModelSerializer):
 class CentroOperativoSerializer(serializers.ModelSerializer):
     cargos_asignados = serializers.SerializerMethodField()
     proyectos_info = serializers.SerializerMethodField()
+    promesa_valor = serializers.CharField(max_length=200)
 
     class Meta:
         model = CentroOperativo
