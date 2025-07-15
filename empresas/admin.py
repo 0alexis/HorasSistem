@@ -5,19 +5,23 @@ from .models import (
     Proyecto, 
     CentroOperativo, 
     CargoPredefinido, 
-    Cargo
+    Cargo,
+    AsignacionTerceroEmpresa
 )
 
 @admin.register(Empresa)
 class EmpresaAdmin(admin.ModelAdmin):
-    list_display = ('nombre', 'nit', 'email', 'activo')
-    search_fields = ('nombre', 'nit')
+    list_display = ('nombre', 'nit', 'direccion', 'telefono', 'email', 'activo')
     list_filter = ('activo',)
+    search_fields = ('nombre', 'nit', 'email')
+
+    def get_queryset(self, request):
+        return Empresa.all_objects.all()
 
 @admin.register(UnidadNegocio)
 class UnidadNegocioAdmin(admin.ModelAdmin):
-    list_display = ('nombre', 'fecha_inicio', 'responsable', 'activo')
-    list_filter = ('activo', 'estado_uen')
+    list_display = ('nombre', 'descripcion', 'fecha_inicio', 'fecha_fin', 'responsable', 'activo')
+    list_filter = ('activo', 'responsable')
     search_fields = ('nombre', 'descripcion')
     filter_horizontal = ('empresas',)  # Mantiene la facilidad de asignar empresas
     fieldsets = (
@@ -32,10 +36,13 @@ class UnidadNegocioAdmin(admin.ModelAdmin):
         })
     )
 
+    def get_queryset(self, request):
+        return UnidadNegocio.all_objects.all()
+
 @admin.register(Proyecto)
 class ProyectoAdmin(admin.ModelAdmin):
-    list_display = ('nombre', 'id_empresa_proyecto', 'fecha_inicio', 'responsable', 'activo')
-    list_filter = ('activo', 'id_empresa_proyecto')
+    list_display = ('nombre', 'descripcion', 'fecha_inicio', 'fecha_fin', 'id_empresa_proyecto', 'responsable', 'activo')
+    list_filter = ('activo', 'id_empresa_proyecto', 'responsable')
     search_fields = ('nombre', 'descripcion')
     
     fieldsets = (
@@ -54,6 +61,9 @@ class ProyectoAdmin(admin.ModelAdmin):
         form = super().get_form(request, obj, **kwargs)
         form.base_fields['id_empresa_proyecto'].required = True
         return form
+
+    def get_queryset(self, request):
+        return Proyecto.all_objects.all()
 
 @admin.register(CentroOperativo)
 class CentroOperativoAdmin(admin.ModelAdmin):
@@ -89,11 +99,9 @@ class CargoPredefinidoAdmin(admin.ModelAdmin):
 
 @admin.register(Cargo)
 class CargoAdmin(admin.ModelAdmin):
-    list_display = ('nombre', 'activo', 'get_terceros_count')
-    list_filter = ('activo',)
+    list_display = ('nombre', 'descripcion', 'centro_operativo', 'activo')
+    list_filter = ('activo', 'centro_operativo')
     search_fields = ('nombre', 'descripcion')
-    ordering = ['nombre']
 
-    def get_terceros_count(self, obj):
-        return obj.terceros.count()
-    get_terceros_count.short_description = 'Terceros Asignados'
+    def get_queryset(self, request):
+        return Cargo.all_objects.all()

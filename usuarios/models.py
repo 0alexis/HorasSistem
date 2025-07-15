@@ -2,6 +2,16 @@ from django.contrib.auth.models import AbstractUser, Permission, Group
 from django.db import models
 from django.core.exceptions import ValidationError
 
+# Manager personalizado para soft delete de Usuario
+class ActivoUsuarioManager(models.Manager):
+    def get_queryset(self):
+        return super().get_queryset().filter(estado=True)
+
+# Manager personalizado para soft delete de Tercero
+class ActivoTerceroManager(models.Manager):
+    def get_queryset(self):
+        return super().get_queryset().filter(estado_tercero=1)
+
 class Usuario(AbstractUser):
     """
     Modelo de usuario personalizado que extiende el modelo de usuario de Django
@@ -14,6 +24,10 @@ class Usuario(AbstractUser):
     fecha_creacion = models.DateTimeField(auto_now_add=True)
     fecha_actualizacion = models.DateTimeField(auto_now=True)
 
+    # Managers
+    objects = ActivoUsuarioManager()  # Solo activos por defecto
+    all_objects = models.Manager()    # Todos, incluso inactivos
+
     class Meta:
         verbose_name = 'Usuario'
         verbose_name_plural = 'Usuarios'
@@ -22,6 +36,14 @@ class Usuario(AbstractUser):
 
     def __str__(self):
         return self.username
+
+    def delete(self, using=None, keep_parents=False):
+        self.estado = False
+        self.save()
+
+    def restore(self):
+        self.estado = True
+        self.save()
 
 class Rol(models.Model):
     """
@@ -70,12 +92,24 @@ class Tercero(models.Model):
     Estado_Inactivo = 0
     estado_tercero = models.IntegerField(default=Estado_Activo)
 
+    # Managers
+    objects = ActivoTerceroManager()  # Solo activos por defecto
+    all_objects = models.Manager()    # Todos, incluso inactivos
+
     class Meta:
         verbose_name = 'Tercero'
         verbose_name_plural = 'Terceros'
 
     def __str__(self):
         return f"{self.nombre_tercero} {self.apellido_tercero}"
+
+    def delete(self, using=None, keep_parents=False):
+        self.estado_tercero = self.Estado_Inactivo
+        self.save()
+
+    def restore(self):
+        self.estado_tercero = self.Estado_Activo
+        self.save()
 
 class CodigoTurno(models.Model):
     TIPO_CHOICES = [

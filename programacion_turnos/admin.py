@@ -16,8 +16,13 @@ class ProgramacionExtensionForm(forms.Form):
 
 @admin.register(ProgramacionHorario)
 class ProgramacionHorarioAdmin(admin.ModelAdmin):
-    list_display = ("id", "fecha_inicio", "fecha_fin", "modelo_turno")
-    actions = ["extender_programacion"]
+    list_display = ('centro_operativo', 'modelo_turno', 'fecha_inicio', 'fecha_fin', 'creado_por', 'activo')
+    list_filter = ('activo', 'centro_operativo', 'modelo_turno')
+    search_fields = ('centro_operativo__nombre', 'modelo_turno__nombre')
+    date_hierarchy = 'fecha_inicio'
+
+    def get_queryset(self, request):
+        return ProgramacionHorario.all_objects.all()
 
     def extender_programacion(self, request, queryset):
         if queryset.count() != 1:
@@ -136,6 +141,6 @@ class ProgramacionHorarioAdmin(admin.ModelAdmin):
 
 @admin.register(AsignacionTurno)
 class AsignacionTurnoAdmin(admin.ModelAdmin):
-    list_display = ('programacion', 'tercero', 'dia', 'letra_turno')
-    search_fields = ('tercero__nombre_tercero', 'programacion__centro_operativo__nombre')
-    list_filter = ('programacion', 'tercero', 'dia', 'letra_turno')
+    list_display = ('programacion', 'tercero', 'dia', 'letra_turno', 'fila', 'columna')
+    list_filter = ('programacion', 'tercero')
+    search_fields = ('programacion__centro_operativo__nombre', 'tercero__nombre_tercero', 'tercero__apellido_tercero')

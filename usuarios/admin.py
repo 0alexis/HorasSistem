@@ -20,6 +20,9 @@ class CustomUserAdmin(UserAdmin):
         }),
     )
 
+    def get_queryset(self, request):
+        return Usuario.all_objects.all()
+
 @admin.register(Tercero)
 class TerceroAdmin(admin.ModelAdmin):
     list_display = ('nombre_tercero', 'apellido_tercero', 'documento', 'cargo', 'centro_operativo', 'estado_tercero')
@@ -38,6 +41,9 @@ class TerceroAdmin(admin.ModelAdmin):
             'fields': ('estado_tercero',)
         })
     )
+
+    def get_queryset(self, request):
+        return Tercero.all_objects.all()
 
 @admin.register(CodigoTurno)
 class CodigoTurnoAdmin(admin.ModelAdmin):

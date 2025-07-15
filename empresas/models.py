@@ -2,6 +2,11 @@ from django.db import models
 from django.conf import settings
 from django.contrib.auth.models import User
 
+# Manager personalizado para soft delete de Empresa
+class ActivoEmpresaManager(models.Manager):
+    def get_queryset(self):
+        return super().get_queryset().filter(activo=True)
+
 class Empresa(models.Model):
     id_empresa = models.AutoField(primary_key=True)  # Del diagrama
     nombre = models.CharField(max_length=200)
@@ -18,10 +23,26 @@ class Empresa(models.Model):
         related_name='empresas'
     )
 
+    # Managers
+    objects = ActivoEmpresaManager()  # Solo activos por defecto
+    all_objects = models.Manager()    # Todos, incluso inactivos
+
     def __str__(self):
         return f"{self.nombre} - {self.nit}"
 
-# Modelo para UnidadNegocio (UEN)
+    def delete(self, using=None, keep_parents=False):
+        self.activo = False
+        self.save()
+
+    def restore(self):
+        self.activo = True
+        self.save()
+
+# Manager personalizado para soft delete de UnidadNegocio
+class ActivoUnidadNegocioManager(models.Manager):
+    def get_queryset(self):
+        return super().get_queryset().filter(activo=True)
+
 class UnidadNegocio(models.Model):
     id_uen = models.AutoField(primary_key=True)
     nombre = models.CharField(max_length=200)
@@ -45,6 +66,10 @@ class UnidadNegocio(models.Model):
         blank=True  # Hacemos opcional la relación con empresas
     )
 
+    # Managers
+    objects = ActivoUnidadNegocioManager()  # Solo activos por defecto
+    all_objects = models.Manager()          # Todos, incluso inactivos
+
     class Meta:
         verbose_name = 'Unidad de Negocio'
         verbose_name_plural = 'Unidades de Negocio'
@@ -52,7 +77,19 @@ class UnidadNegocio(models.Model):
     def __str__(self):
         return self.nombre
 
-# Modelo para Proyecto
+    def delete(self, using=None, keep_parents=False):
+        self.activo = False
+        self.save()
+
+    def restore(self):
+        self.activo = True
+        self.save()
+
+# Manager personalizado para soft delete de Proyecto
+class ActivoProyectoManager(models.Manager):
+    def get_queryset(self):
+        return super().get_queryset().filter(activo=True)
+
 class Proyecto(models.Model):
     id_proyecto = models.AutoField(primary_key=True)
     nombre = models.CharField(max_length=200)
@@ -74,12 +111,24 @@ class Proyecto(models.Model):
     creado_en = models.DateTimeField(auto_now_add=True)  # Add this line
     actualizado_en = models.DateTimeField(auto_now=True)  # Add this line
 
+    # Managers
+    objects = ActivoProyectoManager()  # Solo activos por defecto
+    all_objects = models.Manager()     # Todos, incluso inactivos
+
     class Meta:
         verbose_name = 'Proyecto'
         verbose_name_plural = 'Proyectos'
 
     def __str__(self):
         return self.nombre
+
+    def delete(self, using=None, keep_parents=False):
+        self.activo = False
+        self.save()
+
+    def restore(self):
+        self.activo = True
+        self.save()
 
 # Modelo para CentroOperativo
 class CentroOperativo(models.Model):
@@ -150,7 +199,11 @@ class CargoPredefinido(models.Model):
         ordering = ['area', 'nivel', 'nombre']
         unique_together = ['nombre', 'nivel']
 
-# Modelo para Cargo
+# Manager personalizado para soft delete de Cargo
+class ActivoCargoManager(models.Manager):
+    def get_queryset(self):
+        return super().get_queryset().filter(activo=True)
+
 class Cargo(models.Model):
     id_cargo = models.AutoField(primary_key=True)
     nombre = models.CharField(max_length=200)
@@ -164,6 +217,10 @@ class Cargo(models.Model):
         related_name='cargos'  # Changed from cargo_set to cargos
     )
 
+    # Managers
+    objects = ActivoCargoManager()  # Solo activos por defecto
+    all_objects = models.Manager()  # Todos, incluso inactivos
+
     class Meta:
         verbose_name = 'Cargo'
         verbose_name_plural = 'Cargos'
@@ -171,6 +228,14 @@ class Cargo(models.Model):
 
     def __str__(self):
         return self.nombre
+
+    def delete(self, using=None, keep_parents=False):
+        self.activo = False
+        self.save()
+
+    def restore(self):
+        self.activo = True
+        self.save()
 
 # Modelo para AsignacionTerceroEmpresa
 class AsignacionTerceroEmpresa(models.Model):
