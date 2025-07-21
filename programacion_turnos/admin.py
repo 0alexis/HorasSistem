@@ -9,6 +9,7 @@ from django.urls import path
 from django.shortcuts import redirect
 from django.utils.html import format_html
 from django.urls import reverse
+from .serializers import generar_asignaciones
 
 class ProgramacionExtensionForm(forms.Form):
     fecha_inicio_ext = forms.DateField(label="Fecha de inicio de extensión")
@@ -23,6 +24,10 @@ class ProgramacionHorarioAdmin(admin.ModelAdmin):
 
     def get_queryset(self, request):
         return ProgramacionHorario.all_objects.all()
+
+    def save_model(self, request, obj, form, change):
+        super().save_model(request, obj, form, change)
+        generar_asignaciones(obj)
 
     def extender_programacion(self, request, queryset):
         if queryset.count() != 1:

@@ -5,20 +5,65 @@ from usuarios.models import CodigoTurno
 
 class MatrizLetrasWidget(forms.Widget):
     def render(self, name, value, attrs=None, renderer=None):
-        # Si value es None o no es una lista, inicializa una matriz 3x3 vacía
         if not value or not isinstance(value, list):
             value = [["" for _ in range(3)] for _ in range(3)]
-        html = '<table style="border-collapse: collapse;">'
+        html = '''
+        <style>
+            .matriz-btn { margin: 4px; padding: 2px 8px; }
+        </style>
+        <div id="matriz-letras-container">
+            <table id="matriz-letras-table" style="border-collapse: collapse;">
+        '''
         for i, fila in enumerate(value):
             html += '<tr>'
             for j, letra in enumerate(fila):
                 html += (
                     f'<td style="border:1px solid #ccc;padding:2px;">'
-                    f'<input type="text" name="matriz_letras_{i}_{j}" value="{letra or ""}" size="1" maxlength="1" style="text-align:center;" />'
+                    f'<input type="text" name="matriz_letras_{i}_{j}" value="{letra or ""}" size="1" maxlength="2" style="text-align:center;" />'
                     f'</td>'
                 )
             html += '</tr>'
-        html += '</table>'
+        html += '''
+            </table>
+            <button type="button" class="matriz-btn" onclick="addFila()">Agregar fila</button>
+            <button type="button" class="matriz-btn" onclick="addColumna()">Agregar columna</button>
+            <button type="button" class="matriz-btn" onclick="removeFila()">Eliminar fila</button>
+            <button type="button" class="matriz-btn" onclick="removeColumna()">Eliminar columna</button>
+        </div>
+        <script>
+        function addFila() {
+            var table = document.getElementById('matriz-letras-table');
+            var cols = table.rows[0] ? table.rows[0].cells.length : 3;
+            var row = table.insertRow(-1);
+            for (var j = 0; j < cols; j++) {
+                var cell = row.insertCell(-1);
+                cell.innerHTML = `<input type=\"text\" name=\"matriz_letras_${table.rows.length-1}_${j}\" size=\"1\" maxlength=\"2\" style=\"text-align:center;\">`;
+            }
+        }
+        function addColumna() {
+            var table = document.getElementById('matriz-letras-table');
+            var rows = table.rows.length;
+            var cols = rows > 0 ? table.rows[0].cells.length : 0;
+            for (var i = 0; i < rows; i++) {
+                var cell = table.rows[i].insertCell(-1);
+                cell.innerHTML = `<input type=\"text\" name=\"matriz_letras_${i}_${cols}\" size=\"1\" maxlength=\"2\" style=\"text-align:center;\">`;
+            }
+        }
+        function removeFila() {
+            var table = document.getElementById('matriz-letras-table');
+            if (table.rows.length > 1) table.deleteRow(-1);
+        }
+        function removeColumna() {
+            var table = document.getElementById('matriz-letras-table');
+            var cols = table.rows[0] ? table.rows[0].cells.length : 0;
+            if (cols > 1) {
+                for (var i = 0; i < table.rows.length; i++) {
+                    table.rows[i].deleteCell(-1);
+                }
+            }
+        }
+        </script>
+        '''
         return mark_safe(html)
 
     def value_from_datadict(self, data, files, name):
