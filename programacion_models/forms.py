@@ -1,6 +1,7 @@
 from django import forms
 from .models import ModeloTurno
 from django.utils.safestring import mark_safe
+from usuarios.models import CodigoTurno
 
 class MatrizLetrasWidget(forms.Widget):
     def render(self, name, value, attrs=None, renderer=None):
@@ -81,9 +82,15 @@ class ModeloTurnoForm(forms.ModelForm):
         # Eliminar letras anteriores (si existen)
         if instance.pk:
             instance.letras.all().delete()
+            letras_unicas = set()
             # Crear nuevas letras
             for fila_idx, fila in enumerate(matriz):
                 for col_idx, valor in enumerate(fila):
                     if valor:
                         instance.letras.create(fila=fila_idx, columna=col_idx, valor=valor)
+                        letras_unicas.add(valor)
+            # Crear CodigoTurno para letras nuevas
+            for letra in letras_unicas:
+                if not CodigoTurno.objects.filter(letra_turno=letra).exists():
+                    CodigoTurno.objects.create(letra_turno=letra, tipo='N')
         return instance
