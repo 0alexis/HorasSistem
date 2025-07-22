@@ -6,7 +6,7 @@ from .serializers import ProgramacionExtensionSerializer
 from .models import AsignacionTurno, LetraTurno
 from datetime import timedelta
 from django.urls import path
-from django.shortcuts import redirect
+from django.shortcuts import redirect, get_object_or_404, render
 from django.utils.html import format_html
 from django.urls import reverse
 from .serializers import generar_asignaciones
@@ -26,6 +26,52 @@ class ProgramacionHorarioAdmin(admin.ModelAdmin):
 
     def get_queryset(self, request):
         return ProgramacionHorario.all_objects.all()
+
+    def get_urls(self):
+        urls = super().get_urls()
+        custom_urls = [
+            path('<int:programacion_id>/editar_malla/', self.admin_site.admin_view(self.editar_malla_view), name='programacionhorario-editar-malla'),
+            path('<int:programacion_id>/extender/', self.admin_site.admin_view(self.extender_programacion_view), name='programacionhorario-extender'),
+        ]
+        return custom_urls + urls
+
+    def editar_malla_view(self, request, programacion_id):
+        programacion = get_object_or_404(ProgramacionHorario, pk=programacion_id)
+        empleados = list(Tercero.objects.filter(centro_operativo=programacion.centro_operativo))
+        fechas = [programacion.fecha_inicio + timedelta(days=i) for i in range((programacion.fecha_fin - programacion.fecha_inicio).days + 1)]
+        asignaciones = AsignacionTurno.objects.filter(programacion=programacion)
+        # Construir malla: {empleado_id: {fecha: asignacion}}
+        malla = {emp.id_tercero: {fecha: None for fecha in fechas} for emp in empleados}
+        for asignacion in asignaciones:
+            malla[asignacion.tercero_id][asignacion.dia] = asignacion
+        if request.method == 'POST':
+            for emp in empleados:
+                for fecha in fechas:
+                    key = f"letra_{emp.id_tercero}_{fecha}"
+                    if key in request.POST:
+                        letra = request.POST.get(key, '').strip()
+                
+                        asignacion = malla[emp.id_tercero][fecha]
+                  #  if asignacion and letra and letra != asignacion.letra_turno:
+                   #     asignacion.letra_turno = letra
+                    #    asignacion.save()
+                        if asignacion and (letra != asignacion.letra_turno):
+                            print(f"Actualizando {emp} {fecha}: '{asignacion.letra_turno}' -> '{letra}'")
+
+                            asignacion.letra_turno = letra
+                            asignacion.save()
+                            cambios += 1
+                            print(f"Total cambios: {cambios}")
+            
+            from django.contrib import messages
+            messages.success(request, "Malla actualizada correctamente.")
+            return redirect(request.path)
+        return render(request, "admin/editar_malla_programacion.html", {
+            "programacion": programacion,
+            "empleados": empleados,
+            "fechas": fechas,
+            "malla": malla,
+        })
 
     def save_model(self, request, obj, form, change):
         empleados = list(Tercero.objects.filter(centro_operativo=obj.centro_operativo))
@@ -144,17 +190,6 @@ class ProgramacionHorarioAdmin(admin.ModelAdmin):
         })
     extender_programacion.short_description = "Extender programación seleccionada"
 
-    def get_urls(self):
-        urls = super().get_urls()
-        custom_urls = [
-            path(
-                '<int:programacion_id>/extender/',
-                self.admin_site.admin_view(self.extender_programacion_view),
-                name='programacionhorario-extender',
-            ),
-        ]
-        return custom_urls + urls
-
     def extender_programacion_view(self, request, programacion_id):
         programacion = self.get_object(request, programacion_id)
         return self.extender_programacion(request, queryset=self.model.objects.filter(pk=programacion_id))
@@ -163,8 +198,10 @@ class ProgramacionHorarioAdmin(admin.ModelAdmin):
         if not extra_context:
             extra_context = {}
         extra_context['extra_button'] = format_html(
-            '<a class="button" href="{}">Extender programación</a>',
-            reverse('admin:programacionhorario-extender', args=[object_id])
+            '<a class="button" href="{}">Extender programación</a> '
+            '<a class="button" href="{}">Editar malla</a>',
+            reverse('admin:programacionhorario-extender', args=[object_id]),
+            reverse('admin:programacionhorario-editar-malla', args=[object_id])
         )
         return super().change_view(request, object_id, form_url, extra_context=extra_context)
 

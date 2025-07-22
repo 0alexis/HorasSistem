@@ -1,0 +1,47 @@
+{% extends "admin/base_site.html" %}
+{% load dict_get %}
+{% block content %}
+  <h1>Editar malla de programación: {{ programacion }}</h1>
+  <form method="post">{% csrf_token %}
+    <table style="border-collapse: collapse;">
+      <tr>
+        <th style="border:1px solid #ccc;padding:4px;">Empleado</th>
+        {% for fecha in fechas %}
+          <th style="border:1px solid #ccc;padding:4px;">{{ fecha|date:"d/m" }}</th>
+        {% endfor %}
+      </tr>
+      {% for empleado in empleados %}
+        <tr>
+          <td style="border:1px solid #ccc;padding:4px;">{{ empleado }}</td>
+          {% for fecha in fechas %}
+            {% with fila=malla|dict_get:empleado.id_tercero %}
+              {% if fila %}
+                {% with asignacion=fila|dict_get:fecha %}
+                  <td style="border:1px solid #ccc;padding:2px;min-width:32px;">
+                    <input type="text"
+                           name="letra_{{ empleado.id_tercero }}_{{ fecha }}"
+                           value="{{ asignacion.letra_turno|default_if_none:'' }}"
+                           size="1"
+                           maxlength="1"
+                           style="text-align:center;" />
+                  </td>
+                {% endwith %}
+              {% else %}
+                <td style="border:1px solid #ccc;padding:2px;min-width:32px;">
+                  <input type="text" name="letra_{{ empleado.id_tercero }}_{{ fecha }}" value="" size="2" maxlength="2" style="text-align:center;" />
+                </td>
+              {% endif %}
+            {% endwith %}
+          {% endfor %}
+        </tr>
+      {% endfor %}
+    </table>
+    <br>
+    <input type="submit" value="Guardar cambios" class="default">
+    <a href="../" style="margin-left:20px;">Volver</a>
+  </form>
+{% endblock %}
+
+{% comment %}
+Se requiere un filtro dict_get para acceder a los valores de un diccionario anidado en la plantilla.
+{% endcomment %}
