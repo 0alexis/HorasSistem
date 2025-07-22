@@ -10,6 +10,8 @@ from django.shortcuts import redirect
 from django.utils.html import format_html
 from django.urls import reverse
 from .serializers import generar_asignaciones
+from usuarios.models import Tercero
+from .utils import programar_turnos
 
 class ProgramacionExtensionForm(forms.Form):
     fecha_inicio_ext = forms.DateField(label="Fecha de inicio de extensión")
@@ -26,8 +28,30 @@ class ProgramacionHorarioAdmin(admin.ModelAdmin):
         return ProgramacionHorario.all_objects.all()
 
     def save_model(self, request, obj, form, change):
-        super().save_model(request, obj, form, change)
-        generar_asignaciones(obj)
+        empleados = list(Tercero.objects.filter(centro_operativo=obj.centro_operativo))
+        from django.contrib import messages
+        # Validación previa (sin crear asignaciones)
+        centro_operativo = obj.centro_operativo
+        modelo_turno = obj.modelo_turno
+        pv = getattr(centro_operativo, 'promesa_valor', None)
+        tipo = getattr(modelo_turno, 'tipo', None)
+        try:
+            if tipo == 'F' and pv is not None:
+                min_personas = pv * 4
+                if len(empleados) < min_personas:
+                    raise ValueError(f"Para modelos de tipo FIJO se requieren al menos {min_personas} personas para realizar esta programacion. Solo hay {len(empleados)} empleados disponibles.")
+            # Si pasa la validación, guarda el objeto
+            super().save_model(request, obj, form, change)
+            # Ahora sí crea las asignaciones
+            programar_turnos(
+                obj.modelo_turno,
+                empleados,
+                obj.fecha_inicio,
+                obj.fecha_fin,
+                obj
+            )
+        except ValueError as e:
+            messages.error(request, str(e))
 
     def extender_programacion(self, request, queryset):
         if queryset.count() != 1:
