@@ -41,21 +41,22 @@ class ProgramacionHorarioAdmin(admin.ModelAdmin):
         fechas = [programacion.fecha_inicio + timedelta(days=i) for i in range((programacion.fecha_fin - programacion.fecha_inicio).days + 1)]
         asignaciones = AsignacionTurno.objects.filter(programacion=programacion)
         # Construir malla: {empleado_id: {fecha: asignacion}}
-       #revisar tenuemente la logica que compromete la malla al usar emp/emopleados o quizas pueda llegar a ser terceros no lo se aun pero aqui puede estar el error de que no deja editar
         malla = {empleados.id_tercero: {fecha: None for fecha in fechas} for empleados in empleados}
         for asignacion in asignaciones:
             malla[asignacion.tercero_id][asignacion.dia] = asignacion
+
+        # Agrupar empleados verticalmente según el tamaño del modelo
+        modelo_turno = programacion.modelo_turno
+        tamano_bloque = modelo_turno.letras.values_list('fila', flat=True).distinct().count()
+        empleados_agrupados = [empleados[i:i+tamano_bloque] for i in range(0, len(empleados), tamano_bloque)]
+
         if request.method == 'POST':
             for emp in empleados:
                 for fecha in fechas:
                     key = f"letra_{emp.id_tercero}_{fecha}"
                     if key in request.POST:
                         letra = request.POST.get(key, '').strip()
-                
                         asignacion = malla[emp.id_tercero][fecha]
-                  #  if asignacion and letra and letra != asignacion.letra_turno:
-                   #     asignacion.letra_turno = letra
-                    #    asignacion.save()
                         if asignacion and (letra != asignacion.letra_turno):
                             print(f"Actualizando {emp} {fecha}: '{asignacion.letra_turno}' -> '{letra}'")
 
@@ -69,6 +70,7 @@ class ProgramacionHorarioAdmin(admin.ModelAdmin):
         return render(request, "admin/editar_malla_programacion.html", {
             "programacion": programacion,
             "empleados": empleados,
+            "empleados_agrupados": empleados_agrupados,
             "fechas": fechas,
             "malla": malla,
         })

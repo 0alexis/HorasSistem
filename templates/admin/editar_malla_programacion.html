@@ -6,43 +6,50 @@
     <table style="border-collapse: collapse;">
       <tr>
         <th style="border:1px solid #ccc;padding:4px;">Empleado</th>
+        <th style="border:1px solid #ccc;padding:4px;">Cargo</th>
         {% for fecha in fechas %}
           <th style="border:1px solid #ccc;padding:4px;">{{ fecha|date:"d/m" }}</th>
         {% endfor %}
       </tr>
-      {% for empleado in empleados %}
+      {% for grupo in empleados_agrupados %}
         <tr>
-          <td style="border:1px solid #ccc;padding:4px;">{{ empleado }}</td>
-          {% for fecha in fechas %}
-            {% with fila=malla|dict_get:empleado.id_tercero %}
-              {% if fila %}
-                {% with asignacion=fila|dict_get:fecha %}
+          <td colspan="{{ fechas|length|add:'2' }}" style="background:#eee; text-align:center;">Bloque {{ forloop.counter }}</td>
+        </tr>
+        {% for empleado in grupo %}
+          <tr>
+            <td style="border:1px solid #ccc;padding:4px;">{{ empleado }}</td>
+            <td style="border:1px solid #ccc;padding:4px;">{{ empleado.cargo.nombre }}</td>
+            {% for fecha in fechas %}
+              {% with fila=malla|dict_get:empleado.id_tercero %}
+                {% if fila %}
+                  {% with asignacion=fila|dict_get:fecha %}
+                    <td style="border:1px solid #ccc;padding:2px;min-width:32px;">
+                      <input type="text"
+                             class="letra-input"
+                             data-tercero="{{ empleado.id_tercero }}"
+                             data-fecha="{{ fecha }}"
+                             value="{{ asignacion.letra_turno|default_if_none:'' }}"
+                             size="1"
+                             maxlength="1"
+                             style="text-align:center;" />
+                    </td>
+                  {% endwith %}
+                {% else %}
                   <td style="border:1px solid #ccc;padding:2px;min-width:32px;">
                     <input type="text"
                            class="letra-input"
                            data-tercero="{{ empleado.id_tercero }}"
                            data-fecha="{{ fecha }}"
-                           value="{{ asignacion.letra_turno|default_if_none:'' }}"
-                           size="1"
-                           maxlength="1"
+                           value=""
+                           size="2"
+                           maxlength="2"
                            style="text-align:center;" />
                   </td>
-                {% endwith %}
-              {% else %}
-                <td style="border:1px solid #ccc;padding:2px;min-width:32px;">
-                  <input type="text"
-                         class="letra-input"
-                         data-tercero="{{ empleado.id_tercero }}"
-                         data-fecha="{{ fecha }}"
-                         value=""
-                         size="2"
-                         maxlength="2"
-                         style="text-align:center;" />
-                </td>
-              {% endif %}
-            {% endwith %}
-          {% endfor %}
-        </tr>
+                {% endif %}
+              {% endwith %}
+            {% endfor %}
+          </tr>
+        {% endfor %}
       {% endfor %}
     </table>
     <br>
