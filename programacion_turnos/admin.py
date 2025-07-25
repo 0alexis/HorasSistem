@@ -41,7 +41,8 @@ class ProgramacionHorarioAdmin(admin.ModelAdmin):
         fechas = [programacion.fecha_inicio + timedelta(days=i) for i in range((programacion.fecha_fin - programacion.fecha_inicio).days + 1)]
         asignaciones = AsignacionTurno.objects.filter(programacion=programacion)
         # Construir malla: {empleado_id: {fecha: asignacion}}
-        malla = {emp.id_tercero: {fecha: None for fecha in fechas} for emp in empleados}
+       #revisar tenuemente la logica que compromete la malla al usar emp/emopleados o quizas pueda llegar a ser terceros no lo se aun pero aqui puede estar el error de que no deja editar
+        malla = {empleados.id_tercero: {fecha: None for fecha in fechas} for empleados in empleados}
         for asignacion in asignaciones:
             malla[asignacion.tercero_id][asignacion.dia] = asignacion
         if request.method == 'POST':
@@ -60,8 +61,7 @@ class ProgramacionHorarioAdmin(admin.ModelAdmin):
 
                             asignacion.letra_turno = letra
                             asignacion.save()
-                            cambios += 1
-                            print(f"Total cambios: {cambios}")
+                            
             
             from django.contrib import messages
             messages.success(request, "Malla actualizada correctamente.")

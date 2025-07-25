@@ -2,7 +2,7 @@
 {% load dict_get %}
 {% block content %}
   <h1>Editar malla de programación: {{ programacion }}</h1>
-  <form method="post">{% csrf_token %}
+  <form id="malla-form" onsubmit="return false;">
     <table style="border-collapse: collapse;">
       <tr>
         <th style="border:1px solid #ccc;padding:4px;">Empleado</th>
@@ -19,7 +19,9 @@
                 {% with asignacion=fila|dict_get:fecha %}
                   <td style="border:1px solid #ccc;padding:2px;min-width:32px;">
                     <input type="text"
-                           name="letra_{{ empleado.id_tercero }}_{{ fecha }}"
+                           class="letra-input"
+                           data-tercero="{{ empleado.id_tercero }}"
+                           data-fecha="{{ fecha }}"
                            value="{{ asignacion.letra_turno|default_if_none:'' }}"
                            size="1"
                            maxlength="1"
@@ -28,7 +30,14 @@
                 {% endwith %}
               {% else %}
                 <td style="border:1px solid #ccc;padding:2px;min-width:32px;">
-                  <input type="text" name="letra_{{ empleado.id_tercero }}_{{ fecha }}" value="" size="2" maxlength="2" style="text-align:center;" />
+                  <input type="text"
+                         class="letra-input"
+                         data-tercero="{{ empleado.id_tercero }}"
+                         data-fecha="{{ fecha }}"
+                         value=""
+                         size="2"
+                         maxlength="2"
+                         style="text-align:center;" />
                 </td>
               {% endif %}
             {% endwith %}
@@ -37,10 +46,65 @@
       {% endfor %}
     </table>
     <br>
-    <input type="submit" value="Guardar cambios" class="default">
+    <button type="button" onclick="enviarMalla()">Guardar cambios</button>
     <a href="../" style="margin-left:20px;">Volver</a>
+    <div id="mensaje" style="margin-top:10px;"></div>
   </form>
 {% endblock %}
+
+<script>
+window.enviarMalla = function() {
+  alert('Función enviarMalla llamada');
+  const inputs = document.querySelectorAll('.letra-input');
+  const cambios = [];
+  inputs.forEach(input => {
+    cambios.push({
+      tercero_id: input.dataset.tercero,
+      fecha: input.dataset.fecha,
+      letra: input.value
+    });
+  });
+
+  fetch('/api/programacion/{{ programacion.id }}/editar_malla/', {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+      'X-CSRFToken': getCookie('csrftoken')
+    },
+    body: JSON.stringify({
+      cambios: cambios
+    })
+  })
+  .then(response => response.json())
+  .then(data => {
+    if (data.mensaje) {
+      document.getElementById('mensaje').innerText = data.mensaje;
+    } else if (data.error) {
+      document.getElementById('mensaje').innerText = data.error;
+    } else {
+      document.getElementById('mensaje').innerText = 'Respuesta inesperada del servidor';
+    }
+  })
+  .catch(error => {
+    document.getElementById('mensaje').innerText = 'Error al guardar la malla';
+  });
+}
+
+function getCookie(name) {
+    let cookieValue = null;
+    if (document.cookie && document.cookie !== '') {
+        const cookies = document.cookie.split(';');
+        for (let i = 0; i < cookies.length; i++) {
+            const cookie = cookies[i].trim();
+            if (cookie.substring(0, name.length + 1) === (name + '=')) {
+                cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+                break;
+            }
+        }
+    }
+    return cookieValue;
+}
+</script>
 
 {% comment %}
 Se requiere un filtro dict_get para acceder a los valores de un diccionario anidado en la plantilla.

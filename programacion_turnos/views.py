@@ -13,6 +13,9 @@ from rest_framework.response import Response
 from rest_framework import status
 from .serializers import ProgramacionExtensionSerializer
 from .models import AsignacionTurno, LetraTurno
+from rest_framework.decorators import api_view, permission_classes
+from rest_framework.permissions import IsAuthenticated
+from .serializers import EditarMallaRequestSerializer
 
 
 class ProgramacionHorarioViewSet(viewsets.ModelViewSet):
@@ -147,6 +150,34 @@ class ProgramacionHorarioViewSet(viewsets.ModelViewSet):
 class AsignacionTurnoViewSet(viewsets.ModelViewSet):
     queryset = AsignacionTurno.objects.all()
     serializer_class = AsignacionTurnoSerializer
+
+@api_view(['POST'])
+@permission_classes([IsAuthenticated])
+def editar_malla_api(request, programacion_id):
+    # Ya no necesitas recibir programacion_id en el body, lo tomas de la URL
+    serializer = EditarMallaRequestSerializer(data=request.data)
+    if not serializer.is_valid():
+        return Response({'error': serializer.errors}, status=status.HTTP_400_BAD_REQUEST)
+    data = serializer.validated_data
+    cambios = data['cambios']
+    programacion = ProgramacionHorario.objects.filter(pk=programacion_id).first()
+    if not programacion:
+        return Response({'error': 'Programación no encontrada'}, status=status.HTTP_404_NOT_FOUND)
+    cambios_realizados = 0
+    for cambio in cambios:
+        tercero_id = cambio['tercero_id']
+        fecha = cambio['fecha']
+        letra = cambio['letra']
+        asignacion = AsignacionTurno.objects.filter(
+            programacion=programacion,
+            tercero_id=tercero_id,
+            dia=fecha
+        ).first()
+        if asignacion and letra != asignacion.letra_turno:
+            asignacion.letra_turno = letra
+            asignacion.save()
+            cambios_realizados += 1
+    return Response({'mensaje': f'{cambios_realizados} cambios realizados.'}, status=status.HTTP_200_OK)
 
 def malla_turnos(request, programacion_id):
     programacion = ProgramacionHorario.objects.get(id=programacion_id)

@@ -105,3 +105,11 @@ def perform_create(self, serializer):
     generar_asignaciones(programacion)
     #guardar la asignacion que se cree
     #esta presentando problemas al guardar la asignacion
+
+class CambioMallaSerializer(serializers.Serializer):
+    tercero_id = serializers.IntegerField()
+    fecha = serializers.DateField()
+    letra = serializers.CharField(max_length=5)
+
+class EditarMallaRequestSerializer(serializers.Serializer):
+    cambios = CambioMallaSerializer(many=True)
