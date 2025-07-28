@@ -5,7 +5,7 @@ from .models import (
     Proyecto, 
     CentroOperativo, 
     CargoPredefinido, 
-    Cargo,
+
     AsignacionTerceroEmpresa
 )
 
@@ -92,16 +92,9 @@ class CentroOperativoAdmin(admin.ModelAdmin):
 
 @admin.register(CargoPredefinido)
 class CargoPredefinidoAdmin(admin.ModelAdmin):
-    list_display = ('nombre', 'nivel', 'area', 'activo')
-    list_filter = ('nivel', 'area', 'activo')
-    search_fields = ('nombre', 'descripcion')
-    ordering = ('area', 'nivel', 'nombre')
-
-@admin.register(Cargo)
-class CargoAdmin(admin.ModelAdmin):
-    list_display = ('nombre', 'descripcion', 'centro_operativo', 'activo')
-    list_filter = ('activo', 'centro_operativo')
+    list_display = ('nombre', 'descripcion', 'nivel', 'area', 'activo', 'estado_cargo')
+    list_filter = ('nivel', 'area', 'activo', 'estado_cargo')
     search_fields = ('nombre', 'descripcion')
 
-    def get_queryset(self, request):
-        return Cargo.all_objects.all()
+    #def get_queryset(self, request):
+     #   return CargoPredefinido.all_objects.all()

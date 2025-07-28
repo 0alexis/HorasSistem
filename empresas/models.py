@@ -204,38 +204,6 @@ class ActivoCargoManager(models.Manager):
     def get_queryset(self):
         return super().get_queryset().filter(activo=True)
 
-class Cargo(models.Model):
-    id_cargo = models.AutoField(primary_key=True)
-    nombre = models.CharField(max_length=200)
-    descripcion = models.TextField(blank=True)
-    activo = models.BooleanField(default=True)
-    creado_en = models.DateTimeField(auto_now_add=True)
-    actualizado_en = models.DateTimeField(auto_now=True)
-    centro_operativo = models.ForeignKey(
-        CentroOperativo,
-        on_delete=models.PROTECT,
-        related_name='cargos'  # Changed from cargo_set to cargos
-    )
-
-    # Managers
-    objects = ActivoCargoManager()  # Solo activos por defecto
-    all_objects = models.Manager()  # Todos, incluso inactivos
-
-    class Meta:
-        verbose_name = 'Cargo'
-        verbose_name_plural = 'Cargos'
-        ordering = ['nombre']
-
-    def __str__(self):
-        return self.nombre
-
-    def delete(self, using=None, keep_parents=False):
-        self.activo = False
-        self.save()
-
-    def restore(self):
-        self.activo = True
-        self.save()
 
 # Modelo para AsignacionTerceroEmpresa
 class AsignacionTerceroEmpresa(models.Model):

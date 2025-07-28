@@ -1,5 +1,5 @@
 from rest_framework import serializers
-from .models import Empresa, UnidadNegocio, Proyecto, CentroOperativo, Cargo, CargoPredefinido
+from .models import Empresa, UnidadNegocio, Proyecto, CentroOperativo, CargoPredefinido
 
 def validate_text_no_script(value):
     # Ejemplo muy básico para rechazar etiquetas HTML o script
@@ -54,24 +54,12 @@ class ProyectoSerializer(serializers.ModelSerializer):
         ]
 
 class CentroOperativoSerializer(serializers.ModelSerializer):
-    cargos_asignados = serializers.SerializerMethodField()
     proyectos_info = serializers.SerializerMethodField()
     promesa_valor = serializers.CharField(max_length=200)
 
     class Meta:
         model = CentroOperativo
         fields = '__all__'
-
-    def get_cargos_asignados(self, obj):
-        return [
-            {
-                'id': cargo.id_cargo,
-                'nombre': cargo.nombre,
-                'descripcion': cargo.descripcion,
-                'activo': cargo.activo
-            }
-            for cargo in obj.cargos.all()
-        ]
 
     def get_proyectos_info(self, obj):
         return [
@@ -85,9 +73,4 @@ class CentroOperativoSerializer(serializers.ModelSerializer):
 class CargoPredefinidoSerializer(serializers.ModelSerializer):
     class Meta:
         model = CargoPredefinido
-        fields = '__all__'
-
-class CargoSerializer(serializers.ModelSerializer):
-    class Meta:
-        model = Cargo
         fields = '__all__'

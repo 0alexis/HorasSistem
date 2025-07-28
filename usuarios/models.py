@@ -38,7 +38,7 @@ class Usuario(AbstractUser):
     """
     nombre_usuario = models.CharField(max_length=200)
     centro_operativo = models.ForeignKey('empresas.CentroOperativo', on_delete=models.PROTECT, null=True, blank=True)
-    cargo = models.ForeignKey('empresas.Cargo', on_delete=models.PROTECT, null=True, blank=True)
+    cargo_predefinido = models.ForeignKey('empresas.CargoPredefinido', on_delete=models.PROTECT, null=True, blank=True)
     tercero = models.ForeignKey('Tercero', on_delete=models.CASCADE, null=True)
     estado = models.BooleanField(default=True)
     fecha_creacion = models.DateTimeField(auto_now_add=True)
@@ -94,8 +94,8 @@ class Tercero(models.Model):
     nombre_tercero = models.CharField(max_length=200)
     apellido_tercero = models.CharField(max_length=200)
     correo_tercero = models.EmailField(max_length=300)
-    cargo = models.ForeignKey(
-        'empresas.Cargo',
+    cargo_predefinido = models.ForeignKey(
+        'empresas.CargoPredefinido',
         on_delete=models.PROTECT,
         related_name='terceros',
         null=True
@@ -184,7 +184,7 @@ def crear_usuario_desde_tercero(tercero, username, password, grupo_nombre):
         email=tercero.correo_tercero,
         estado=True,
     )
-    usuario.cargo = tercero.cargo  # Si tienes este campo en Usuario
+    usuario.cargo_predefinido = tercero.cargo_predefinido  # Si tienes este campo en Usuario
     usuario.centro_operativo = tercero.centro_operativo  # Si tienes este campo en Usuario
     usuario.save()
     usuario.groups.add(grupo)

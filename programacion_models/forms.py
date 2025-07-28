@@ -2,6 +2,7 @@ from django import forms
 from .models import ModeloTurno
 from django.utils.safestring import mark_safe
 from usuarios.models import CodigoTurno
+from collections import Counter
 
 class MatrizLetrasWidget(forms.Widget):
     def render(self, name, value, attrs=None, renderer=None):
@@ -117,7 +118,8 @@ class ModeloTurnoForm(forms.ModelForm):
 
     def clean_matriz_letras(self):
         matriz = self.cleaned_data.get('matriz_letras', [])
-        if not any(any(cell for cell in fila) for fila in matriz):
+        print("DEBUG MATRIZ:", matriz)  # Depuración temporal
+        if not any(any(cell and str(cell).strip() for cell in fila) for fila in matriz):
             raise forms.ValidationError("Debes ingresar al menos una letra en la matriz.")
         return matriz
 
@@ -139,3 +141,27 @@ class ModeloTurnoForm(forms.ModelForm):
                 if not CodigoTurno.objects.filter(letra_turno=letra).exists():
                     CodigoTurno.objects.create(letra_turno=letra, tipo='N')
         return instance
+
+    def render_col_count(self):
+        matriz = self.initial.get('matriz_letras', [])
+        if not matriz:
+            return ''
+        num_cols = max(len(fila) for fila in matriz) if matriz else 0
+        conteos = []
+        for col in range(num_cols):
+            col_vals = [fila[col] for fila in matriz if col < len(fila) and fila[col]]
+            counter = Counter(col_vals)
+            conteos.append(counter)
+        html = '<div style="margin-top:10px;"><strong>Conteo por columna:</strong><table style="border-collapse:collapse;margin-top:4px;"><tr>'
+        for i in range(num_cols):
+            html += f'<th style="border:1px solid #ccc;padding:2px;">Col {i+1}</th>'
+        html += '</tr><tr>'
+        for counter in conteos:
+            html += '<td style="border:1px solid #ccc;padding:2px;">'
+            if counter:
+                html += '<br>'.join(f'{letra}: {count}' for letra, count in counter.items())
+            else:
+                html += '-'
+            html += '</td>'
+        html += '</tr></table></div>'
+        return mark_safe(html)

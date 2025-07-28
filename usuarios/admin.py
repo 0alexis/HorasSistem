@@ -25,21 +25,15 @@ class CustomUserAdmin(UserAdmin):
 
 @admin.register(Tercero)
 class TerceroAdmin(admin.ModelAdmin):
-    list_display = ('nombre_tercero', 'apellido_tercero', 'documento', 'cargo', 'centro_operativo', 'estado_tercero')
-    list_filter = ('estado_tercero', 'cargo', 'centro_operativo')
+    list_display = ('nombre_tercero', 'apellido_tercero', 'documento', 'cargo_predefinido', 'centro_operativo', 'estado_tercero')
+    list_filter = ('estado_tercero', 'cargo_predefinido', 'centro_operativo')
     search_fields = ('nombre_tercero', 'apellido_tercero', 'documento')
-    raw_id_fields = ('cargo', 'centro_operativo')
+    raw_id_fields = ('cargo_predefinido', 'centro_operativo')
 
     fieldsets = (
         (None, {
-            'fields': ('documento', 'nombre_tercero', 'apellido_tercero', 'correo_tercero')
+            'fields': ('nombre_tercero', 'apellido_tercero', 'documento', 'correo_tercero', 'cargo_predefinido', 'centro_operativo', 'estado_tercero')
         }),
-        ('Asignaciones', {
-            'fields': ('cargo', 'centro_operativo')
-        }),
-        ('Estado', {
-            'fields': ('estado_tercero',)
-        })
     )
 
     def get_queryset(self, request):

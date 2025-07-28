@@ -6,8 +6,8 @@ from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 from rest_framework import status
 
-from .models import Empresa, UnidadNegocio, Proyecto, CentroOperativo, Cargo
-from .serializers import EmpresaSerializer, UnidadNegocioSerializer, ProyectoSerializer, CentroOperativoSerializer, CargoSerializer
+from .models import Empresa, UnidadNegocio, Proyecto, CentroOperativo, CargoPredefinido
+from .serializers import EmpresaSerializer, UnidadNegocioSerializer, ProyectoSerializer, CentroOperativoSerializer, CargoPredefinidoSerializer
 
 class EmpresaViewSet(viewsets.ModelViewSet):
     queryset = Empresa.objects.all()
@@ -62,13 +62,10 @@ class CentroOperativoViewSet(viewsets.ModelViewSet):
             queryset = queryset.filter(unidades_negocio__id=unidad_id)
         return queryset
 
-class CargoViewSet(viewsets.ModelViewSet):
-    queryset = Cargo.objects.all()
-    serializer_class = CargoSerializer
-    permission_classes = [IsAuthenticated]
-    filter_backends = [filters.SearchFilter, filters.OrderingFilter]
-    search_fields = ['nombre', 'centro_operativo__nombre']
-    ordering_fields = ['nombre', 'creado_en']
+# Mantén solo los ViewSet activos
+class CargoPredefinidoViewSet(viewsets.ModelViewSet):
+    queryset = CargoPredefinido.objects.all()
+    serializer_class = CargoPredefinidoSerializer
 
 @api_view(['GET'])
 def database_health_check(request):
