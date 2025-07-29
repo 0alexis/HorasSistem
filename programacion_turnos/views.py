@@ -154,7 +154,6 @@ class AsignacionTurnoViewSet(viewsets.ModelViewSet):
 @api_view(['POST'])
 @permission_classes([IsAuthenticated])
 def editar_malla_api(request, programacion_id):
-    # Ya no necesitas recibir programacion_id en el body, lo tomas de la URL
     serializer = EditarMallaRequestSerializer(data=request.data)
     if not serializer.is_valid():
         return Response({'error': serializer.errors}, status=status.HTTP_400_BAD_REQUEST)
@@ -178,6 +177,69 @@ def editar_malla_api(request, programacion_id):
             asignacion.save()
             cambios_realizados += 1
     return Response({'mensaje': f'{cambios_realizados} cambios realizados.'}, status=status.HTTP_200_OK)
+
+@api_view(['POST'])
+@permission_classes([IsAuthenticated])
+def intercambiar_terceros_api(request, programacion_id):
+    """
+    Intercambia dos terceros en una programación, manteniendo sus asignaciones de turnos.
+    """
+    try:
+        programacion = ProgramacionHorario.objects.get(pk=programacion_id)
+    except ProgramacionHorario.DoesNotExist:
+        return Response({"error": "Programación no encontrada"}, status=status.HTTP_404_NOT_FOUND)
+    
+    tercero1_id = request.data.get('tercero1_id')
+    tercero2_id = request.data.get('tercero2_id')
+    
+    if not tercero1_id or not tercero2_id:
+        return Response({"error": "Debe proporcionar tercero1_id y tercero2_id"}, status=status.HTTP_400_BAD_REQUEST)
+    
+    if tercero1_id == tercero2_id:
+        return Response({"error": "Los terceros deben ser diferentes"}, status=status.HTTP_400_BAD_REQUEST)
+    
+    try:
+        # Verificar que ambos terceros existen
+        tercero1 = Tercero.objects.get(pk=tercero1_id)
+        tercero2 = Tercero.objects.get(pk=tercero2_id)
+        
+        # Obtener las asignaciones de ambos terceros
+        asignaciones1 = AsignacionTurno.objects.filter(
+            programacion=programacion,
+            tercero_id=tercero1_id
+        )
+        asignaciones2 = AsignacionTurno.objects.filter(
+            programacion=programacion,
+            tercero_id=tercero2_id
+        )
+        
+        # Intercambiar los terceros en las asignaciones
+        for asignacion in asignaciones1:
+            asignacion.tercero = tercero2
+            asignacion.save()
+        
+        for asignacion in asignaciones2:
+            asignacion.tercero = tercero1
+            asignacion.save()
+        
+        return Response({
+            "mensaje": "Terceros intercambiados correctamente",
+            "tercero1": {
+                "id": tercero1.id_tercero,
+                "nombre": f"{tercero1.nombre_tercero} {tercero1.apellido_tercero}",
+                "cedula": tercero1.cedula_tercero
+            },
+            "tercero2": {
+                "id": tercero2.id_tercero,
+                "nombre": f"{tercero2.nombre_tercero} {tercero2.apellido_tercero}",
+                "cedula": tercero2.cedula_tercero
+            }
+        }, status=status.HTTP_200_OK)
+        
+    except Tercero.DoesNotExist:
+        return Response({"error": "Uno o ambos terceros no existen"}, status=status.HTTP_404_NOT_FOUND)
+    except Exception as e:
+        return Response({"error": f"Error al intercambiar terceros: {str(e)}"}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
 
 def malla_turnos(request, programacion_id):
     programacion = ProgramacionHorario.objects.get(id=programacion_id)

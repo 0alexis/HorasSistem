@@ -32,23 +32,57 @@ class ProgramacionHorarioAdmin(admin.ModelAdmin):
         custom_urls = [
             path('<int:programacion_id>/editar_malla/', self.admin_site.admin_view(self.editar_malla_view), name='programacionhorario-editar-malla'),
             path('<int:programacion_id>/extender/', self.admin_site.admin_view(self.extender_programacion_view), name='programacionhorario-extender'),
+            path('<int:programacion_id>/intercambiar_terceros/', self.admin_site.admin_view(self.intercambiar_terceros_view), name='programacionhorario-intercambiar-terceros'),
         ]
         return custom_urls + urls
 
     def editar_malla_view(self, request, programacion_id):
         programacion = get_object_or_404(ProgramacionHorario, pk=programacion_id)
-        empleados = list(Tercero.objects.filter(centro_operativo=programacion.centro_operativo))
         fechas = [programacion.fecha_inicio + timedelta(days=i) for i in range((programacion.fecha_fin - programacion.fecha_inicio).days + 1)]
-        asignaciones = AsignacionTurno.objects.filter(programacion=programacion)
-        # Construir malla: {empleado_id: {fecha: asignacion}}
-        malla = {empleados.id_tercero: {fecha: None for fecha in fechas} for empleados in empleados}
+        
+        # Obtener todas las asignaciones de esta programación
+        asignaciones = AsignacionTurno.objects.filter(programacion=programacion).select_related('tercero')
+        
+        # Obtener terceros únicos que tienen asignaciones, ordenados por fila
+        terceros_con_asignaciones = asignaciones.values('tercero_id', 'fila').distinct().order_by('fila', 'tercero_id')
+        
+        # Obtener los terceros completos ordenados por fila
+        empleados = []
+        for item in terceros_con_asignaciones:
+            tercero = Tercero.objects.get(id_tercero=item['tercero_id'])
+            empleados.append(tercero)
+        
+        # Construir malla basada en las asignaciones reales
+        malla = {}
+        for empleado in empleados:
+            malla[empleado.id_tercero] = {fecha: None for fecha in fechas}
+        
         for asignacion in asignaciones:
-            malla[asignacion.tercero_id][asignacion.dia] = asignacion
+            if asignacion.tercero_id in malla:
+                malla[asignacion.tercero_id][asignacion.dia] = asignacion
 
-        # Agrupar empleados verticalmente según el tamaño del modelo
+        # Agrupar empleados por fila (bloque) basándose en las asignaciones reales
         modelo_turno = programacion.modelo_turno
         tamano_bloque = modelo_turno.letras.values_list('fila', flat=True).distinct().count()
-        empleados_agrupados = [empleados[i:i+tamano_bloque] for i in range(0, len(empleados), tamano_bloque)]
+        
+        # Agrupar empleados por fila usando las asignaciones reales
+        empleados_agrupados = []
+        filas_empleados = {}
+        
+        for asignacion in asignaciones:
+            fila = asignacion.fila
+            tercero_id = asignacion.tercero_id
+            if fila not in filas_empleados:
+                filas_empleados[fila] = set()
+            filas_empleados[fila].add(tercero_id)
+        
+        # Convertir sets a listas de terceros y ordenar por fila
+        for fila in sorted(filas_empleados.keys()):
+            terceros_en_fila = []
+            for tercero_id in filas_empleados[fila]:
+                tercero = Tercero.objects.get(id_tercero=tercero_id)
+                terceros_en_fila.append(tercero)
+            empleados_agrupados.append(terceros_en_fila)
 
         if request.method == 'POST':
             for emp in empleados:
@@ -73,6 +107,54 @@ class ProgramacionHorarioAdmin(admin.ModelAdmin):
             "empleados_agrupados": empleados_agrupados,
             "fechas": fechas,
             "malla": malla,
+        })
+
+    def intercambiar_terceros_view(self, request, programacion_id):
+        programacion = get_object_or_404(ProgramacionHorario, pk=programacion_id)
+        empleados = list(Tercero.objects.filter(centro_operativo=programacion.centro_operativo))
+        
+        # Agrupar empleados por bloques según el tamaño del modelo
+        modelo_turno = programacion.modelo_turno
+        tamano_bloque = modelo_turno.letras.values_list('fila', flat=True).distinct().count()
+        empleados_agrupados = [empleados[i:i+tamano_bloque] for i in range(0, len(empleados), tamano_bloque)]
+        
+        if request.method == 'POST':
+            tercero1_id = request.POST.get('tercero1')
+            tercero2_id = request.POST.get('tercero2')
+            
+            if tercero1_id and tercero2_id and tercero1_id != tercero2_id:
+                try:
+                    # Obtener las asignaciones de ambos terceros
+                    asignaciones1 = AsignacionTurno.objects.filter(
+                        programacion=programacion,
+                        tercero_id=tercero1_id
+                    )
+                    asignaciones2 = AsignacionTurno.objects.filter(
+                        programacion=programacion,
+                        tercero_id=tercero2_id
+                    )
+                    
+                    # Intercambiar los terceros en las asignaciones
+                    for asignacion in asignaciones1:
+                        asignacion.tercero_id = tercero2_id
+                        asignacion.save()
+                    
+                    for asignacion in asignaciones2:
+                        asignacion.tercero_id = tercero1_id
+                        asignacion.save()
+                    
+                    messages.success(request, "Terceros intercambiados correctamente.")
+                    return redirect(request.path)
+                    
+                except Exception as e:
+                    messages.error(request, f"Error al intercambiar terceros: {str(e)}")
+            else:
+                messages.error(request, "Debe seleccionar dos terceros diferentes.")
+        
+        return render(request, "admin/intercambiar_terceros.html", {
+            "programacion": programacion,
+            "empleados_agrupados": empleados_agrupados,
+            "total_bloques": len(empleados_agrupados),
         })
 
     def save_model(self, request, obj, form, change):
@@ -201,9 +283,11 @@ class ProgramacionHorarioAdmin(admin.ModelAdmin):
             extra_context = {}
         extra_context['extra_button'] = format_html(
             '<a class="button" href="{}">Extender programación</a> '
-            '<a class="button" href="{}">Editar malla</a>',
+            '<a class="button" href="{}">Editar malla</a> '
+            '<a class="button" href="{}">Intercambiar Terceros</a>',
             reverse('admin:programacionhorario-extender', args=[object_id]),
-            reverse('admin:programacionhorario-editar-malla', args=[object_id])
+            reverse('admin:programacionhorario-editar-malla', args=[object_id]),
+            reverse('admin:programacionhorario-intercambiar-terceros', args=[object_id])
         )
         return super().change_view(request, object_id, form_url, extra_context=extra_context)
 
