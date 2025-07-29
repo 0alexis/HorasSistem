@@ -98,3 +98,4 @@ class CargoPredefinidoAdmin(admin.ModelAdmin):
 
     #def get_queryset(self, request):
      #   return CargoPredefinido.all_objects.all()
+     #que el ulimo beso sea el de mi madre
