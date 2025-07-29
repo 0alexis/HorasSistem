@@ -257,3 +257,32 @@ def malla_turnos(request, programacion_id):
         'fechas': fechas,
         'malla': malla,
     })
+
+@api_view(['GET'])
+def test_bitacora(request):
+    """Vista de prueba para verificar que la bitácora funciona"""
+    from .utils import registrar_bitacora
+    
+    print("🧪 Probando bitácora manualmente...")
+    
+    # Crear un registro de prueba
+    bitacora = registrar_bitacora(
+        request=request,
+        tipo_accion='CONSULTAR',
+        modulo='programacion',
+        modelo_afectado='Test',
+        descripcion='Prueba manual de bitácora',
+        valores_nuevos={'test': 'valor'}
+    )
+    
+    if bitacora:
+        return Response({
+            'mensaje': 'Bitácora funcionando correctamente',
+            'bitacora_id': bitacora.id,
+            'usuario': str(bitacora.usuario) if bitacora.usuario else 'Anónimo',
+            'ip': bitacora.ip_address
+        })
+    else:
+        return Response({
+            'error': 'Error al crear bitácora'
+        }, status=500)

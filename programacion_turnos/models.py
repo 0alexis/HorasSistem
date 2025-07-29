@@ -1,4 +1,7 @@
+from django.contrib.auth.models import User
 from django.db import models
+from django.utils import timezone
+from django.conf import settings
 from programacion_models.models import ModeloTurno, LetraTurno
 from usuarios.models import Tercero
 
@@ -47,4 +50,47 @@ class AsignacionTurno(models.Model):
     columna = models.PositiveIntegerField(null= False)
     def __str__(self):
         return f"{self.tercero} - {self.dia}: {self.letra_turno}"
+
+class Bitacora(models.Model):
+    TIPOS_ACCION = [
+        ('CREAR', 'Crear'),
+        ('EDITAR', 'Editar'),
+        ('ELIMINAR', 'Eliminar'),
+        ('CONSULTAR', 'Consultar'),
+    ]
+    
+    MODULOS = [
+        ('programacion', 'Programación'),
+        ('turnos', 'Turnos'),
+        ('empleados', 'Empleados'),
+        ('modelos', 'Modelos de Turno'),
+        ('usuarios', 'Usuarios'),
+    ]
+
+   #usuario = models.ForeignKey(User, on_delete=models.SET_NULL, null=True, verbose_name='Usuario')
+
+    usuario = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.SET_NULL, null=True, verbose_name='Usuario')
+    fecha_hora = models.DateTimeField(auto_now_add=True, verbose_name='Fecha y Hora')
+    ip_address = models.GenericIPAddressField(verbose_name='Dirección IP', null=True, blank=True)
+    tipo_accion = models.CharField(max_length=20, choices=TIPOS_ACCION, verbose_name='Tipo de Acción')
+    modulo = models.CharField(max_length=20, choices=MODULOS, verbose_name='Módulo')
+    modelo_afectado = models.CharField(max_length=50, verbose_name='Modelo Afectado')
+    objeto_id = models.IntegerField(null=True, blank=True, verbose_name='ID del Objeto')
+    descripcion = models.TextField(verbose_name='Descripción')
+    valores_anteriores = models.JSONField(null=True, blank=True, verbose_name='Valores Anteriores')
+    valores_nuevos = models.JSONField(null=True, blank=True, verbose_name='Valores Nuevos')
+    campos_modificados = models.JSONField(null=True, blank=True, verbose_name='Campos Modificados')
+    
+    class Meta:
+        verbose_name = 'Bitácora'
+        verbose_name_plural = 'Bitácoras'
+        ordering = ['-fecha_hora']
+        indexes = [
+            models.Index(fields=['usuario', 'fecha_hora']),
+            models.Index(fields=['tipo_accion', 'fecha_hora']),
+            models.Index(fields=['modulo', 'fecha_hora']),
+        ]
+    
+    def __str__(self):
+        return f"{self.usuario} - {self.tipo_accion} - {self.modulo} - {self.fecha_hora}"
     

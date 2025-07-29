@@ -131,6 +131,7 @@ MIDDLEWARE = [
     'django.contrib.auth.middleware.AuthenticationMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
+    'programacion_turnos.middleware.RequestMiddleware',  # Middleware para bitácora
 ]
 
 ROOT_URLCONF = 'horas_sistema.urls'
@@ -193,7 +194,7 @@ TIME_ZONE = 'America/Bogota'
 
 USE_I18N = True
 
-USE_TZ = True
+USE_TZ = False
 
 
 # Static files (CSS, JavaScript, Images)

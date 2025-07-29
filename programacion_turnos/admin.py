@@ -1,9 +1,9 @@
 from django.contrib import admin
 from django import forms
 from django.contrib import messages
-from .models import ProgramacionHorario
+from .models import ProgramacionHorario, AsignacionTurno, Bitacora
 from .serializers import ProgramacionExtensionSerializer
-from .models import AsignacionTurno, LetraTurno
+from .models import LetraTurno
 from datetime import timedelta
 from django.urls import path
 from django.shortcuts import redirect, get_object_or_404, render
@@ -296,3 +296,22 @@ class AsignacionTurnoAdmin(admin.ModelAdmin):
     list_display = ('programacion', 'tercero', 'dia', 'letra_turno', 'fila', 'columna')
     list_filter = ('programacion', 'tercero')
     search_fields = ('programacion__centro_operativo__nombre', 'tercero__nombre_tercero', 'tercero__apellido_tercero')
+
+@admin.register(Bitacora)
+class BitacoraAdmin(admin.ModelAdmin):
+    list_display = ('usuario', 'fecha_hora', 'tipo_accion', 'modulo', 'modelo_afectado', 'descripcion')
+    list_filter = ('tipo_accion', 'modulo', 'usuario', 'fecha_hora')
+    search_fields = ('usuario__username', 'descripcion', 'modelo_afectado')
+    readonly_fields = ('usuario', 'fecha_hora', 'ip_address', 'tipo_accion', 'modulo', 'modelo_afectado', 
+                      'objeto_id', 'descripcion', 'valores_anteriores', 'valores_nuevos', 'campos_modificados')
+    date_hierarchy = 'fecha_hora'
+    ordering = ('-fecha_hora',)
+    
+    def has_add_permission(self, request):
+        return False  # No permitir crear registros manualmente
+    
+    def has_change_permission(self, request, obj=None):
+        return False  # No permitir editar registros
+    
+    def has_delete_permission(self, request, obj=None):
+        return True  # Permitir eliminar registros si es necesario
