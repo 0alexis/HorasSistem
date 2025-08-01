@@ -182,7 +182,8 @@ def editar_malla_api(request, programacion_id):
 @permission_classes([IsAuthenticated])
 def intercambiar_terceros_api(request, programacion_id):
     """
-    Intercambia dos terceros en una programación, manteniendo sus asignaciones de turnos.
+    Intercambia las letras de turno de dos terceros en una programación.
+    Los terceros mantienen sus posiciones/días pero intercambian sus letras de turno.
     """
     try:
         programacion = ProgramacionHorario.objects.get(pk=programacion_id)
@@ -203,43 +204,73 @@ def intercambiar_terceros_api(request, programacion_id):
         tercero1 = Tercero.objects.get(pk=tercero1_id)
         tercero2 = Tercero.objects.get(pk=tercero2_id)
         
+        # Verificar que ambos terceros pertenecen al mismo centro operativo
+        if tercero1.centro_operativo != tercero2.centro_operativo:
+            return Response({"error": "Los terceros deben pertenecer al mismo centro operativo"}, status=status.HTTP_400_BAD_REQUEST)
+        
         # Obtener las asignaciones de ambos terceros
         asignaciones1 = AsignacionTurno.objects.filter(
             programacion=programacion,
-            tercero_id=tercero1_id
-        )
+            tercero=tercero1
+        ).order_by('dia')
         asignaciones2 = AsignacionTurno.objects.filter(
             programacion=programacion,
-            tercero_id=tercero2_id
-        )
+            tercero=tercero2
+        ).order_by('dia')
         
-        # Intercambiar los terceros en las asignaciones
+        print(f"Intercambiando letras de turno: {tercero1} <-> {tercero2}")
+        print(f"Asignaciones tercero1: {asignaciones1.count()}")
+        print(f"Asignaciones tercero2: {asignaciones2.count()}")
+        
+        # Guardar las letras de turno originales
+        letras_tercero1_originales = {asig.dia: asig.letra_turno for asig in asignaciones1}
+        letras_tercero2_originales = {asig.dia: asig.letra_turno for asig in asignaciones2}
+        
+        # Intercambiar las letras de turno
+        cambios_realizados = 0
+        
+        # Tercero1 recibe letras de tercero2
         for asignacion in asignaciones1:
-            asignacion.tercero = tercero2
-            asignacion.save()
+            if asignacion.dia in letras_tercero2_originales:
+                letra_original = asignacion.letra_turno
+                asignacion.letra_turno = letras_tercero2_originales[asignacion.dia]
+                asignacion.save()
+                cambios_realizados += 1
+                print(f"Asignación {asignacion.id} - {tercero1} día {asignacion.dia}: {letra_original} → {asignacion.letra_turno}")
         
+        # Tercero2 recibe letras de tercero1
         for asignacion in asignaciones2:
-            asignacion.tercero = tercero1
-            asignacion.save()
+            if asignacion.dia in letras_tercero1_originales:
+                letra_original = asignacion.letra_turno
+                asignacion.letra_turno = letras_tercero1_originales[asignacion.dia]
+                asignacion.save()
+                cambios_realizados += 1
+                print(f"Asignación {asignacion.id} - {tercero2} día {asignacion.dia}: {letra_original} → {asignacion.letra_turno}")
         
         return Response({
-            "mensaje": "Terceros intercambiados correctamente",
+            "mensaje": f"Letras de turno intercambiadas correctamente. {cambios_realizados} cambios realizados.",
             "tercero1": {
                 "id": tercero1.id_tercero,
                 "nombre": f"{tercero1.nombre_tercero} {tercero1.apellido_tercero}",
-                "cedula": tercero1.cedula_tercero
+                "documento": tercero1.documento
             },
             "tercero2": {
                 "id": tercero2.id_tercero,
                 "nombre": f"{tercero2.nombre_tercero} {tercero2.apellido_tercero}",
-                "cedula": tercero2.cedula_tercero
+                "documento": tercero2.documento
+            },
+            "cambios_realizados": cambios_realizados,
+            "asignaciones_intercambiadas": {
+                "tercero1_original": asignaciones1.count(),
+                "tercero2_original": asignaciones2.count()
             }
         }, status=status.HTTP_200_OK)
         
     except Tercero.DoesNotExist:
         return Response({"error": "Uno o ambos terceros no existen"}, status=status.HTTP_404_NOT_FOUND)
     except Exception as e:
-        return Response({"error": f"Error al intercambiar terceros: {str(e)}"}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+        print(f"Error al intercambiar letras de turno: {str(e)}")
+        return Response({"error": f"Error al intercambiar letras de turno: {str(e)}"}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
 
 def malla_turnos(request, programacion_id):
     programacion = ProgramacionHorario.objects.get(id=programacion_id)

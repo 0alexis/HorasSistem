@@ -108,7 +108,10 @@ class ProgramacionHorarioAdmin(admin.ModelAdmin):
             "fechas": fechas,
             "malla": malla,
         })
-
+# Se realiza el intercambio de terceros, se selecciona el tercero 1 y el tercero 2, se intercambian las letras de turno de los terceros 1 y 2 
+# con esto logramos realizar la API funcion de intercambio de terceros, debe en el front
+#  hacerse uso de esto buscando como realizaar de manera UX que se cambien
+#  los valores del documento, ya que el intercambio se hace segun lo planeado
     def intercambiar_terceros_view(self, request, programacion_id):
         programacion = get_object_or_404(ProgramacionHorario, pk=programacion_id)
         empleados = list(Tercero.objects.filter(centro_operativo=programacion.centro_operativo))
@@ -124,30 +127,61 @@ class ProgramacionHorarioAdmin(admin.ModelAdmin):
             
             if tercero1_id and tercero2_id and tercero1_id != tercero2_id:
                 try:
+                    # Verificar que ambos terceros existen
+                    tercero1 = Tercero.objects.get(pk=tercero1_id)
+                    tercero2 = Tercero.objects.get(pk=tercero2_id)
+                    
+                    # Verificar que ambos terceros pertenecen al mismo centro operativo
+                    if tercero1.centro_operativo != tercero2.centro_operativo:
+                        messages.error(request, "Los terceros deben pertenecer al mismo centro operativo.")
+                        return redirect(request.path)
+                    
                     # Obtener las asignaciones de ambos terceros
                     asignaciones1 = AsignacionTurno.objects.filter(
                         programacion=programacion,
-                        tercero_id=tercero1_id
-                    )
+                        tercero=tercero1
+                    ).order_by('dia')
                     asignaciones2 = AsignacionTurno.objects.filter(
                         programacion=programacion,
-                        tercero_id=tercero2_id
-                    )
+                        tercero=tercero2
+                    ).order_by('dia')
                     
-                    # Intercambiar los terceros en las asignaciones
+                    print(f"Intercambiando letras de turno en admin: {tercero1} <-> {tercero2}")
+                    print(f"Asignaciones tercero1: {asignaciones1.count()}")
+                    print(f"Asignaciones tercero2: {asignaciones2.count()}")
+                    
+                    # Guardar las letras de turno originales
+                    letras_tercero1_originales = {asig.dia: asig.letra_turno for asig in asignaciones1}
+                    letras_tercero2_originales = {asig.dia: asig.letra_turno for asig in asignaciones2}
+                    
+                    cambios_realizados = 0
+                    
+                    # Tercero1 recibe letras de tercero2
                     for asignacion in asignaciones1:
-                        asignacion.tercero_id = tercero2_id
-                        asignacion.save()
+                        if asignacion.dia in letras_tercero2_originales:
+                            letra_original = asignacion.letra_turno
+                            asignacion.letra_turno = letras_tercero2_originales[asignacion.dia]
+                            asignacion.save()
+                            cambios_realizados += 1
+                            print(f"Asignación {asignacion.id} - {tercero1} día {asignacion.dia}: {letra_original} → {asignacion.letra_turno}")
                     
+                    # Tercero2 recibe letras de tercero1
                     for asignacion in asignaciones2:
-                        asignacion.tercero_id = tercero1_id
-                        asignacion.save()
+                        if asignacion.dia in letras_tercero1_originales:
+                            letra_original = asignacion.letra_turno
+                            asignacion.letra_turno = letras_tercero1_originales[asignacion.dia]
+                            asignacion.save()
+                            cambios_realizados += 1
+                            print(f"Asignación {asignacion.id} - {tercero2} día {asignacion.dia}: {letra_original} → {asignacion.letra_turno}")
                     
-                    messages.success(request, "Terceros intercambiados correctamente.")
+                    messages.success(request, f"Letras de turno intercambiadas correctamente: {tercero1} <-> {tercero2}. {cambios_realizados} cambios realizados.")
                     return redirect(request.path)
                     
+                except Tercero.DoesNotExist:
+                    messages.error(request, "Uno o ambos terceros no existen.")
                 except Exception as e:
-                    messages.error(request, f"Error al intercambiar terceros: {str(e)}")
+                    print(f"Error al intercambiar letras de turno en admin: {str(e)}")
+                    messages.error(request, f"Error al intercambiar letras de turno: {str(e)}")
             else:
                 messages.error(request, "Debe seleccionar dos terceros diferentes.")
         
