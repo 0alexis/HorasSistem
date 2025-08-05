@@ -61,14 +61,16 @@ class ProgramacionHorarioAdmin(admin.ModelAdmin):
             if asignacion.tercero_id in malla:
                 malla[asignacion.tercero_id][asignacion.dia] = asignacion
 
-        # Agrupar empleados por fila (bloque) basándose en las asignaciones reales
+
+        # Agrupar empleados por filas reales del modelo de turno
         modelo_turno = programacion.modelo_turno
-        tamano_bloque = modelo_turno.letras.values_list('fila', flat=True).distinct().count()
+        filas_modelo = modelo_turno.letras.values_list('fila', flat=True).distinct().order_by('fila')
         
-        # Agrupar empleados por fila usando las asignaciones reales
+        # Agrupar empleados por fila real del modelo
         empleados_agrupados = []
         filas_empleados = {}
         
+        # Agrupar empleados por su fila asignada
         for asignacion in asignaciones:
             fila = asignacion.fila
             tercero_id = asignacion.tercero_id
@@ -76,13 +78,14 @@ class ProgramacionHorarioAdmin(admin.ModelAdmin):
                 filas_empleados[fila] = set()
             filas_empleados[fila].add(tercero_id)
         
-        # Convertir sets a listas de terceros y ordenar por fila
-        for fila in sorted(filas_empleados.keys()):
-            terceros_en_fila = []
-            for tercero_id in filas_empleados[fila]:
-                tercero = Tercero.objects.get(id_tercero=tercero_id)
-                terceros_en_fila.append(tercero)
-            empleados_agrupados.append(terceros_en_fila)
+        # Crear bloques basados en las filas del modelo
+        for fila in filas_modelo:
+            if fila in filas_empleados:
+                terceros_en_fila = []
+                for tercero_id in filas_empleados[fila]:
+                    tercero = Tercero.objects.get(id_tercero=tercero_id)
+                    terceros_en_fila.append(tercero)
+                empleados_agrupados.append(terceros_en_fila)
 
         if request.method == 'POST':
             for emp in empleados:
@@ -116,10 +119,31 @@ class ProgramacionHorarioAdmin(admin.ModelAdmin):
         programacion = get_object_or_404(ProgramacionHorario, pk=programacion_id)
         empleados = list(Tercero.objects.filter(centro_operativo=programacion.centro_operativo))
         
-        # Agrupar empleados por bloques según el tamaño del modelo
+        # Agrupar empleados por filas reales del modelo de turno
         modelo_turno = programacion.modelo_turno
-        tamano_bloque = modelo_turno.letras.values_list('fila', flat=True).distinct().count()
-        empleados_agrupados = [empleados[i:i+tamano_bloque] for i in range(0, len(empleados), tamano_bloque)]
+        filas_modelo = modelo_turno.letras.values_list('fila', flat=True).distinct().order_by('fila')
+        
+        # Obtener asignaciones para agrupar por fila real
+        asignaciones = AsignacionTurno.objects.filter(programacion=programacion)
+        filas_empleados = {}
+        
+        # Agrupar empleados por su fila asignada
+        for asignacion in asignaciones:
+            fila = asignacion.fila
+            tercero_id = asignacion.tercero_id
+            if fila not in filas_empleados:
+                filas_empleados[fila] = set()
+            filas_empleados[fila].add(tercero_id)
+        
+        # Crear bloques basados en las filas del modelo
+        empleados_agrupados = []
+        for fila in filas_modelo:
+            if fila in filas_empleados:
+                terceros_en_fila = []
+                for tercero_id in filas_empleados[fila]:
+                    tercero = Tercero.objects.get(id_tercero=tercero_id)
+                    terceros_en_fila.append(tercero)
+                empleados_agrupados.append(terceros_en_fila)
         
         if request.method == 'POST':
             tercero1_id = request.POST.get('tercero1')

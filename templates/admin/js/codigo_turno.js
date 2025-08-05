@@ -1,5 +1,5 @@
 /**
- * JavaScript para la interfaz de códigos de turno
+ * JavaScript simplificado para formato militar directo
  */
 
 (function($) {
@@ -17,32 +17,23 @@
     
     // Plantillas predefinidas
     const PLANTILLAS = {
-        'N': { // Normal
+        'N': {
             nombre: 'Turno Normal',
+            segmentos: [{inicio: '', fin: '', tipo: 'NORMAL'}]
+        },
+        'F': {
+            nombre: 'Turno Festivo',
             segmentos: [
-                {inicio: '08:00', fin: '16:00', tipo: 'NORMAL'}
+                {inicio: '', fin: '', tipo: 'NORMAL'},
+                {inicio: '', fin: '', tipo: 'FESTIVO'}
             ]
         },
-        'F': { // Festivo
-            nombre: 'Turno Festivo Estándar',
-            segmentos: [
-                {inicio: '08:00', fin: '12:00', tipo: 'NORMAL'},
-                {inicio: '12:00', fin: '16:00', tipo: 'FESTIVO'}
-            ]
-        },
-        'FO': { // Festivo Ordinario
-            nombre: 'Turno Festivo Ordinario',
-            segmentos: [
-                {inicio: '08:00', fin: '12:00', tipo: 'NORMAL'},
-                {inicio: '12:00', fin: '16:00', tipo: 'FESTIVO'}
-            ]
-        },
-        'E': { // Especial
+        'E': {
             nombre: 'Turno Especial',
             segmentos: [
-                {inicio: '06:00', fin: '08:00', tipo: 'NOCTURNO'},
-                {inicio: '08:00', fin: '12:00', tipo: 'NORMAL'},
-                {inicio: '12:00', fin: '16:00', tipo: 'FESTIVO'}
+                {inicio: '', fin: '', tipo: 'NOCTURNO'},
+                {inicio: '', fin: '', tipo: 'NORMAL'},
+                {inicio: '', fin: '', tipo: 'FESTIVO'}
             ]
         }
     };
@@ -58,6 +49,91 @@
             this.bindEvents();
             this.cargarSegmentosExistentes();
             this.actualizarInterfaz();
+            this.forzarFormatoMilitar();
+        }
+        
+        forzarFormatoMilitar() {
+            const formatearHora = (valor) => {
+                if (!valor) return '';
+                
+                // Remover cualquier carácter no numérico excepto :
+                valor = valor.replace(/[^\d:]/g, '');
+                
+                // Separar horas, minutos y segundos
+                let [horas = 0, minutos = 0, segundos = 0] = valor.split(':').map(n => parseInt(n, 10));
+                
+                // Validar y ajustar valores
+                horas = !isNaN(horas) ? Math.min(23, Math.max(0, horas)) : 0;
+                minutos = !isNaN(minutos) ? Math.min(59, Math.max(0, minutos)) : 0;
+                segundos = !isNaN(segundos) ? Math.min(59, Math.max(0, segundos)) : 0;
+                
+                // Retornar formato HH:mm:ss
+                return `${horas.toString().padStart(2, '0')}:${minutos.toString().padStart(2, '0')}:${segundos.toString().padStart(2, '0')}`;
+            };
+
+            // Reemplazar inputs time con inputs text personalizados
+            $('input[type="time"]').each(function() {
+                const $original = $(this);
+                const $nuevo = $('<input>', {
+                    type: 'text',
+                    class: $original.attr('class') + ' tiempo-militar',
+                    value: formatearHora($original.val()),
+                    placeholder: 'HH:mm:ss',
+                    maxlength: 8
+                });
+
+                // Eventos para el nuevo input
+                $nuevo.on('input', function(e) {
+                    let valor = $(this).val();
+                    
+                    // Permitir solo números y :
+                    valor = valor.replace(/[^\d:]/g, '');
+                    
+                    // Auto-insertar : después de 2 y 5 dígitos
+                    if (valor.length === 2 && valor.indexOf(':') === -1) {
+                        valor += ':';
+                    }
+                    if (valor.length === 5 && valor.split(':').length === 2) {
+                        valor += ':';
+                    }
+                    
+                    $(this).val(valor);
+                });
+
+                $nuevo.on('blur', function() {
+                    const valorFormateado = formatearHora($(this).val());
+                    $(this).val(valorFormateado);
+                    $original.val(valorFormateado).trigger('change');
+                });
+
+                // Reemplazar el input original
+                $original.hide().after($nuevo);
+            });
+
+            // Actualizar estilos
+            if (!$('#military-time-custom').length) {
+                $('head').append(`
+                    <style id="military-time-custom">
+                        input.tiempo-militar {
+                            width: 100px !important;
+                            text-align: center !important;
+                            font-family: monospace !important;
+                            font-size: 14px !important;
+                            padding: 5px !important;
+                            border: 1px solid #ccc !important;
+                            border-radius: 4px !important;
+                        }
+                        input.tiempo-militar:focus {
+                            outline: none !important;
+                            border-color: #2271b1 !important;
+                            box-shadow: 0 0 0 1px #2271b1 !important;
+                        }
+                        input.tiempo-militar::placeholder {
+                            color: #999 !important;
+                        }
+                    </style>
+                `);
+            }
         }
         
         bindEvents() {
@@ -165,6 +241,9 @@
                 container.append(html);
             });
             
+            // Aplicar formato militar a los nuevos inputs
+            this.forzarFormatoMilitar();
+            
             this.actualizarJSON();
         }
         
@@ -177,16 +256,23 @@
                 <div class="segmento-item" data-index="${index}">
                     <div class="segmento-numero">${index + 1}</div>
                     <div class="segmento-campos">
-                        <input type="time" value="${segmento.inicio}" placeholder="Inicio" class="segmento-inicio">
-                        <input type="time" value="${segmento.fin}" placeholder="Fin" class="segmento-fin">
+                        <input type="text" 
+                               value="${segmento.inicio}" 
+                               placeholder="HH:mm:ss" 
+                               class="segmento-inicio tiempo-militar" 
+                               maxlength="8"
+                               data-tipo="inicio"
+                               aria-label="Hora inicio">
+                        <input type="text" 
+                               value="${segmento.fin}" 
+                               placeholder="HH:mm:ss" 
+                               class="segmento-fin tiempo-militar" 
+                               maxlength="8"
+                               data-tipo="fin"
+                               aria-label="Hora fin">
                         <select class="segmento-tipo">
                             ${tiposOptions}
                         </select>
-                    </div>
-                    <div class="segmento-acciones">
-                        <button type="button" class="btn-segmento danger btn-eliminar-segmento" data-index="${index}">
-                            🗑️ Eliminar
-                        </button>
                     </div>
                 </div>
             `;
@@ -199,8 +285,8 @@
             }
             
             const nuevoSegmento = {
-                inicio: '08:00',
-                fin: '16:00',
+                inicio: '',
+                fin: '',
                 tipo: 'NORMAL'
             };
             
@@ -239,6 +325,20 @@
                 errores.push('Máximo 8 segmentos permitidos');
             }
             
+            // Validar formato militar
+            for (let i = 0; i < this.segmentos.length; i++) {
+                const segmento = this.segmentos[i];
+                const regex = /^([0-1][0-9]|2[0-3]):([0-5][0-9]):([0-5][0-9])$/;
+                
+                if (segmento.inicio && !regex.test(segmento.inicio)) {
+                    errores.push(`Segmento ${i + 1}: Hora de inicio debe estar en formato militar (00:00:00 a 23:59:59)`);
+                }
+                
+                if (segmento.fin && !regex.test(segmento.fin)) {
+                    errores.push(`Segmento ${i + 1}: Hora de fin debe estar en formato militar (00:00:00 a 23:59:59)`);
+                }
+            }
+            
             // Validar continuidad
             for (let i = 0; i < this.segmentos.length - 1; i++) {
                 if (this.segmentos[i].fin !== this.segmentos[i + 1].inicio) {
@@ -259,6 +359,21 @@
             this.mostrarErrores(errores);
             
             return errores.length === 0;
+        }
+        
+        validarFormatoTiempo(valor) {
+            if (!valor) return false;
+            
+            // Validar formato HH:mm:ss
+            const regex = /^([0-1][0-9]|2[0-3]):([0-5][0-9]):([0-5][0-9])$/;
+            if (!regex.test(valor)) return false;
+            
+            const [horas, minutos, segundos] = valor.split(':').map(Number);
+            return (
+                horas >= 0 && horas <= 23 &&
+                minutos >= 0 && minutos <= 59 &&
+                segundos >= 0 && segundos <= 59
+            );
         }
         
         actualizarSegmentosDesdeDOM() {
@@ -323,8 +438,9 @@
             $('#id_segmentos_json').closest('.form-row').after(controlesHTML);
         }
         
-        // Inicializar la interfaz
-        new CodigoTurnoAdmin();
+        // Inicializar la interfaz y guardar la instancia globalmente
+        window.codigoTurnoAdmin = new CodigoTurnoAdmin();
+        console.log('✅ Interfaz inicializada correctamente');
     });
     
-})(django.jQuery); 
+})(django.jQuery);

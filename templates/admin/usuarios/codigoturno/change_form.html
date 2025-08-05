@@ -59,6 +59,58 @@
 
 .segmento-campos input[type="time"] {
     width: 100px;
+    /* Forzar formato de 24 horas */
+    -webkit-appearance: none;
+    -moz-appearance: none;
+    appearance: none;
+}
+
+/* Estilos específicos para formato de 24 horas */
+.segmento-campos input[type="time"]::-webkit-datetime-edit-hour-field,
+.segmento-campos input[type="time"]::-webkit-datetime-edit-minute-field {
+    /* Asegurar que se muestre en formato de 24 horas */
+    -webkit-appearance: none;
+}
+
+/* Ocultar indicadores AM/PM si el navegador los muestra */
+.segmento-campos input[type="time"]::-webkit-datetime-edit-ampm-field {
+    display: none;
+}
+
+/* Estilos adicionales para forzar formato de 24 horas */
+input[type="time"] {
+    -webkit-appearance: none;
+    -moz-appearance: none;
+    appearance: none;
+    text-align: center;
+}
+
+input[type="time"]::-webkit-datetime-edit {
+    text-align: center;
+}
+
+input[type="time"]::-webkit-datetime-edit-hour-field,
+input[type="time"]::-webkit-datetime-edit-minute-field {
+    -webkit-appearance: none;
+    text-align: center;
+}
+
+input[type="time"]::-webkit-datetime-edit-ampm-field {
+    display: none !important;
+}
+
+input[type="time"]::-moz-datetime-edit-ampm-field {
+    display: none !important;
+}
+
+/* Para Firefox */
+input[type="time"]::-moz-datetime-edit {
+    text-align: center;
+}
+
+/* Para Edge */
+input[type="time"]::-ms-datetime-edit {
+    text-align: center;
 }
 
 .segmento-campos select {
@@ -186,6 +238,93 @@
     margin-bottom: 10px;
     color: #333;
 }
+
+/* Estilos específicos para el widget TimeInput24Hours */
+.time-input-24h {
+    -webkit-appearance: none !important;
+    -moz-appearance: none !important;
+    appearance: none !important;
+    text-align: center !important;
+}
+
+.time-input-24h::-webkit-datetime-edit {
+    text-align: center !important;
+}
+
+.time-input-24h::-webkit-datetime-edit-hour-field,
+.time-input-24h::-webkit-datetime-edit-minute-field {
+    -webkit-appearance: none !important;
+    text-align: center !important;
+}
+
+.time-input-24h::-webkit-datetime-edit-ampm-field {
+    display: none !important;
+    width: 0 !important;
+    height: 0 !important;
+    overflow: hidden !important;
+    opacity: 0 !important;
+    pointer-events: none !important;
+    position: absolute !important;
+    left: -9999px !important;
+}
+
+.time-input-24h::-moz-datetime-edit-ampm-field {
+    display: none !important;
+    width: 0 !important;
+    height: 0 !important;
+    overflow: hidden !important;
+    opacity: 0 !important;
+    pointer-events: none !important;
+    position: absolute !important;
+    left: -9999px !important;
+}
+
+.time-input-24h::-ms-datetime-edit-ampm-field {
+    display: none !important;
+    width: 0 !important;
+    height: 0 !important;
+    overflow: hidden !important;
+    opacity: 0 !important;
+    pointer-events: none !important;
+    position: absolute !important;
+    left: -9999px !important;
+}
+
+/* Estilos adicionales para forzar formato de 24 horas */
+input[type="time"] {
+    -webkit-appearance: none !important;
+    -moz-appearance: none !important;
+    appearance: none !important;
+    text-align: center !important;
+}
+
+input[type="time"]::-webkit-datetime-edit {
+    text-align: center !important;
+}
+
+input[type="time"]::-webkit-datetime-edit-hour-field,
+input[type="time"]::-webkit-datetime-edit-minute-field {
+    -webkit-appearance: none !important;
+    text-align: center !important;
+}
+
+input[type="time"]::-webkit-datetime-edit-ampm-field {
+    display: none !important;
+}
+
+input[type="time"]::-moz-datetime-edit-ampm-field {
+    display: none !important;
+}
+
+/* Para Firefox */
+input[type="time"]::-moz-datetime-edit {
+    text-align: center;
+}
+
+/* Para Edge */
+input[type="time"]::-ms-datetime-edit {
+    text-align: center;
+}
 </style>
 
 <script>
@@ -206,34 +345,34 @@
         ['COMPENSATORIO', 'Compensatorio']
     ];
     
-    // Plantillas predefinidas
+    // Plantillas predefinidas (sin valores de tiempo predeterminados)
     const PLANTILLAS = {
         'N': { // Normal
             nombre: 'Turno Normal',
             segmentos: [
-                {inicio: '08:00', fin: '16:00', tipo: 'NORMAL'}
+                {inicio: '', fin: '', tipo: 'NORMAL'}
             ]
         },
         'F': { // Festivo
             nombre: 'Turno Festivo Estándar',
             segmentos: [
-                {inicio: '08:00', fin: '12:00', tipo: 'NORMAL'},
-                {inicio: '12:00', fin: '16:00', tipo: 'FESTIVO'}
+                {inicio: '', fin: '', tipo: 'NORMAL'},
+                {inicio: '', fin: '', tipo: 'FESTIVO'}
             ]
         },
         'FO': { // Festivo Ordinario
             nombre: 'Turno Festivo Ordinario',
             segmentos: [
-                {inicio: '08:00', fin: '12:00', tipo: 'NORMAL'},
-                {inicio: '12:00', fin: '16:00', tipo: 'FESTIVO'}
+                {inicio: '', fin: '', tipo: 'NORMAL'},
+                {inicio: '', fin: '', tipo: 'FESTIVO'}
             ]
         },
         'E': { // Especial
             nombre: 'Turno Especial',
             segmentos: [
-                {inicio: '06:00', fin: '08:00', tipo: 'NOCTURNO'},
-                {inicio: '08:00', fin: '12:00', tipo: 'NORMAL'},
-                {inicio: '12:00', fin: '16:00', tipo: 'FESTIVO'}
+                {inicio: '', fin: '', tipo: 'NOCTURNO'},
+                {inicio: '', fin: '', tipo: 'NORMAL'},
+                {inicio: '', fin: '', tipo: 'FESTIVO'}
             ]
         }
     };
@@ -249,6 +388,263 @@
             this.bindEvents();
             this.cargarSegmentosExistentes();
             this.actualizarInterfaz();
+            // Forzar formato de 24 horas al inicializar
+            setTimeout(() => {
+                this.forzarFormato24Horas();
+                this.inicializarFormato24Horas();
+            }, 100);
+        }
+        
+        inicializarFormato24Horas() {
+            // Observar cambios en el DOM para aplicar formato de 24 horas a nuevos inputs
+            const observer = new MutationObserver((mutations) => {
+                mutations.forEach((mutation) => {
+                    if (mutation.type === 'childList') {
+                        mutation.addedNodes.forEach((node) => {
+                            if (node.nodeType === 1) { // Element node
+                                const timeInputs = node.querySelectorAll ? node.querySelectorAll('input[type="time"]') : [];
+                                if (node.matches && node.matches('input[type="time"]')) {
+                                    timeInputs.push(node);
+                                }
+                                
+                                timeInputs.forEach(input => {
+                                    input.setAttribute('step', '900');
+                                    input.setAttribute('data-format', '24');
+                                    input.setAttribute('min', '00:00');
+                                    input.setAttribute('max', '23:59');
+                                    input.classList.add('time-input-24h');
+                                    
+                                    // Agregar eventos para mantener formato de 24 horas
+                                    input.addEventListener('click', function() {
+                                        this.setAttribute('data-format', '24');
+                                        this.setAttribute('step', '900');
+                                        this.setAttribute('min', '00:00');
+                                        this.setAttribute('max', '23:59');
+                                        this.classList.add('time-input-24h');
+                                        setTimeout(() => {
+                                            this.forzarFormato24HorasNativo(this);
+                                            this.eliminarBotonesAMPM();
+                                            this.forzarRango24Horas();
+                                        }, 10);
+                                    });
+                                    
+                                    input.addEventListener('focus', function() {
+                                        this.setAttribute('data-format', '24');
+                                        this.setAttribute('step', '900');
+                                        this.setAttribute('min', '00:00');
+                                        this.setAttribute('max', '23:59');
+                                        this.classList.add('time-input-24h');
+                                        setTimeout(() => {
+                                            this.forzarFormato24HorasNativo(this);
+                                            this.eliminarBotonesAMPM();
+                                            this.forzarRango24Horas();
+                                        }, 10);
+                                    });
+                                    
+                                    // Forzar formato inmediatamente
+                                    setTimeout(() => {
+                                        this.forzarFormato24HorasNativo(input);
+                                        this.eliminarBotonesAMPM();
+                                        this.forzarRango24Horas();
+                                    }, 50);
+                                });
+                            }
+                        });
+                    }
+                });
+            });
+            
+            // Observar cambios en el documento
+            observer.observe(document.body, {
+                childList: true,
+                subtree: true
+            });
+            
+            // Aplicar formato de 24 horas a todos los inputs existentes
+            document.querySelectorAll('input[type="time"]').forEach(input => {
+                input.setAttribute('step', '900');
+                input.setAttribute('data-format', '24');
+                input.setAttribute('min', '00:00');
+                input.setAttribute('max', '23:59');
+                input.classList.add('time-input-24h');
+                
+                // Forzar formato inmediatamente
+                setTimeout(() => {
+                    this.forzarFormato24HorasNativo(input);
+                    this.eliminarBotonesAMPM();
+                    this.forzarRango24Horas();
+                }, 50);
+            });
+            
+            // Agregar estilos CSS adicionales para forzar formato de 24 horas
+            if (!$('#time-24h-forced-styles').length) {
+                $('head').append(`
+                    <style id="time-24h-forced-styles">
+                        /* Forzar formato de 24 horas de manera más agresiva */
+                        input[type="time"] {
+                            -webkit-appearance: none !important;
+                            -moz-appearance: none !important;
+                            appearance: none !important;
+                            text-align: center !important;
+                        }
+                        
+                        /* Ocultar completamente AM/PM en todos los navegadores */
+                        input[type="time"]::-webkit-datetime-edit-ampm-field,
+                        input[type="time"]::-moz-datetime-edit-ampm-field,
+                        input[type="time"]::-ms-datetime-edit-ampm-field {
+                            display: none !important;
+                            width: 0 !important;
+                            height: 0 !important;
+                            overflow: hidden !important;
+                            opacity: 0 !important;
+                            pointer-events: none !important;
+                        }
+                        
+                        /* Asegurar que solo se muestren horas y minutos */
+                        input[type="time"]::-webkit-datetime-edit-hour-field,
+                        input[type="time"]::-webkit-datetime-edit-minute-field {
+                            -webkit-appearance: none !important;
+                            text-align: center !important;
+                        }
+                        
+                        input[type="time"]::-moz-datetime-edit-hour-field,
+                        input[type="time"]::-moz-datetime-edit-minute-field {
+                            text-align: center !important;
+                        }
+                        
+                        /* Forzar rango de 24 horas */
+                        input[type="time"] {
+                            min: 00:00 !important;
+                            max: 23:59 !important;
+                        }
+                        
+                        /* Ocultar elementos del popup que muestren 12 horas */
+                        input[type="time"]::-webkit-calendar-picker-indicator {
+                            display: none !important;
+                        }
+                        
+                        /* Estilos para el popup del navegador */
+                        input[type="time"]::-webkit-datetime-edit {
+                            text-align: center !important;
+                        }
+                    </style>
+                `);
+            }
+            
+            // Corregir problema de guardado
+            this.corregirProblemaGuardado();
+            
+            // Interceptar popups del navegador
+            this.interceptarPopupsNavegador();
+        }
+        
+        interceptarPopupsNavegador() {
+            // Interceptar cuando se abre un popup de tiempo
+            document.addEventListener('click', function(e) {
+                if (e.target.type === 'time') {
+                    setTimeout(() => {
+                        // Buscar elementos del popup que muestren 12 horas
+                        const popupElementos = document.querySelectorAll('select, option, input[type="number"]');
+                        popupElementos.forEach(elemento => {
+                            const texto = elemento.textContent || elemento.innerText || '';
+                            if (texto.includes('AM') || texto.includes('PM') || 
+                                (texto.includes('1') && texto.includes('2') && !texto.includes('13'))) {
+                                // Es un elemento de 12 horas, ocultarlo o cambiarlo
+                                elemento.style.display = 'none';
+                                elemento.style.visibility = 'hidden';
+                                elemento.style.opacity = '0';
+                                elemento.style.width = '0';
+                                elemento.style.height = '0';
+                                elemento.style.overflow = 'hidden';
+                                elemento.style.pointerEvents = 'none';
+                                elemento.style.position = 'absolute';
+                                elemento.style.left = '-9999px';
+                            }
+                        });
+                    }, 100);
+                }
+            });
+        }
+        
+        corregirProblemaGuardado() {
+            // Asegurar que el formulario se guarde correctamente
+            $('form').on('submit', function(e) {
+                console.log('🔧 Corrigiendo problema de guardado...');
+                
+                // Convertir todos los valores de tiempo a formato de 24 horas antes de enviar
+                $('input[type="time"]').each(function() {
+                    let valor = $(this).val();
+                    console.log('⏰ Valor original:', valor);
+                    
+                    if (valor) {
+                        // Asegurar que el valor esté en formato de 24 horas
+                        if (valor.includes('AM') || valor.includes('PM')) {
+                            valor = this.convertirA24Horas(valor);
+                            console.log('🔄 Convertido a 24h:', valor);
+                        }
+                        
+                        // Validar formato de 24 horas
+                        const [horas, minutos] = valor.split(':');
+                        const horaNum = parseInt(horas);
+                        const minutoNum = parseInt(minutos);
+                        
+                        if (horaNum >= 0 && horaNum <= 23 && minutoNum >= 0 && minutoNum <= 59) {
+                            // Formato correcto, asegurar que esté en formato HH:MM
+                            valor = `${horaNum.toString().padStart(2, '0')}:${minutoNum.toString().padStart(2, '0')}`;
+                            $(this).val(valor);
+                            console.log('✅ Valor final:', valor);
+                        } else {
+                            console.error('❌ Formato de hora inválido:', valor);
+                        }
+                    }
+                });
+                
+                // Asegurar que el campo segmentos_horas tenga el valor correcto
+                const segmentosJSON = $('#id_segmentos_horas');
+                if (segmentosJSON.length > 0) {
+                    // Actualizar segmentos desde el DOM antes de guardar
+                    this.actualizarSegmentosDesdeDOM();
+                    
+                    // Validar y corregir cada segmento
+                    this.segmentos.forEach((segmento, index) => {
+                        console.log(`📋 Segmento ${index + 1} antes:`, segmento);
+                        
+                        // Asegurar que inicio y fin estén en formato de 24 horas
+                        if (segmento.inicio) {
+                            const [horasInicio, minutosInicio] = segmento.inicio.split(':');
+                            const horaInicioNum = parseInt(horasInicio);
+                            const minutoInicioNum = parseInt(minutosInicio);
+                            
+                            if (horaInicioNum >= 0 && horaInicioNum <= 23 && minutoInicioNum >= 0 && minutoInicioNum <= 59) {
+                                segmento.inicio = `${horaInicioNum.toString().padStart(2, '0')}:${minutoInicioNum.toString().padStart(2, '0')}`;
+                            }
+                        }
+                        
+                        if (segmento.fin) {
+                            const [horasFin, minutosFin] = segmento.fin.split(':');
+                            const horaFinNum = parseInt(horasFin);
+                            const minutoFinNum = parseInt(minutosFin);
+                            
+                            if (horaFinNum >= 0 && horaFinNum <= 23 && minutoFinNum >= 0 && minutoFinNum <= 59) {
+                                segmento.fin = `${horaFinNum.toString().padStart(2, '0')}:${minutoFinNum.toString().padStart(2, '0')}`;
+                            }
+                        }
+                        
+                        console.log(`📋 Segmento ${index + 1} después:`, segmento);
+                    });
+                    
+                    // Guardar el JSON corregido
+                    segmentosJSON.val(JSON.stringify(this.segmentos));
+                    console.log('💾 JSON guardado:', segmentosJSON.val());
+                }
+                
+                // Asegurar que la duración total se calcule correctamente
+                const duracionTotal = this.calcularDuracionTotal();
+                $('#id_duracion_total').val(duracionTotal.toFixed(1));
+                console.log('⏱️ Duración total:', duracionTotal);
+                
+                console.log('✅ Problema de guardado corregido');
+            });
         }
         
         bindEvents() {
@@ -283,10 +679,10 @@
         }
         
         cargarSegmentosExistentes() {
-            const segmentosJson = $('#id_segmentos_json').val();
-            if (segmentosJson) {
+            const segmentosHoras = $('#id_segmentos_horas').val();
+            if (segmentosHoras) {
                 try {
-                    this.segmentos = JSON.parse(segmentosJson);
+                    this.segmentos = JSON.parse(segmentosHoras);
                 } catch (e) {
                     console.error('Error al cargar segmentos:', e);
                     this.segmentos = [];
@@ -356,7 +752,337 @@
                 container.append(html);
             });
             
+            // Forzar formato de 24 horas en los inputs de tiempo
+            this.forzarFormato24Horas();
+            
             this.actualizarJSON();
+        }
+        
+        forzarFormato24Horas() {
+            // Configurar todos los inputs de tiempo para usar formato de 24 horas
+            $('input[type="time"]').each(function() {
+                const input = $(this);
+                input.attr('step', '900'); // 15 minutos
+                input.attr('data-format', '24');
+                input.addClass('time-input-24h');
+                
+                // Forzar formato de 24 horas de manera más agresiva
+                input.attr('min', '00:00');
+                input.attr('max', '23:59');
+                
+                // Asegurar que el valor esté en formato de 24 horas
+                let valor = input.val();
+                if (valor) {
+                    // Convertir de formato 12 horas a 24 horas si es necesario
+                    if (valor.includes('AM') || valor.includes('PM')) {
+                        valor = this.convertirA24Horas(valor);
+                        input.val(valor);
+                    }
+                }
+                
+                // Agregar evento para mantener formato de 24 horas
+                input.on('change', function() {
+                    let nuevoValor = $(this).val();
+                    if (nuevoValor && (nuevoValor.includes('AM') || nuevoValor.includes('PM'))) {
+                        nuevoValor = this.convertirA24Horas(nuevoValor);
+                        $(this).val(nuevoValor);
+                    }
+                });
+                
+                // Forzar formato de 24 horas al hacer clic
+                input.on('click', function() {
+                    this.setAttribute('data-format', '24');
+                    this.setAttribute('step', '900');
+                    this.setAttribute('min', '00:00');
+                    this.setAttribute('max', '23:59');
+                    this.classList.add('time-input-24h');
+                    
+                    setTimeout(() => {
+                        this.forzarFormato24HorasNativo(this);
+                        this.eliminarBotonesAMPM();
+                    }, 10);
+                });
+                
+                // Forzar formato de 24 horas al enfocar
+                input.on('focus', function() {
+                    this.setAttribute('data-format', '24');
+                    this.setAttribute('step', '900');
+                    this.setAttribute('min', '00:00');
+                    this.setAttribute('max', '23:59');
+                    this.classList.add('time-input-24h');
+                    
+                    setTimeout(() => {
+                        this.forzarFormato24HorasNativo(this);
+                        this.eliminarBotonesAMPM();
+                    }, 10);
+                });
+                
+                // Forzar formato de 24 horas al mostrar
+                input.on('show', function() {
+                    this.setAttribute('data-format', '24');
+                    this.setAttribute('step', '900');
+                    this.setAttribute('min', '00:00');
+                    this.setAttribute('max', '23:59');
+                    this.classList.add('time-input-24h');
+                });
+            });
+            
+            // Agregar estilos CSS para forzar formato de 24 horas
+            if (!$('#time-24h-styles').length) {
+                $('head').append(`
+                    <style id="time-24h-styles">
+                        input[type="time"] {
+                            -webkit-appearance: none;
+                            -moz-appearance: none;
+                            appearance: none;
+                        }
+                        
+                        input[type="time"]::-webkit-datetime-edit-hour-field,
+                        input[type="time"]::-webkit-datetime-edit-minute-field {
+                            -webkit-appearance: none;
+                        }
+                        
+                        input[type="time"]::-webkit-datetime-edit-ampm-field {
+                            display: none !important;
+                        }
+                        
+                        input[type="time"]::-moz-datetime-edit-ampm-field {
+                            display: none !important;
+                        }
+                        
+                        /* Forzar formato de 24 horas en todos los navegadores */
+                        input[type="time"] {
+                            text-align: center;
+                        }
+                        
+                        /* Ocultar completamente los indicadores AM/PM */
+                        input[type="time"]::-webkit-datetime-edit-ampm-field,
+                        input[type="time"]::-moz-datetime-edit-ampm-field,
+                        input[type="time"]::-ms-datetime-edit-ampm-field {
+                            display: none !important;
+                            width: 0 !important;
+                            height: 0 !important;
+                            overflow: hidden !important;
+                        }
+                        
+                        /* Ocultar botones AM/PM en el popup del navegador */
+                        input[type="time"]::-webkit-calendar-picker-indicator {
+                            display: none !important;
+                        }
+                        
+                        /* Forzar formato de 24 horas en el popup nativo */
+                        input[type="time"]::-webkit-datetime-edit {
+                            text-align: center !important;
+                        }
+                        
+                        /* Ocultar cualquier elemento AM/PM que pueda aparecer */
+                        input[type="time"] *[data-ampm],
+                        input[type="time"] *[class*="ampm"],
+                        input[type="time"] *[class*="AM"],
+                        input[type="time"] *[class*="PM"] {
+                            display: none !important;
+                            visibility: hidden !important;
+                            opacity: 0 !important;
+                            width: 0 !important;
+                            height: 0 !important;
+                        }
+                        
+                        /* Estilos específicos para Chrome */
+                        input[type="time"]::-webkit-datetime-edit-ampm-field {
+                            display: none !important;
+                            width: 0 !important;
+                            height: 0 !important;
+                            overflow: hidden !important;
+                            opacity: 0 !important;
+                            pointer-events: none !important;
+                            position: absolute !important;
+                            left: -9999px !important;
+                        }
+                        
+                        /* Estilos específicos para Firefox */
+                        input[type="time"]::-moz-datetime-edit-ampm-field {
+                            display: none !important;
+                            width: 0 !important;
+                            height: 0 !important;
+                            overflow: hidden !important;
+                            opacity: 0 !important;
+                            pointer-events: none !important;
+                            position: absolute !important;
+                            left: -9999px !important;
+                        }
+                        
+                        /* Estilos específicos para Edge */
+                        input[type="time"]::-ms-datetime-edit-ampm-field {
+                            display: none !important;
+                            width: 0 !important;
+                            height: 0 !important;
+                            overflow: hidden !important;
+                            opacity: 0 !important;
+                            pointer-events: none !important;
+                            position: absolute !important;
+                            left: -9999px !important;
+                        }
+                        
+                        /* Forzar rango de 24 horas */
+                        input[type="time"] {
+                            min: 00:00 !important;
+                            max: 23:59 !important;
+                        }
+                    </style>
+                `);
+            }
+        }
+        
+        forzarFormato24HorasNativo(elemento) {
+            // Intentar forzar formato de 24 horas usando diferentes métodos
+            try {
+                // Método 1: Establecer atributos
+                elemento.setAttribute('step', '900');
+                elemento.setAttribute('data-format', '24');
+                elemento.setAttribute('min', '00:00');
+                elemento.setAttribute('max', '23:59');
+                
+                // Método 2: Simular entrada de teclado para forzar formato
+                const valor = elemento.value;
+                if (valor) {
+                    const [horas, minutos] = valor.split(':');
+                    const hora24 = parseInt(horas);
+                    if (hora24 >= 0 && hora24 <= 23) {
+                        elemento.value = `${hora24.toString().padStart(2, '0')}:${minutos}`;
+                    }
+                }
+                
+                // Método 3: Agregar evento para interceptar cambios
+                elemento.addEventListener('input', function(e) {
+                    let valor = this.value;
+                    if (valor && valor.includes('AM') || valor.includes('PM')) {
+                        valor = this.convertirA24Horas(valor);
+                        this.value = valor;
+                    }
+                });
+                
+                // Método 4: Interceptar y eliminar botones AM/PM del popup
+                elemento.addEventListener('click', function() {
+                    setTimeout(() => {
+                        this.eliminarBotonesAMPM();
+                        this.forzarRango24Horas();
+                    }, 100);
+                });
+                
+                elemento.addEventListener('focus', function() {
+                    setTimeout(() => {
+                        this.eliminarBotonesAMPM();
+                        this.forzarRango24Horas();
+                    }, 100);
+                });
+                
+                // Método 5: Forzar rango de 24 horas
+                this.forzarRango24Horas();
+                
+            } catch (error) {
+                console.log('Error al forzar formato 24h:', error);
+            }
+        }
+        
+        forzarRango24Horas() {
+            // Buscar y modificar elementos del popup para forzar rango de 24 horas
+            const elementosHora = document.querySelectorAll('input[type="number"], select, option');
+            elementosHora.forEach(elemento => {
+                const texto = elemento.textContent || elemento.innerText || '';
+                const valor = elemento.value || '';
+                
+                // Si es un selector de hora y tiene valores de 12 horas, cambiarlos a 24
+                if (texto.includes('1') && texto.includes('2') && !texto.includes('13')) {
+                    // Es un selector de 12 horas, cambiarlo a 24 horas
+                    if (elemento.tagName === 'SELECT') {
+                        // Reemplazar opciones de 12 horas con 24 horas
+                        const opciones = elemento.querySelectorAll('option');
+                        opciones.forEach(opcion => {
+                            const valorOp = opcion.value || opcion.textContent;
+                            if (valorOp && valorOp.includes('1') && !valorOp.includes('13')) {
+                                // Cambiar de 12 horas a 24 horas
+                                const hora12 = parseInt(valorOp);
+                                if (hora12 >= 1 && hora12 <= 12) {
+                                    const hora24 = hora12 === 12 ? 12 : hora12;
+                                    opcion.value = hora24.toString().padStart(2, '0');
+                                    opcion.textContent = hora24.toString().padStart(2, '0');
+                                }
+                            }
+                        });
+                    }
+                }
+            });
+            
+            // Buscar elementos específicos del popup de tiempo
+            const popupElementos = document.querySelectorAll('[class*="time"], [class*="hour"], [class*="minute"]');
+            popupElementos.forEach(elemento => {
+                const texto = elemento.textContent || elemento.innerText || '';
+                if (texto.includes('AM') || texto.includes('PM')) {
+                    elemento.style.display = 'none';
+                    elemento.style.visibility = 'hidden';
+                    elemento.style.opacity = '0';
+                    elemento.style.width = '0';
+                    elemento.style.height = '0';
+                    elemento.style.overflow = 'hidden';
+                    elemento.style.pointerEvents = 'none';
+                    elemento.style.position = 'absolute';
+                    elemento.style.left = '-9999px';
+                }
+            });
+        }
+        
+        eliminarBotonesAMPM() {
+            // Buscar y eliminar botones AM/PM en el DOM
+            const elementosAMPM = document.querySelectorAll('[data-ampm], [class*="ampm"], [class*="AM"], [class*="PM"], [textContent*="AM"], [textContent*="PM"]');
+            elementosAMPM.forEach(elemento => {
+                elemento.style.display = 'none';
+                elemento.style.visibility = 'hidden';
+                elemento.style.opacity = '0';
+                elemento.style.width = '0';
+                elemento.style.height = '0';
+                elemento.style.overflow = 'hidden';
+                elemento.style.pointerEvents = 'none';
+                elemento.style.position = 'absolute';
+                elemento.style.left = '-9999px';
+            });
+            
+            // Buscar en el popup del navegador
+            const popups = document.querySelectorAll('input[type="time"]');
+            popups.forEach(input => {
+                const popup = input.parentElement;
+                if (popup) {
+                    const botonesAMPM = popup.querySelectorAll('button, span, div');
+                    botonesAMPM.forEach(boton => {
+                        const texto = boton.textContent || boton.innerText || '';
+                        if (texto.includes('AM') || texto.includes('PM') || texto.includes('a.m.') || texto.includes('p.m.')) {
+                            boton.style.display = 'none';
+                            boton.style.visibility = 'hidden';
+                            boton.style.opacity = '0';
+                            boton.style.width = '0';
+                            boton.style.height = '0';
+                            boton.style.overflow = 'hidden';
+                            boton.style.pointerEvents = 'none';
+                            boton.style.position = 'absolute';
+                            boton.style.left = '-9999px';
+                        }
+                    });
+                }
+            });
+        }
+        
+        convertirA24Horas(tiempo12h) {
+            // Convertir formato 12 horas a 24 horas
+            const [tiempo, periodo] = tiempo12h.split(' ');
+            const [horas, minutos] = tiempo.split(':').map(Number);
+            
+            let horas24 = horas;
+            if (periodo === 'PM' && horas !== 12) {
+                horas24 = horas + 12;
+            } else if (periodo === 'AM' && horas === 12) {
+                horas24 = 0;
+            }
+            
+            return `${horas24.toString().padStart(2, '0')}:${minutos.toString().padStart(2, '0')}`;
         }
         
         crearHTMLSegmento(segmento, index) {
@@ -364,19 +1090,78 @@
                 `<option value="${valor}" ${segmento.tipo === valor ? 'selected' : ''}>${etiqueta}</option>`
             ).join('');
             
+            // Los inputs de tiempo estarán vacíos por defecto
+            let inicio = '';
+            let fin = '';
+            
+            // Solo usar valores si están definidos y no están vacíos
+            if (segmento.inicio && segmento.inicio.trim() !== '') {
+                inicio = segmento.inicio;
+                // Convertir de formato 12 horas a 24 horas si es necesario
+                if (inicio.includes('AM') || inicio.includes('PM')) {
+                    inicio = this.convertirA24Horas(inicio);
+                }
+                
+                // Validar y corregir formato de 24 horas
+                const [horasInicio, minutosInicio] = inicio.split(':');
+                const horaInicioNum = parseInt(horasInicio);
+                const minutoInicioNum = parseInt(minutosInicio);
+                
+                if (horaInicioNum >= 0 && horaInicioNum <= 23 && minutoInicioNum >= 0 && minutoInicioNum <= 59) {
+                    inicio = `${horaInicioNum.toString().padStart(2, '0')}:${minutoInicioNum.toString().padStart(2, '0')}`;
+                } else {
+                    inicio = ''; // Si el formato es inválido, dejar vacío
+                }
+            }
+            
+            if (segmento.fin && segmento.fin.trim() !== '') {
+                fin = segmento.fin;
+                // Convertir de formato 12 horas a 24 horas si es necesario
+                if (fin.includes('AM') || fin.includes('PM')) {
+                    fin = this.convertirA24Horas(fin);
+                }
+                
+                // Validar y corregir formato de 24 horas
+                const [horasFin, minutosFin] = fin.split(':');
+                const horaFinNum = parseInt(horasFin);
+                const minutoFinNum = parseInt(minutosFin);
+                
+                if (horaFinNum >= 0 && horaFinNum <= 23 && minutoFinNum >= 0 && minutoFinNum <= 59) {
+                    fin = `${horaFinNum.toString().padStart(2, '0')}:${minutoFinNum.toString().padStart(2, '0')}`;
+                } else {
+                    fin = ''; // Si el formato es inválido, dejar vacío
+                }
+            }
+            
+            console.log(`📋 Creando segmento ${index + 1}:`, { inicio, fin, tipo: segmento.tipo });
+            
             return `
                 <div class="segmento-item" data-index="${index}">
                     <div class="segmento-numero">${index + 1}</div>
                     <div class="segmento-campos">
-                        <input type="time" value="${segmento.inicio}" placeholder="Inicio" class="segmento-inicio">
-                        <input type="time" value="${segmento.fin}" placeholder="Fin" class="segmento-fin">
+                        <input type="time" 
+                               value="${inicio}" 
+                               placeholder="Inicio" 
+                               class="segmento-inicio time-input-24h" 
+                               step="900" 
+                               data-format="24"
+                               min="00:00"
+                               max="23:59"
+                               onchange="window.codigoTurnoAdmin.forzarFormatoMilitar(this)">
+                        <input type="time" 
+                               value="${fin}" 
+                               placeholder="Fin" 
+                               class="segmento-fin time-input-24h" 
+                               step="900" 
+                               data-format="24"
+                               min="00:00"
+                               max="23:59"
+                               onchange="window.codigoTurnoAdmin.forzarFormatoMilitar(this)">
                         <select class="segmento-tipo">
                             ${tiposOptions}
                         </select>
-                    </div>
-                    <div class="segmento-acciones">
                         <button type="button" class="btn-segmento danger btn-eliminar-segmento" data-index="${index}">
-                            🗑️ Eliminar
+                            ❌
                         </button>
                     </div>
                 </div>
@@ -389,14 +1174,16 @@
                 return;
             }
             
+            // Crear segmento con campos vacíos por defecto
             const nuevoSegmento = {
-                inicio: '08:00',
-                fin: '16:00',
+                inicio: '', // Campo vacío por defecto
+                fin: '',   // Campo vacío por defecto
                 tipo: 'NORMAL'
             };
             
             this.segmentos.push(nuevoSegmento);
             this.renderizarSegmentos();
+            console.log('➕ Segmento agregado con campos vacíos:', nuevoSegmento);
         }
         
         eliminarSegmento(index) {
@@ -578,16 +1365,67 @@
         }
         
         actualizarSegmentosDesdeDOM() {
+            console.log('🔄 Actualizando segmentos desde DOM...');
             this.segmentos = [];
+            
             $('.segmento-item').each((index, elemento) => {
                 const $elemento = $(elemento);
+                let inicio = $elemento.find('.segmento-inicio').val();
+                let fin = $elemento.find('.segmento-fin').val();
+                const tipo = $elemento.find('.segmento-tipo').val();
+                
+                console.log(`📋 Segmento ${index + 1} valores originales:`, { inicio, fin, tipo });
+                
+                // Asegurar que las horas estén en formato de 24 horas
+                if (inicio) {
+                    // Convertir de formato 12 horas a 24 horas si es necesario
+                    if (inicio.includes('AM') || inicio.includes('PM')) {
+                        inicio = this.convertirA24Horas(inicio);
+                        console.log(`🔄 Inicio convertido: ${inicio}`);
+                    }
+                    
+                    // Validar y corregir formato
+                    const [horasInicio, minutosInicio] = inicio.split(':');
+                    const horaInicioNum = parseInt(horasInicio);
+                    const minutoInicioNum = parseInt(minutosInicio);
+                    
+                    if (horaInicioNum >= 0 && horaInicioNum <= 23 && minutoInicioNum >= 0 && minutoInicioNum <= 59) {
+                        inicio = `${horaInicioNum.toString().padStart(2, '0')}:${minutoInicioNum.toString().padStart(2, '0')}`;
+                    } else {
+                        console.error(`❌ Formato de hora de inicio inválido: ${inicio}`);
+                    }
+                }
+                
+                if (fin) {
+                    // Convertir de formato 12 horas a 24 horas si es necesario
+                    if (fin.includes('AM') || fin.includes('PM')) {
+                        fin = this.convertirA24Horas(fin);
+                        console.log(`🔄 Fin convertido: ${fin}`);
+                    }
+                    
+                    // Validar y corregir formato
+                    const [horasFin, minutosFin] = fin.split(':');
+                    const horaFinNum = parseInt(horasFin);
+                    const minutoFinNum = parseInt(minutosFin);
+                    
+                    if (horaFinNum >= 0 && horaFinNum <= 23 && minutoFinNum >= 0 && minutoFinNum <= 59) {
+                        fin = `${horaFinNum.toString().padStart(2, '0')}:${minutoFinNum.toString().padStart(2, '0')}`;
+                    } else {
+                        console.error(`❌ Formato de hora de fin inválido: ${fin}`);
+                    }
+                }
+                
                 const segmento = {
-                    inicio: $elemento.find('.segmento-inicio').val(),
-                    fin: $elemento.find('.segmento-fin').val(),
-                    tipo: $elemento.find('.segmento-tipo').val()
+                    inicio: inicio,
+                    fin: fin,
+                    tipo: tipo
                 };
+                
+                console.log(`📋 Segmento ${index + 1} valores finales:`, segmento);
                 this.segmentos.push(segmento);
             });
+            
+            console.log('✅ Segmentos actualizados:', this.segmentos);
         }
         
         mostrarErrores(errores) {
@@ -607,7 +1445,7 @@
         }
         
         actualizarJSON() {
-            $('#id_segmentos_json').val(JSON.stringify(this.segmentos));
+            $('#id_segmentos_horas').val(JSON.stringify(this.segmentos));
             
             // También actualizar la duración total
             const duracionActual = this.calcularDuracionTotal();
@@ -617,8 +1455,19 @@
     
     // Inicializar cuando el DOM esté listo
     $(document).ready(function() {
+        console.log('🔍 Inicializando interfaz de códigos de turno...');
+        
+        // Verificar si el campo segmentos_horas existe
+        const segmentosField = $('#id_segmentos_horas');
+        console.log('📋 Campo segmentos_horas encontrado:', segmentosField.length > 0);
+        
+        // Verificar si ya existen controles de segmentos
+        const segmentosContainer = $('.segmentos-container');
+        console.log('📦 Contenedor de segmentos existente:', segmentosContainer.length > 0);
+        
         // Agregar controles de segmentos si no existen
-        if ($('.segmentos-container').length === 0) {
+        if (segmentosContainer.length === 0) {
+            console.log('➕ Agregando controles de segmentos...');
             const controlesHTML = `
                 <div class="segmentos-container">
                     <h4>Configuración de Segmentos</h4>
@@ -640,11 +1489,14 @@
                 </div>
             `;
             
-            $('#id_segmentos_json').closest('.form-row').after(controlesHTML);
+            segmentosField.closest('.form-row').after(controlesHTML);
+            console.log('✅ Controles de segmentos agregados');
         }
         
         // Inicializar la interfaz
+        console.log('🚀 Inicializando CodigoTurnoAdmin...');
         new CodigoTurnoAdmin();
+        console.log('✅ Interfaz inicializada correctamente');
     });
     
 })(django.jQuery);

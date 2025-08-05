@@ -1,0 +1,356 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Test Simple - Formato Militar</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 600px;
+            margin: 50px auto;
+            padding: 20px;
+            background-color: #f5f5f5;
+        }
+        
+        .container {
+            background: white;
+            padding: 30px;
+            border-radius: 8px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+        
+        h1 {
+            color: #333;
+            text-align: center;
+            margin-bottom: 30px;
+        }
+        
+        .test-input {
+            width: 120px;
+            padding: 10px;
+            border: 2px solid #007cba;
+            border-radius: 4px;
+            font-family: 'Courier New', monospace;
+            font-size: 16px;
+            text-align: center;
+            margin: 10px;
+        }
+        
+        .test-input:focus {
+            outline: none;
+            border-color: #005a87;
+            box-shadow: 0 0 0 2px rgba(0, 124, 186, 0.2);
+        }
+        
+        .result {
+            margin: 10px 0;
+            padding: 10px;
+            border-radius: 4px;
+            font-family: monospace;
+        }
+        
+        .result.success {
+            background: #d4edda;
+            border: 1px solid #c3e6cb;
+            color: #155724;
+        }
+        
+        .result.error {
+            background: #f8d7da;
+            border: 1px solid #f5c6cb;
+            color: #721c24;
+        }
+        
+        .result.info {
+            background: #d1ecf1;
+            border: 1px solid #bee5eb;
+            color: #0c5460;
+        }
+        
+        button {
+            background: #007cba;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 4px;
+            cursor: pointer;
+            margin: 5px;
+        }
+        
+        button:hover {
+            background: #005a87;
+        }
+        
+        .info-panel {
+            background: #e7f3ff;
+            border: 1px solid #b3d9ff;
+            border-radius: 4px;
+            padding: 15px;
+            margin: 20px 0;
+        }
+        
+        .info-panel h4 {
+            margin-top: 0;
+            color: #0066cc;
+        }
+        
+        .test-section {
+            margin: 20px 0;
+            padding: 20px;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+            background: #f9f9f9;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🧪 Test Simple - Formato Militar</h1>
+        
+        <div class="info-panel">
+            <h4>ℹ️ Instrucciones</h4>
+            <p>Esta página prueba el formato militar directo. Debes poder escribir horas como:</p>
+            <ul>
+                <li><strong>08:00</strong> (8 de la mañana)</li>
+                <li><strong>14:30</strong> (2:30 de la tarde)</li>
+                <li><strong>21:45</strong> (9:45 de la noche)</li>
+                <li><strong>00:00</strong> (medianoche)</li>
+                <li><strong>23:59</strong> (último minuto del día)</li>
+            </ul>
+        </div>
+        
+        <div class="test-section">
+            <h3>📝 Test 1: Input Básico</h3>
+            <p>Prueba este input de tiempo:</p>
+            
+            <input type="time" class="test-input" id="test1" step="900" min="00:00" max="23:59">
+            
+            <button onclick="probarInput()">Probar Input</button>
+            <button onclick="limpiarInput()">Limpiar</button>
+            
+            <div id="resultado1" class="result"></div>
+        </div>
+        
+        <div class="test-section">
+            <h3>📝 Test 2: Múltiples Inputs</h3>
+            <p>Prueba varios inputs de tiempo:</p>
+            
+            <label>Hora 1: <input type="time" class="test-input" id="test2" step="900" min="00:00" max="23:59"></label><br>
+            <label>Hora 2: <input type="time" class="test-input" id="test3" step="900" min="00:00" max="23:59"></label><br>
+            <label>Hora 3: <input type="time" class="test-input" id="test4" step="900" min="00:00" max="23:59"></label><br>
+            
+            <button onclick="probarMultiples()">Probar Múltiples</button>
+            <button onclick="limpiarMultiples()">Limpiar Todos</button>
+            
+            <div id="resultado2" class="result"></div>
+        </div>
+        
+        <div class="test-section">
+            <h3>📊 Estado del Sistema</h3>
+            <div id="estado-sistema" class="result info">
+                <strong>Estado:</strong> <span id="estado-texto">Inicializando...</span>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Función para aplicar formato militar
+        function aplicarFormatoMilitar() {
+            console.log('🔧 Aplicando formato militar...');
+            
+            // Configurar todos los inputs de tiempo
+            document.querySelectorAll('input[type="time"]').each(function() {
+                const input = $(this);
+                
+                // Configuración militar directa
+                input.attr({
+                    'step': '900',        // 15 minutos
+                    'min': '00:00',       // Hora mínima
+                    'max': '23:59',       // Hora máxima
+                    'data-format': 'military'
+                });
+                
+                // Agregar eventos para validar formato militar
+                input.on('change input', function() {
+                    const valor = $(this).val();
+                    if (valor) {
+                        // Validar formato militar simple
+                        const regex = /^([0-1]?[0-9]|2[0-3]):[0-5][0-9]$/;
+                        if (!regex.test(valor)) {
+                            // Si no es válido, limpiar el campo
+                            $(this).val('');
+                            alert('Por favor, ingresa la hora en formato militar (00:00 a 23:59)');
+                        }
+                    }
+                });
+            });
+            
+            // Agregar estilos CSS para forzar formato militar
+            if (!$('#military-styles').length) {
+                $('head').append(`
+                    <style id="military-styles">
+                        input[type="time"] {
+                            -webkit-appearance: none !important;
+                            -moz-appearance: none !important;
+                            appearance: none !important;
+                            text-align: center !important;
+                            font-family: 'Courier New', monospace !important;
+                            font-size: 14px !important;
+                            width: 120px !important;
+                            min-width: 120px !important;
+                        }
+                        
+                        /* Ocultar AM/PM completamente */
+                        input[type="time"]::-webkit-datetime-edit-ampm-field,
+                        input[type="time"]::-moz-datetime-edit-ampm-field,
+                        input[type="time"]::-ms-datetime-edit-ampm-field {
+                            display: none !important;
+                            width: 0 !important;
+                            height: 0 !important;
+                            overflow: hidden !important;
+                            opacity: 0 !important;
+                            pointer-events: none !important;
+                            position: absolute !important;
+                            left: -9999px !important;
+                        }
+                        
+                        /* Configurar campos de hora y minuto */
+                        input[type="time"]::-webkit-datetime-edit-hour-field,
+                        input[type="time"]::-webkit-datetime-edit-minute-field {
+                            -webkit-appearance: none !important;
+                            text-align: center !important;
+                            font-family: 'Courier New', monospace !important;
+                        }
+                        
+                        input[type="time"]::-moz-datetime-edit-hour-field,
+                        input[type="time"]::-moz-datetime-edit-minute-field {
+                            text-align: center !important;
+                            font-family: 'Courier New', monospace !important;
+                        }
+                        
+                        /* Forzar formato militar en el contenedor */
+                        input[type="time"]::-webkit-datetime-edit {
+                            text-align: center !important;
+                            font-family: 'Courier New', monospace !important;
+                        }
+                        
+                        input[type="time"]::-moz-datetime-edit {
+                            text-align: center !important;
+                            font-family: 'Courier New', monospace !important;
+                        }
+                        
+                        /* Ocultar cualquier elemento AM/PM */
+                        input[type="time"] *[data-ampm],
+                        input[type="time"] *[class*="ampm"],
+                        input[type="time"] *[class*="AM"],
+                        input[type="time"] *[class*="PM"] {
+                            display: none !important;
+                            visibility: hidden !important;
+                            opacity: 0 !important;
+                            width: 0 !important;
+                            height: 0 !important;
+                        }
+                    </style>
+                `);
+            }
+            
+            console.log('✅ Formato militar aplicado');
+        }
+        
+        // Función para probar input
+        function probarInput() {
+            const input = document.getElementById('test1');
+            const valor = input.value;
+            const resultado = document.getElementById('resultado1');
+            
+            if (valor) {
+                const regex = /^([0-1]?[0-9]|2[0-3]):[0-5][0-9]$/;
+                if (regex.test(valor)) {
+                    resultado.innerHTML = `<div class="result success">✅ Formato militar válido: ${valor}</div>`;
+                } else {
+                    resultado.innerHTML = `<div class="result error">❌ Formato inválido: ${valor}</div>`;
+                }
+            } else {
+                resultado.innerHTML = `<div class="result info">⚠️ Por favor, ingresa una hora</div>`;
+            }
+        }
+        
+        // Función para limpiar input
+        function limpiarInput() {
+            document.getElementById('test1').value = '';
+            document.getElementById('resultado1').innerHTML = '';
+        }
+        
+        // Función para probar múltiples inputs
+        function probarMultiples() {
+            const inputs = ['test2', 'test3', 'test4'];
+            const valores = [];
+            let todosValidos = true;
+            
+            inputs.forEach(id => {
+                const input = document.getElementById(id);
+                const valor = input.value;
+                if (valor) {
+                    valores.push(valor);
+                    const regex = /^([0-1]?[0-9]|2[0-3]):[0-5][0-9]$/;
+                    if (!regex.test(valor)) {
+                        todosValidos = false;
+                    }
+                }
+            });
+            
+            const resultado = document.getElementById('resultado2');
+            if (valores.length === 0) {
+                resultado.innerHTML = `<div class="result info">⚠️ Por favor, ingresa al menos una hora</div>`;
+            } else if (todosValidos) {
+                resultado.innerHTML = `<div class="result success">✅ Todos los formatos son válidos: ${valores.join(', ')}</div>`;
+            } else {
+                resultado.innerHTML = `<div class="result error">❌ Algunos formatos son inválidos: ${valores.join(', ')}</div>`;
+            }
+        }
+        
+        // Función para limpiar múltiples inputs
+        function limpiarMultiples() {
+            ['test2', 'test3', 'test4'].forEach(id => {
+                document.getElementById(id).value = '';
+            });
+            document.getElementById('resultado2').innerHTML = '';
+        }
+        
+        // Función para actualizar estado
+        function actualizarEstado() {
+            const estadoTexto = document.getElementById('estado-texto');
+            const inputs = document.querySelectorAll('input[type="time"]');
+            const formatoMilitar = Array.from(inputs).every(input => 
+                input.getAttribute('data-format') === 'military'
+            );
+            
+            let estado = '';
+            if (formatoMilitar) {
+                estado = '✅ Formato militar aplicado correctamente';
+            } else {
+                estado = '❌ Formato militar no aplicado completamente';
+            }
+            
+            estadoTexto.textContent = estado;
+        }
+        
+        // Inicializar cuando el DOM esté listo
+        document.addEventListener('DOMContentLoaded', function() {
+            console.log('🚀 Inicializando test simple...');
+            
+            // Aplicar formato militar
+            aplicarFormatoMilitar();
+            
+            // Actualizar estado inicial
+            actualizarEstado();
+            
+            // Actualizar estado cada 2 segundos
+            setInterval(actualizarEstado, 2000);
+            
+            console.log('✅ Test simple inicializado');
+        });
+    </script>
+</body>
+</html> 

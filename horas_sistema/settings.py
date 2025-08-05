@@ -196,6 +196,23 @@ USE_I18N = True
 
 USE_TZ = False
 
+# Configuración de formato de hora (formato militar de 24 horas)
+TIME_FORMAT = 'H:i'  # Formato de 24 horas
+TIME_INPUT_FORMATS = [
+    '%H:%M',  # 24 horas
+    '%H:%M:%S',  # 24 horas con segundos
+    '%I:%M %p',  # 12 horas con AM/PM (para compatibilidad)
+    '%I:%M:%S %p',  # 12 horas con segundos y AM/PM
+]
+
+# Configuración de formato de fecha y hora
+DATETIME_FORMAT = 'd/m/Y H:i'
+DATETIME_INPUT_FORMATS = [
+    '%d/%m/%Y %H:%M',
+    '%Y-%m-%d %H:%M:%S',
+    '%d/%m/%Y %I:%M %p',
+]
+
 
 # Static files (CSS, JavaScript, Images)
 # https://docs.djangoproject.com/en/5.0/howto/static-files/

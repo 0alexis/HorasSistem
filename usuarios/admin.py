@@ -10,6 +10,151 @@ from django.http import JsonResponse
 import json
 from .models import Usuario, Tercero, CodigoTurno
 
+class TimeInputMilitar(forms.TimeInput):
+    """Widget personalizado para forzar formato militar (00:00 a 23:59)"""
+    
+    def __init__(self, attrs=None):
+        if attrs is None:
+            attrs = {}
+        attrs.update({
+            'type': 'time',
+            'step': '900',  # 15 minutos
+            'data-format': 'military',
+            'min': '00:00',
+            'max': '23:59',
+            'class': 'time-input-military'
+        })
+        super().__init__(attrs, format='%H:%M')
+    
+    def render(self, name, value, attrs=None, renderer=None):
+        # Asegurar que el valor esté en formato militar
+        if value:
+            if hasattr(value, 'strftime'):
+                value = value.strftime('%H:%M')
+        
+        return super().render(name, value, attrs, renderer)
+
+class SegmentoForm(forms.Form):
+    """Formulario para un segmento individual"""
+    inicio = forms.TimeField(
+        label='Hora Inicio', 
+        widget=TimeInputMilitar()
+    )
+    fin = forms.TimeField(
+        label='Hora Fin', 
+        widget=TimeInputMilitar()
+    )
+    tipo = forms.ChoiceField(
+        label='Tipo de Segmento',
+        choices=CodigoTurno.SEGMENTO_TIPOS,
+        widget=forms.Select(attrs={'class': 'segmento-tipo'})
+    )
+
+class CodigoTurnoForm(forms.ModelForm):
+    """Formulario personalizado para CodigoTurno"""
+    
+    class Meta:
+        model = CodigoTurno
+        fields = ['letra_turno', 'tipo', 'segmentos_horas', 'duracion_total', 'descripcion_novedad', 'estado_codigo']
+    
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        # Hacer el campo segmentos_horas oculto para que se maneje por JavaScript
+        self.fields['segmentos_horas'].widget = forms.HiddenInput()
+        self.fields['segmentos_horas'].required = False
+    
+    def clean(self):
+        cleaned_data = super().clean()
+        tipo = cleaned_data.get('tipo')
+        segmentos_horas = cleaned_data.get('segmentos_horas')
+        
+        # Validar y corregir formato de horas en segmentos
+        if segmentos_horas:
+            try:
+                if isinstance(segmentos_horas, str):
+                    segmentos = json.loads(segmentos_horas)
+                else:
+                    segmentos = segmentos_horas
+                
+                # Validar y corregir cada segmento
+                for i, segmento in enumerate(segmentos):
+                    if isinstance(segmento, dict):
+                        # Validar hora de inicio
+                        if 'inicio' in segmento and segmento['inicio']:
+                            inicio = self.validar_hora_24h(segmento['inicio'])
+                            if inicio:
+                                segmentos[i]['inicio'] = inicio
+                            else:
+                                raise ValidationError(f'Segmento {i+1}: Formato de hora de inicio inválido')
+                        
+                        # Validar hora de fin
+                        if 'fin' in segmento and segmento['fin']:
+                            fin = self.validar_hora_24h(segmento['fin'])
+                            if fin:
+                                segmentos[i]['fin'] = fin
+                            else:
+                                raise ValidationError(f'Segmento {i+1}: Formato de hora de fin inválido')
+                
+                # Actualizar el campo con los datos corregidos
+                cleaned_data['segmentos_horas'] = segmentos
+                
+            except json.JSONDecodeError:
+                raise ValidationError('Formato JSON inválido en segmentos_horas')
+            except Exception as e:
+                raise ValidationError(f'Error al procesar segmentos: {str(e)}')
+        
+        if tipo in ['D', 'ND']:
+            # Para descanso y no devengado, no se necesitan segmentos
+            cleaned_data['segmentos_horas'] = []
+        elif not segmentos_horas:
+            # Si no hay segmentos pero el tipo lo requiere
+            if tipo not in ['D', 'ND']:
+                raise ValidationError('Los turnos con horarios deben tener al menos 1 segmento')
+        
+        return cleaned_data
+    
+    def validar_hora_militar(self, hora_str):
+        """Validar formato de hora militar (00:00 a 23:59) - SIN CONVERSIONES"""
+        if not hora_str:
+            return None
+        
+        # Validar formato militar HH:MM con regex específico
+        import re
+        regex_militar = re.compile(r'^([0-1]?[0-9]|2[0-3]):[0-5][0-9]$')
+        
+        if regex_militar.match(hora_str):
+            try:
+                horas, minutos = hora_str.split(':')
+                hora_num = int(horas)
+                minuto_num = int(minutos)
+                
+                # Validar rango militar (00:00 a 23:59)
+                if 0 <= hora_num <= 23 and 0 <= minuto_num <= 59:
+                    return f"{hora_num:02d}:{minuto_num:02d}"
+                else:
+                    return None
+            except:
+                return None
+        else:
+            return None
+    
+    def save(self, commit=True):
+        instance = super().save(commit=False)
+        
+        # Asegurar que las horas estén en formato militar antes de guardar
+        if instance.segmentos_horas:
+            for segmento in instance.segmentos_horas:
+                if isinstance(segmento, dict):
+                    if 'inicio' in segmento and segmento['inicio']:
+                        segmento['inicio'] = self.validar_hora_militar(segmento['inicio']) or segmento['inicio']
+                    if 'fin' in segmento and segmento['fin']:
+                        segmento['fin'] = self.validar_hora_militar(segmento['fin']) or segmento['fin']
+        
+        if commit:
+            instance.save()
+        
+        return instance
+
 @admin.register(Usuario)
 class CustomUserAdmin(UserAdmin):
     list_display = ('username', 'email', 'nombre_usuario', 'estado')
@@ -47,51 +192,6 @@ class TerceroAdmin(admin.ModelAdmin):
     def get_queryset(self, request):
         return Tercero.all_objects.all()
 
-class SegmentoForm(forms.Form):
-    """Formulario para un segmento individual"""
-    inicio = forms.TimeField(label='Hora Inicio', widget=forms.TimeInput(attrs={'type': 'time'}))
-    fin = forms.TimeField(label='Hora Fin', widget=forms.TimeInput(attrs={'type': 'time'}))
-    tipo = forms.ChoiceField(
-        label='Tipo de Segmento',
-        choices=CodigoTurno.SEGMENTO_TIPOS,
-        widget=forms.Select(attrs={'class': 'segmento-tipo'})
-    )
-
-class CodigoTurnoForm(forms.ModelForm):
-    """Formulario personalizado para CodigoTurno"""
-    segmentos_json = forms.CharField(
-        widget=forms.HiddenInput(),
-        required=False,
-        help_text='JSON de segmentos (se genera automáticamente)'
-    )
-    
-    class Meta:
-        model = CodigoTurno
-        fields = ['letra_turno', 'tipo', 'segmentos_horas', 'duracion_total', 'descripcion_novedad', 'estado_codigo']
-    
-    def __init__(self, *args, **kwargs):
-        super().__init__(*args, **kwargs)
-        if self.instance and self.instance.pk:
-            # Cargar segmentos existentes
-            self.fields['segmentos_json'].initial = json.dumps(self.instance.segmentos_horas)
-    
-    def clean(self):
-        cleaned_data = super().clean()
-        tipo = cleaned_data.get('tipo')
-        segmentos_json = cleaned_data.get('segmentos_json')
-        
-        if tipo in ['D', 'ND']:
-            # Para descanso y no devengado, no se necesitan segmentos
-            cleaned_data['segmentos_horas'] = []
-        elif segmentos_json:
-            try:
-                segmentos = json.loads(segmentos_json)
-                cleaned_data['segmentos_horas'] = segmentos
-            except json.JSONDecodeError:
-                raise ValidationError('Formato JSON inválido en segmentos')
-        
-        return cleaned_data
-
 @admin.register(CodigoTurno)
 class CodigoTurnoAdmin(admin.ModelAdmin):
     form = CodigoTurnoForm
@@ -105,9 +205,9 @@ class CodigoTurnoAdmin(admin.ModelAdmin):
             'fields': ('letra_turno', 'tipo', 'estado_codigo')
         }),
         ('Configuración de Segmentos', {
-            'fields': ('segmentos_horas', 'segmentos_json', 'get_segmentos_info'),
+            'fields': ('segmentos_horas', 'get_segmentos_info'),
             'classes': ('collapse',),
-            'description': 'Configura los segmentos de horarios para este turno'
+            'description': 'Configura los segmentos de horarios para este turno usando la interfaz dinámica'
         }),
         ('Información de Duración', {
             'fields': ('duracion_total',),
@@ -119,12 +219,6 @@ class CodigoTurnoAdmin(admin.ModelAdmin):
             'description': 'Información adicional para turnos No Devengado'
         }),
     )
-    
-    class Media:
-        css = {
-            'all': ('/static/admin/css/codigo_turno.css',)
-        }
-        js = ('/static/admin/js/codigo_turno.js',)
     
     def get_horario_display(self, obj):
         """Muestra el horario total del turno"""
@@ -189,6 +283,22 @@ class CodigoTurnoAdmin(admin.ModelAdmin):
         ]
         return custom_urls + urls
     
+    def change_view(self, request, object_id, form_url='', extra_context=None):
+        """Usar template personalizado para el formulario de cambio"""
+        extra_context = extra_context or {}
+        extra_context['show_save'] = True
+        extra_context['show_save_and_continue'] = True
+        extra_context['show_save_and_add_another'] = False
+        return super().change_view(request, object_id, form_url, extra_context)
+    
+    def add_view(self, request, form_url='', extra_context=None):
+        """Usar template personalizado para el formulario de agregar"""
+        extra_context = extra_context or {}
+        extra_context['show_save'] = True
+        extra_context['show_save_and_continue'] = True
+        extra_context['show_save_and_add_another'] = False
+        return super().add_view(request, form_url, extra_context)
+    
     def segmentos_view(self, request):
         """Vista para manejar segmentos via AJAX"""
         if request.method == 'POST':
@@ -204,7 +314,7 @@ class CodigoTurnoAdmin(admin.ModelAdmin):
                 for i in range(len(segmentos) - 1):
                     if segmentos[i]['fin'] != segmentos[i + 1]['inicio']:
                         return JsonResponse({
-                            'error': f'Gap detectado entre {segmentos[i]["fin"]} y {segmentos[i + 1]["inicio"]}'
+                            'error': f'Gap detectado entre {segmentos[i]["fin"]} y {segmentos[i + 1]["inicio"]}'                                                                                             
                         }, status=400)
                 
                 return JsonResponse({'success': True, 'segmentos': segmentos})

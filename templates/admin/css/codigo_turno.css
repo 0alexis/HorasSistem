@@ -1,5 +1,144 @@
-/* Estilos para la interfaz de códigos de turno */
+/* Estilos específicos para formato militar en códigos de turno */
 
+/* Configuración base para inputs de tiempo militar */
+input[type="time"] {
+    -webkit-appearance: none;
+    -moz-appearance: none;
+    appearance: none;
+    text-align: center;
+    font-family: 'Courier New', monospace;
+    font-size: 14px;
+    font-weight: 500;
+    width: 100px;
+    min-width: 100px;
+    padding: 6px 8px;
+    border: 1px solid #ccc;
+    border-radius: 4px;
+    background-color: #fff;
+    color: #333;
+}
+
+/* Ocultar completamente AM/PM en todos los navegadores */
+input[type="time"]::-webkit-datetime-edit-ampm-field,
+input[type="time"]::-moz-datetime-edit-ampm-field,
+input[type="time"]::-ms-datetime-edit-ampm-field {
+    display: none !important;
+    width: 0 !important;
+    height: 0 !important;
+    overflow: hidden !important;
+    opacity: 0 !important;
+    pointer-events: none !important;
+    position: absolute !important;
+    left: -9999px !important;
+}
+
+/* Configurar campos de hora y minuto para formato militar */
+input[type="time"]::-webkit-datetime-edit-hour-field,
+input[type="time"]::-webkit-datetime-edit-minute-field {
+    -webkit-appearance: none;
+    text-align: center;
+    font-family: 'Courier New', monospace;
+    font-weight: 500;
+    color: #333;
+}
+
+input[type="time"]::-moz-datetime-edit-hour-field,
+input[type="time"]::-moz-datetime-edit-minute-field {
+    text-align: center;
+    font-family: 'Courier New', monospace;
+    font-weight: 500;
+    color: #333;
+}
+
+/* Estilos para el contenedor de campos de fecha/hora */
+input[type="time"]::-webkit-datetime-edit {
+    text-align: center !important;
+    font-family: 'Courier New', monospace !important;
+    font-weight: 500 !important;
+}
+
+input[type="time"]::-moz-datetime-edit {
+    text-align: center !important;
+    font-family: 'Courier New', monospace !important;
+    font-weight: 500 !important;
+}
+
+input[type="time"]::-ms-datetime-edit {
+    text-align: center !important;
+    font-family: 'Courier New', monospace !important;
+    font-weight: 500 !important;
+}
+
+/* Ocultar separadores innecesarios */
+input[type="time"]::-webkit-datetime-edit-separator {
+    color: #333;
+    font-weight: 500;
+}
+
+/* Estilos para el popup del selector de tiempo */
+input[type="time"]::-webkit-datetime-edit-fields-wrapper {
+    text-align: center;
+}
+
+/* Estilos para el indicador del calendario */
+input[type="time"]::-webkit-calendar-picker-indicator {
+    display: none !important;
+}
+
+/* Estilos específicos para segmentos de turno */
+.segmento-campos input[type="time"] {
+    width: 100px;
+    min-width: 100px;
+    margin: 0 5px;
+}
+
+/* Estilos para hover y focus */
+input[type="time"]:hover {
+    border-color: #007cba;
+    box-shadow: 0 0 0 1px #007cba;
+}
+
+input[type="time"]:focus {
+    border-color: #007cba;
+    box-shadow: 0 0 0 2px rgba(0, 124, 186, 0.2);
+    outline: none;
+}
+
+/* Estilos para inputs deshabilitados */
+input[type="time"]:disabled {
+    background-color: #f5f5f5;
+    color: #999;
+    cursor: not-allowed;
+}
+
+/* Estilos para inputs con error */
+input[type="time"].error {
+    border-color: #dc3545;
+    box-shadow: 0 0 0 1px #dc3545;
+}
+
+/* Estilos para inputs válidos */
+input[type="time"].valid {
+    border-color: #28a745;
+    box-shadow: 0 0 0 1px #28a745;
+}
+
+/* Estilos específicos para el formato militar en diferentes navegadores */
+@supports (-webkit-appearance: none) {
+    /* Chrome/Safari */
+    input[type="time"] {
+        -webkit-appearance: none;
+    }
+}
+
+@supports (-moz-appearance: none) {
+    /* Firefox */
+    input[type="time"] {
+        -moz-appearance: none;
+    }
+}
+
+/* Estilos para el contenedor de segmentos */
 .segmentos-container {
     background: #f9f9f9;
     border: 1px solid #ddd;
@@ -52,155 +191,119 @@
     font-size: 14px;
 }
 
-.segmento-campos input[type="time"] {
-    width: 100px;
-}
-
 .segmento-campos select {
-    width: 120px;
+    min-width: 120px;
 }
 
-.segmento-acciones {
-    display: flex;
-    gap: 5px;
-}
-
+/* Estilos para botones de control */
 .btn-segmento {
-    background: #007cba;
-    color: white;
-    border: none;
-    border-radius: 3px;
-    padding: 5px 10px;
+    padding: 6px 12px;
+    border: 1px solid #ccc;
+    border-radius: 4px;
+    background: #fff;
+    color: #333;
     cursor: pointer;
     font-size: 12px;
+    text-decoration: none;
+    display: inline-block;
+    margin: 2px;
 }
 
 .btn-segmento:hover {
-    background: #005a87;
-}
-
-.btn-segmento.danger {
-    background: #dc3545;
-}
-
-.btn-segmento.danger:hover {
-    background: #c82333;
+    background: #f0f0f0;
+    border-color: #999;
 }
 
 .btn-segmento.success {
     background: #28a745;
+    color: white;
+    border-color: #28a745;
 }
 
 .btn-segmento.success:hover {
     background: #218838;
+    border-color: #1e7e34;
 }
 
-.controles-segmentos {
-    margin: 15px 0;
-    padding: 10px;
-    background: #e9ecef;
-    border-radius: 4px;
+.btn-segmento.danger {
+    background: #dc3545;
+    color: white;
+    border-color: #dc3545;
 }
 
-.controles-segmentos button {
-    margin-right: 10px;
+.btn-segmento.danger:hover {
+    background: #c82333;
+    border-color: #bd2130;
 }
 
+/* Estilos para información de tipo de turno */
 .tipo-turno-info {
-    background: #d1ecf1;
-    border: 1px solid #bee5eb;
+    background: #e7f3ff;
+    border: 1px solid #b3d9ff;
     border-radius: 4px;
     padding: 10px;
     margin: 10px 0;
-    color: #0c5460;
-}
-
-.tipo-turno-info.warning {
-    background: #fff3cd;
-    border-color: #ffeaa7;
-    color: #856404;
+    color: #0066cc;
 }
 
 .tipo-turno-info.error {
-    background: #f8d7da;
-    border-color: #f5c6cb;
-    color: #721c24;
+    background: #ffe6e6;
+    border-color: #ffb3b3;
+    color: #cc0000;
 }
 
-.segmentos-table {
-    width: 100%;
-    border-collapse: collapse;
+/* Estilos para errores de validación */
+.segmentos-error {
+    background: #ffe6e6;
+    border: 1px solid #ffb3b3;
+    border-radius: 4px;
+    padding: 10px;
     margin: 10px 0;
+    color: #cc0000;
 }
 
-.segmentos-table th,
-.segmentos-table td {
-    border: 1px solid #ddd;
-    padding: 8px;
-    text-align: left;
+.segmentos-error ul {
+    margin: 5px 0;
+    padding-left: 20px;
 }
 
-.segmentos-table th {
-    background: #f2f2f2;
-    font-weight: bold;
+.segmentos-error li {
+    margin: 2px 0;
 }
 
-.segmentos-table tr:nth-child(even) {
-    background: #f9f9f9;
+/* Estilos para controles de segmentos */
+.controles-segmentos {
+    margin: 10px 0;
+    padding: 10px;
+    background: #f8f9fa;
+    border-radius: 4px;
+    border: 1px solid #e9ecef;
 }
 
-.segmentos-table tr:hover {
-    background: #f0f0f0;
+.controles-segmentos button {
+    margin-right: 5px;
+    margin-bottom: 5px;
 }
 
-.segmentos-info {
-    margin: 15px 0;
+/* Estilos para la lista de segmentos */
+.segmentos-lista {
+    margin-top: 10px;
 }
 
-.segmentos-info h4 {
-    margin-bottom: 10px;
-    color: #333;
-}
-
-/* Responsive */
+/* Estilos responsivos */
 @media (max-width: 768px) {
-    .segmento-item {
-        flex-direction: column;
-        align-items: stretch;
-    }
-    
     .segmento-campos {
         flex-direction: column;
+        gap: 5px;
     }
     
-    .segmento-acciones {
-        justify-content: center;
-        margin-top: 10px;
+    .segmento-campos input[type="time"] {
+        width: 100%;
+        min-width: auto;
     }
-}
-
-/* Animaciones */
-.segmento-item {
-    transition: all 0.3s ease;
-}
-
-.segmento-item.removing {
-    opacity: 0.5;
-    transform: translateX(-20px);
-}
-
-/* Estados de validación */
-.segmento-item.error {
-    border-color: #dc3545;
-    background: #f8d7da;
-}
-
-.segmento-item.warning {
-    border-color: #ffc107;
-    background: #fff3cd;
-}
-
-.segmento-item.success {
-    border-color: #28a745;
-    background: #d4edda;
+    
+    .segmento-campos select {
+        width: 100%;
+        min-width: auto;
+    }
 } 
