@@ -1,0 +1,57 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Test Simple - Formato 24 Horas</title>
+</head>
+<body>
+    <h1>Test Simple - Formato 24 Horas</h1>
+    
+    <p>Prueba estos inputs de tiempo:</p>
+    
+    <label>Hora 1: <input type="time" step="900" min="00:00" max="23:59"></label><br><br>
+    <label>Hora 2: <input type="time" step="900" min="00:00" max="23:59"></label><br><br>
+    <label>Hora 3: <input type="time" step="900" min="00:00" max="23:59"></label><br><br>
+    
+    <button onclick="probarHoras()">Probar Horas</button>
+    <button onclick="limpiarHoras()">Limpiar</button>
+    
+    <div id="resultado"></div>
+    
+    <script>
+        function probarHoras() {
+            const inputs = document.querySelectorAll('input[type="time"]');
+            const valores = [];
+            let todosValidos = true;
+            
+            inputs.forEach((input, index) => {
+                const valor = input.value;
+                if (valor) {
+                    valores.push(valor);
+                    const regex = /^([0-1][0-9]|2[0-3]):([0-5][0-9])$/;
+                    if (!regex.test(valor)) {
+                        todosValidos = false;
+                    }
+                }
+            });
+            
+            const resultado = document.getElementById('resultado');
+            if (valores.length === 0) {
+                resultado.innerHTML = '<p>Por favor, ingresa al menos una hora</p>';
+            } else if (todosValidos) {
+                resultado.innerHTML = '<p>✅ Todas las horas son válidas: ' + valores.join(', ') + '</p>';
+            } else {
+                resultado.innerHTML = '<p>❌ Algunas horas son inválidas: ' + valores.join(', ') + '</p>';
+            }
+        }
+        
+        function limpiarHoras() {
+            document.querySelectorAll('input[type="time"]').forEach(input => {
+                input.value = '';
+            });
+            document.getElementById('resultado').innerHTML = '';
+        }
+    </script>
+</body>
+</html> 

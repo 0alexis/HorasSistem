@@ -1,0 +1,198 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Test Segmentos Funcional</title>
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+</head>
+<body>
+    <h1>Test Segmentos Funcional</h1>
+    
+    <div id="segmentos-container">
+        <h4>Configuración de Segmentos</h4>
+        <div class="controles-segmentos">
+            <button type="button" class="btn-agregar-segmento">Agregar Segmento</button>
+            <button type="button" class="btn-plantilla" data-plantilla="N">Normal</button>
+            <button type="button" class="btn-plantilla" data-plantilla="F">Festivo</button>
+            <button type="button" class="btn-plantilla" data-plantilla="E">Especial</button>
+        </div>
+        <div class="segmentos-lista"></div>
+    </div>
+    
+    <div style="margin-top: 20px;">
+        <h4>JSON de Segmentos:</h4>
+        <textarea id="segmentos-json" rows="5" cols="50" readonly></textarea>
+    </div>
+    
+    <div style="margin-top: 20px;">
+        <button onclick="probarFuncionalidad()">Probar Funcionalidad</button>
+        <button onclick="limpiarTodo()">Limpiar Todo</button>
+    </div>
+    
+    <div id="resultado"></div>
+    
+    <script>
+        // Configuración básica
+        const SEGMENTO_TIPOS = [
+            ['NORMAL', 'Normal'],
+            ['FESTIVO', 'Festivo'],
+            ['NOCTURNO', 'Nocturno'],
+            ['DOMINGO', 'Domingo'],
+            ['EXTRA', 'Extra'],
+            ['COMPENSATORIO', 'Compensatorio']
+        ];
+        
+        class SegmentosTest {
+            constructor() {
+                this.segmentos = [];
+                this.init();
+            }
+            
+            init() {
+                this.bindEvents();
+                this.configurarInputsTiempo();
+            }
+            
+            configurarInputsTiempo() {
+                $('input[type="time"]').each(function() {
+                    $(this)
+                        .attr('step', '900')
+                        .attr('min', '00:00')
+                        .attr('max', '23:59');
+                });
+            }
+            
+            bindEvents() {
+                $(document).on('click', '.btn-agregar-segmento', () => this.agregarSegmento());
+                
+                $(document).on('click', '.btn-eliminar-segmento', (e) => {
+                    const index = $(e.target).data('index');
+                    this.eliminarSegmento(index);
+                });
+                
+                $(document).on('click', '.btn-plantilla', (e) => {
+                    const plantilla = $(e.target).data('plantilla');
+                    this.aplicarPlantilla(plantilla);
+                });
+                
+                $(document).on('change', 'input[type="time"], select', () => {
+                    this.actualizarSegmentosDesdeDOM();
+                    this.actualizarJSON();
+                });
+            }
+            
+            crearHTMLSegmento(segmento, index) {
+                const tiposOptions = SEGMENTO_TIPOS.map(([valor, etiqueta]) => 
+                    `<option value="${valor}" ${segmento.tipo === valor ? 'selected' : ''}>${etiqueta}</option>`
+                ).join('');
+                
+                return `
+                    <div class="segmento-item" data-index="${index}">
+                        <div style="margin: 10px 0; padding: 10px; border: 1px solid #ccc;">
+                            <label>Inicio: <input type="time" value="${segmento.inicio || ''}" step="900" min="00:00" max="23:59" required></label>
+                            <label>Fin: <input type="time" value="${segmento.fin || ''}" step="900" min="00:00" max="23:59" required></label>
+                            <label>Tipo: <select>${tiposOptions}</select></label>
+                            <button type="button" class="btn-eliminar-segmento" data-index="${index}">Eliminar</button>
+                        </div>
+                    </div>`;
+            }
+            
+            renderizarSegmentos() {
+                $('.segmentos-lista').html(
+                    this.segmentos.map((s, i) => this.crearHTMLSegmento(s, i)).join('')
+                );
+                this.configurarInputsTiempo();
+                this.actualizarJSON();
+            }
+            
+            agregarSegmento() {
+                if (this.segmentos.length >= 8) {
+                    alert('Máximo 8 segmentos permitidos');
+                    return;
+                }
+                this.segmentos.push({inicio: '', fin: '', tipo: 'NORMAL'});
+                this.renderizarSegmentos();
+            }
+            
+            eliminarSegmento(index) {
+                if (confirm('¿Estás seguro de eliminar este segmento?')) {
+                    this.segmentos.splice(index, 1);
+                    this.renderizarSegmentos();
+                }
+            }
+            
+            aplicarPlantilla(plantillaKey) {
+                const plantillas = {
+                    'N': {
+                        nombre: 'Turno Normal',
+                        segmentos: [{inicio: '', fin: '', tipo: 'NORMAL'}]
+                    },
+                    'F': {
+                        nombre: 'Turno Festivo',
+                        segmentos: [
+                            {inicio: '', fin: '', tipo: 'NORMAL'},
+                            {inicio: '', fin: '', tipo: 'FESTIVO'}
+                        ]
+                    },
+                    'E': {
+                        nombre: 'Turno Especial',
+                        segmentos: [
+                            {inicio: '', fin: '', tipo: 'NOCTURNO'},
+                            {inicio: '', fin: '', tipo: 'NORMAL'},
+                            {inicio: '', fin: '', tipo: 'FESTIVO'}
+                        ]
+                    }
+                };
+                
+                const plantilla = plantillas[plantillaKey];
+                if (plantilla) {
+                    this.segmentos = [...plantilla.segmentos];
+                    this.renderizarSegmentos();
+                    alert(`Plantilla "${plantilla.nombre}" aplicada`);
+                }
+            }
+            
+            actualizarSegmentosDesdeDOM() {
+                this.segmentos = Array.from($('.segmento-item')).map(el => ({
+                    inicio: $(el).find('input[type="time"]').first().val(),
+                    fin: $(el).find('input[type="time"]').last().val(),
+                    tipo: $(el).find('select').val()
+                }));
+            }
+            
+            actualizarJSON() {
+                $('#segmentos-json').val(JSON.stringify(this.segmentos, null, 2));
+            }
+        }
+        
+        // Inicializar cuando el DOM esté listo
+        $(document).ready(function() {
+            window.segmentosTest = new SegmentosTest();
+            console.log('✅ Test de segmentos inicializado');
+        });
+        
+        function probarFuncionalidad() {
+            const resultado = document.getElementById('resultado');
+            const json = $('#segmentos-json').val();
+            
+            try {
+                const segmentos = JSON.parse(json);
+                let mensaje = `✅ Funcionalidad correcta\n`;
+                mensaje += `📊 Segmentos: ${segmentos.length}\n`;
+                mensaje += `📋 JSON válido: ${json}`;
+                resultado.innerHTML = `<pre>${mensaje}</pre>`;
+            } catch (e) {
+                resultado.innerHTML = `<pre>❌ Error: ${e.message}</pre>`;
+            }
+        }
+        
+        function limpiarTodo() {
+            window.segmentosTest.segmentos = [];
+            window.segmentosTest.renderizarSegmentos();
+            $('#segmentos-json').val('');
+            $('#resultado').html('');
+        }
+    </script>
+</body>
+</html> 

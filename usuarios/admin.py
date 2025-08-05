@@ -10,8 +10,8 @@ from django.http import JsonResponse
 import json
 from .models import Usuario, Tercero, CodigoTurno
 
-class TimeInputMilitar(forms.TimeInput):
-    """Widget personalizado para forzar formato militar (00:00 a 23:59)"""
+class TimeInputSimple(forms.TimeInput):
+    """Widget simple para formato 24 horas"""
     
     def __init__(self, attrs=None):
         if attrs is None:
@@ -19,39 +19,46 @@ class TimeInputMilitar(forms.TimeInput):
         attrs.update({
             'type': 'time',
             'step': '900',  # 15 minutos
-            'data-format': 'military',
             'min': '00:00',
-            'max': '23:59',
-            'class': 'time-input-military'
+            'max': '23:59'
         })
         super().__init__(attrs, format='%H:%M')
     
     def render(self, name, value, attrs=None, renderer=None):
-        # Asegurar que el valor esté en formato militar
-        if value:
-            if hasattr(value, 'strftime'):
-                value = value.strftime('%H:%M')
-        
+        if value and hasattr(value, 'strftime'):
+            value = value.strftime('%H:%M')
         return super().render(name, value, attrs, renderer)
+
+class HiddenJSONInput(forms.Textarea):
+    """Widget para campo JSON oculto pero accesible"""
+    
+    def __init__(self, attrs=None):
+        if attrs is None:
+            attrs = {}
+        attrs.update({
+            'style': 'display: none;',
+            'class': 'hidden-json-field'
+        })
+        super().__init__(attrs)
 
 class SegmentoForm(forms.Form):
     """Formulario para un segmento individual"""
     inicio = forms.TimeField(
         label='Hora Inicio', 
-        widget=TimeInputMilitar()
+        widget=TimeInputSimple()
     )
     fin = forms.TimeField(
         label='Hora Fin', 
-        widget=TimeInputMilitar()
+        widget=TimeInputSimple()
     )
     tipo = forms.ChoiceField(
         label='Tipo de Segmento',
         choices=CodigoTurno.SEGMENTO_TIPOS,
-        widget=forms.Select(attrs={'class': 'segmento-tipo'})
+        widget=forms.Select()
     )
 
 class CodigoTurnoForm(forms.ModelForm):
-    """Formulario personalizado para CodigoTurno"""
+    """Formulario completo para CodigoTurno con validaciones de segmentos"""
     
     class Meta:
         model = CodigoTurno
@@ -59,8 +66,8 @@ class CodigoTurnoForm(forms.ModelForm):
     
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
-        # Hacer el campo segmentos_horas oculto para que se maneje por JavaScript
-        self.fields['segmentos_horas'].widget = forms.HiddenInput()
+        # Usar widget oculto pero accesible
+        self.fields['segmentos_horas'].widget = HiddenJSONInput()
         self.fields['segmentos_horas'].required = False
     
     def clean(self):
@@ -103,6 +110,7 @@ class CodigoTurnoForm(forms.ModelForm):
             except Exception as e:
                 raise ValidationError(f'Error al procesar segmentos: {str(e)}')
         
+        # Validaciones específicas por tipo de turno
         if tipo in ['D', 'ND']:
             # Para descanso y no devengado, no se necesitan segmentos
             cleaned_data['segmentos_horas'] = []
@@ -113,22 +121,21 @@ class CodigoTurnoForm(forms.ModelForm):
         
         return cleaned_data
     
-    def validar_hora_militar(self, hora_str):
-        """Validar formato de hora militar (00:00 a 23:59) - SIN CONVERSIONES"""
+    def validar_hora_24h(self, hora_str):
+        """Validar formato de hora 24h (00:00 a 23:59)"""
         if not hora_str:
             return None
         
-        # Validar formato militar HH:MM con regex específico
         import re
-        regex_militar = re.compile(r'^([0-1]?[0-9]|2[0-3]):[0-5][0-9]$')
+        regex_24h = re.compile(r'^([0-1][0-9]|2[0-3]):([0-5][0-9])$')
         
-        if regex_militar.match(hora_str):
+        if regex_24h.match(hora_str):
             try:
                 horas, minutos = hora_str.split(':')
                 hora_num = int(horas)
                 minuto_num = int(minutos)
                 
-                # Validar rango militar (00:00 a 23:59)
+                # Validar rango 24h (00:00 a 23:59)
                 if 0 <= hora_num <= 23 and 0 <= minuto_num <= 59:
                     return f"{hora_num:02d}:{minuto_num:02d}"
                 else:
@@ -141,14 +148,14 @@ class CodigoTurnoForm(forms.ModelForm):
     def save(self, commit=True):
         instance = super().save(commit=False)
         
-        # Asegurar que las horas estén en formato militar antes de guardar
+        # Asegurar que las horas estén en formato 24h antes de guardar
         if instance.segmentos_horas:
             for segmento in instance.segmentos_horas:
                 if isinstance(segmento, dict):
                     if 'inicio' in segmento and segmento['inicio']:
-                        segmento['inicio'] = self.validar_hora_militar(segmento['inicio']) or segmento['inicio']
+                        segmento['inicio'] = self.validar_hora_24h(segmento['inicio']) or segmento['inicio']
                     if 'fin' in segmento and segmento['fin']:
-                        segmento['fin'] = self.validar_hora_militar(segmento['fin']) or segmento['fin']
+                        segmento['fin'] = self.validar_hora_24h(segmento['fin']) or segmento['fin']
         
         if commit:
             instance.save()
@@ -206,17 +213,11 @@ class CodigoTurnoAdmin(admin.ModelAdmin):
         }),
         ('Configuración de Segmentos', {
             'fields': ('segmentos_horas', 'get_segmentos_info'),
-            'classes': ('collapse',),
-            'description': 'Configura los segmentos de horarios para este turno usando la interfaz dinámica'
-        }),
-        ('Información de Duración', {
-            'fields': ('duracion_total',),
-            'description': 'Duración total calculada automáticamente'
+            'description': 'Configurar los segmentos de tiempo del turno'
         }),
         ('Información Adicional', {
-            'fields': ('descripcion_novedad',),
-            'classes': ('collapse',),
-            'description': 'Información adicional para turnos No Devengado'
+            'fields': ('duracion_total', 'descripcion_novedad'),
+            'classes': ('collapse',)
         }),
     )
     
@@ -321,5 +322,7 @@ class CodigoTurnoAdmin(admin.ModelAdmin):
                 
             except json.JSONDecodeError:
                 return JsonResponse({'error': 'JSON inválido'}, status=400)
+            except Exception as e:
+                return JsonResponse({'error': str(e)}, status=500)
         
         return JsonResponse({'error': 'Método no permitido'}, status=405)
