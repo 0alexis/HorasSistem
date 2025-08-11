@@ -3,7 +3,7 @@ from django.db import models
 from django.utils import timezone
 from django.conf import settings
 from programacion_models.models import ModeloTurno, LetraTurno
-from usuarios.models import Tercero
+from usuarios.models import Tercero, CodigoTurno
 
 # Manager personalizado para soft delete de ProgramacionHorario
 class ActivoProgramacionManager(models.Manager):

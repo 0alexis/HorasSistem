@@ -139,9 +139,7 @@ ROOT_URLCONF = 'horas_sistema.urls'
 TEMPLATES = [
     {
         'BACKEND': 'django.template.backends.django.DjangoTemplates',
-        'DIRS': [
-            BASE_DIR / 'templates', # template de html para visualizar la programacion de turnos en el administrador, luego en el front debe cambiarse y mejorarse para consumirse y ser optimo
-        ],
+        'DIRS': [BASE_DIR / 'templates'],  # This should include your admin templates
         'APP_DIRS': True,
         'OPTIONS': {
             'context_processors': [

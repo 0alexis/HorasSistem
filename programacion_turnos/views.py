@@ -1,11 +1,13 @@
 from django.shortcuts import render
+from django.views.generic import TemplateView
+from django.http import HttpResponse
+from datetime import datetime, timedelta
 
 # Create your views here.
 from rest_framework import viewsets
 from .models import ProgramacionHorario, AsignacionTurno
 from .serializers import ProgramacionHorarioSerializer, AsignacionTurnoSerializer
-from datetime import timedelta
-from usuarios.models import Tercero
+from usuarios.models import Tercero, CodigoTurno
 from .utils import programar_turnos
 from .serializers import generar_asignaciones
 from rest_framework.decorators import action
@@ -16,6 +18,7 @@ from .models import AsignacionTurno, LetraTurno
 from rest_framework.decorators import api_view, permission_classes
 from rest_framework.permissions import IsAuthenticated
 from .serializers import EditarMallaRequestSerializer
+from .services.holiday_service import get_holidays_for_range
 
 
 class ProgramacionHorarioViewSet(viewsets.ModelViewSet):
@@ -317,3 +320,91 @@ def test_bitacora(request):
         return Response({
             'error': 'Error al crear bitácora'
         }, status=500)
+
+class HolidayJsView(TemplateView):
+    content_type = 'application/javascript'
+    template_name = 'js/holidays.js'  
+    
+    def get_context_data(self, **kwargs):
+    
+        context = super().get_context_data(**kwargs)
+        
+        # Obtener parámetros de programación si están disponibles
+        programacion_id = self.request.GET.get('programacion_id')
+        
+        # Get date range from query params or use defaults
+        start_date = self.request.GET.get('start_date')
+        end_date = self.request.GET.get('end_date')
+        
+        if start_date:
+            start_date = datetime.strptime(start_date, '%Y-%m-%d').date()
+        else:
+            start_date = datetime.now().date()
+            
+        if end_date:
+            end_date = datetime.strptime(end_date, '%Y-%m-%d').date()
+        else:
+            end_date = start_date + timedelta(days=60)  # Default 60 day range
+        
+        # Get holidays
+        holiday_dict = get_holidays_for_range(start_date, end_date)
+        dias_festivos = list(holiday_dict.keys())
+        
+        # Convert date objects to strings for JavaScript
+        dias_festivos_str = [d.strftime('%Y-%m-%d') for d in dias_festivos]
+        
+        # Add holiday names for tooltips
+        holiday_info = {d.strftime('%Y-%m-%d'): name for d, name in holiday_dict.items()}
+        
+        context['dias_festivos'] = dias_festivos_str
+        context['holiday_info'] = holiday_info
+        
+        from usuarios.models import CodigoTurno
+        codigos_turno = CodigoTurno.objects.filter(estado_codigo=1).order_by('letra_turno')
+        
+        # Convertir a formato para JS
+        codigos_info = []
+        for codigo in codigos_turno:
+            codigos_info.append({
+                'codigo': codigo.letra_turno,
+                'descripcion': codigo.descripcion_novedad or f'Turno {codigo.letra_turno}',
+                'horas': float(codigo.duracion_total) if codigo.duracion_total else 0,
+                'tipo': codigo.tipo
+            })
+        
+        # Si se proporciona programacion_id, usar solo los códigos de esa programación
+        if programacion_id:
+            try:
+                # Obtener códigos únicos de esa programación específica
+                codigos_utilizados = AsignacionTurno.objects.filter(
+                    programacion_id=programacion_id
+                ).values_list('letra_turno', flat=True).distinct()
+                
+                # Obtener información completa de cada código
+                codigos_info = []
+                for codigo in codigos_utilizados:
+                    if codigo and codigo.strip():  # Filtrar valores vacíos
+                        try:
+                            codigo_obj = CodigoTurno.objects.get(letra_turno=codigo, estado_codigo=1)
+                            codigos_info.append({
+                                'codigo': codigo_obj.letra_turno,
+                                'descripcion': codigo_obj.descripcion_novedad,
+                                'horas': float(codigo_obj.duracion_total) if codigo_obj.duracion_total else 0,
+                                'tipo': codigo_obj.tipo
+                            })
+                        except CodigoTurno.DoesNotExist:
+                            codigos_info.append({
+                                'codigo': codigo,
+                                'descripcion': f'Turno {codigo}',
+                                'horas': 8,
+                                'tipo': 'N'
+                            })
+                
+                context['codigos_turno'] = codigos_info
+            except Exception as e:
+                print(f"Error obteniendo códigos de programación {programacion_id}: {e}")
+                context['codigos_turno'] = []
+        else:
+            context['codigos_turno'] = []
+        
+        return context

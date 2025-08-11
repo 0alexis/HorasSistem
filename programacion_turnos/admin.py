@@ -1,17 +1,15 @@
 from django.contrib import admin
 from django import forms
 from django.contrib import messages
-from .models import ProgramacionHorario, AsignacionTurno, Bitacora
-from .serializers import ProgramacionExtensionSerializer
-from .models import LetraTurno
+from .models import ProgramacionHorario, AsignacionTurno, Bitacora, LetraTurno, CodigoTurno
+from .serializers import ProgramacionExtensionSerializer, generar_asignaciones
 from datetime import timedelta
-from django.urls import path
+from django.urls import path, reverse
 from django.shortcuts import redirect, get_object_or_404, render
 from django.utils.html import format_html
-from django.urls import reverse
-from .serializers import generar_asignaciones
-from usuarios.models import Tercero
+from usuarios.models import Tercero, CodigoTurno
 from .utils import programar_turnos
+from .services.holiday_service import get_holidays_for_range
 
 class ProgramacionExtensionForm(forms.Form):
     fecha_inicio_ext = forms.DateField(label="Fecha de inicio de extensión")
@@ -37,104 +35,144 @@ class ProgramacionHorarioAdmin(admin.ModelAdmin):
         return custom_urls + urls
 
     def editar_malla_view(self, request, programacion_id):
+        from datetime import datetime, timedelta
+
         programacion = get_object_or_404(ProgramacionHorario, pk=programacion_id)
-        fechas = [programacion.fecha_inicio + timedelta(days=i) for i in range((programacion.fecha_fin - programacion.fecha_inicio).days + 1)]
-        
-        # Obtener todas las asignaciones de esta programación
-        asignaciones = AsignacionTurno.objects.filter(programacion=programacion).select_related('tercero')
-        
-        # Obtener terceros únicos que tienen asignaciones, ordenados por fila
-        terceros_con_asignaciones = asignaciones.values('tercero_id', 'fila').distinct().order_by('fila', 'tercero_id')
-        
-        # Obtener los terceros completos ordenados por fila
-        empleados = []
-        for item in terceros_con_asignaciones:
-            tercero = Tercero.objects.get(id_tercero=item['tercero_id'])
-            empleados.append(tercero)
-        
-        # Construir malla basada en las asignaciones reales
-        malla = {}
-        for empleado in empleados:
-            malla[empleado.id_tercero] = {fecha: None for fecha in fechas}
-        
-        for asignacion in asignaciones:
-            if asignacion.tercero_id in malla:
-                malla[asignacion.tercero_id][asignacion.dia] = asignacion
 
-
-        # Agrupar empleados por filas reales del modelo de turno
-        modelo_turno = programacion.modelo_turno
-        filas_modelo = modelo_turno.letras.values_list('fila', flat=True).distinct().order_by('fila')
-        
-        # Agrupar empleados por fila real del modelo
-        empleados_agrupados = []
-        filas_empleados = {}
-        
-        # Agrupar empleados por su fila asignada
-        for asignacion in asignaciones:
-            fila = asignacion.fila
-            tercero_id = asignacion.tercero_id
-            if fila not in filas_empleados:
-                filas_empleados[fila] = set()
-            filas_empleados[fila].add(tercero_id)
-        
-        # Crear bloques basados en las filas del modelo
-        for fila in filas_modelo:
-            if fila in filas_empleados:
-                terceros_en_fila = []
-                for tercero_id in filas_empleados[fila]:
-                    tercero = Tercero.objects.get(id_tercero=tercero_id)
-                    terceros_en_fila.append(tercero)
-                empleados_agrupados.append(terceros_en_fila)
-
+        # ===== MANEJO DE SOLICITUD POST (GUARDAR CAMBIOS) =====
         if request.method == 'POST':
-            for emp in empleados:
-                for fecha in fechas:
-                    key = f"letra_{emp.id_tercero}_{fecha}"
-                    if key in request.POST:
-                        letra = request.POST.get(key, '').strip()
-                        asignacion = malla[emp.id_tercero][fecha]
-                        if asignacion and (letra != asignacion.letra_turno):
-                            print(f"Actualizando {emp} {fecha}: '{asignacion.letra_turno}' -> '{letra}'")
+            cambios = 0
+            # Se obtienen empleados relacionados con la programación y se generan todas las fechas del rango
+            empleados_qs = Tercero.objects.filter(asignaciones__programacion=programacion).distinct()
+            fechas_qs = [programacion.fecha_inicio + timedelta(days=i) for i in range((programacion.fecha_fin - programacion.fecha_inicio).days + 1)]
 
-                            asignacion.letra_turno = letra
-                            asignacion.save()
-                            
-            
-            from django.contrib import messages
-            messages.success(request, "Malla actualizada correctamente.")
-            return redirect(request.path)
-        return render(request, "admin/editar_malla_programacion.html", {
+            for emp in empleados_qs:
+                for fecha in fechas_qs:
+                    key = f"letra_{emp.id_tercero}_{fecha.strftime('%Y-%m-%d')}"
+                    if key in request.POST:
+                        letra = request.POST.get(key, '').strip().upper()
+                        AsignacionTurno.objects.update_or_create(
+                            programacion=programacion,
+                            tercero=emp,
+                            dia=fecha,
+                            defaults={'letra_turno': letra}
+                        )
+                        cambios += 1
+
+            if cambios > 0:
+                messages.success(request, f"Malla actualizada correctamente. Se procesaron {cambios} celdas.")
+            else:
+                messages.info(request, "No se detectaron cambios para guardar.")
+
+            return redirect(request.path_info)
+
+        # ===== PREPARACIÓN DE DATOS PARA LA VISTA (SOLO GET) =====
+        start_date = programacion.fecha_inicio
+        end_date = programacion.fecha_fin
+        fechas = [start_date + timedelta(days=i) for i in range((end_date - start_date).days + 1)]
+
+        # Optimización de consultas: se obtienen asignaciones y empleados
+        asignaciones = AsignacionTurno.objects.filter(programacion=programacion).select_related('tercero')
+        terceros_ids = asignaciones.values_list('tercero_id', flat=True).distinct()
+        empleados = Tercero.objects.filter(id_tercero__in=terceros_ids)
+
+        # Construcción de la malla (diccionario con claves de fecha y valores de turno)
+        malla = {emp.id_tercero: {fecha.strftime('%Y-%m-%d'): '' for fecha in fechas} for emp in empleados}
+        for asignacion in asignaciones:
+            fecha_str = asignacion.dia.strftime('%Y-%m-%d')
+            if asignacion.tercero_id in malla and fecha_str in malla[asignacion.tercero_id]:
+                malla[asignacion.tercero_id][fecha_str] = asignacion.letra_turno or ''
+
+        # Agrupar empleados según la "fila" asignada, para formar bloques
+        empleados_agrupados = []
+        bloques_info = []
+        filas_empleados = {}
+        for asignacion in asignaciones:
+            if asignacion.fila not in filas_empleados:
+                filas_empleados[asignacion.fila] = set()
+            filas_empleados[asignacion.fila].add(asignacion.tercero)
+        for fila, emps in sorted(filas_empleados.items()):
+            empleados_agrupados.append(list(emps))
+            bloques_info.append({'numero': fila, 'empleados': len(emps)})
+
+        # ===== CÓDIGOS DE TURNO DINÁMICOS =====
+        codigos_utilizados = asignaciones.exclude(letra_turno__isnull=True)\
+                                        .exclude(letra_turno__exact='')\
+                                        .values_list('letra_turno', flat=True)\
+                                        .distinct().order_by('letra_turno')
+        
+        codigos_turno_info = []
+        for codigo in codigos_utilizados:
+            try:
+                # Cambia .get() por .filter().first()
+                codigo_obj = CodigoTurno.objects.filter(letra_turno=codigo, estado_codigo=1).first()
+                if codigo_obj:
+                    codigos_turno_info.append({
+                        'codigo': codigo_obj.letra_turno,
+                        'descripcion': codigo_obj.descripcion_novedad or f'Turno {codigo}',
+                        'color': '#d4edda',
+                        'horas': float(codigo_obj.duracion_total) if codigo_obj.duracion_total else 0,
+                        'tipo': codigo_obj.tipo
+                    })
+                else:
+                    # Si no encuentra ningún código activo, usar valores por defecto
+                    codigos_turno_info.append({
+                        'codigo': codigo,
+                        'descripcion': f'Turno {codigo} (No en DB)',
+                        'color': '#f8d7da',
+                        'horas': 0,
+                        'tipo': 'N'
+                    })
+            except Exception as e:
+                codigos_turno_info.append({
+                    'codigo': codigo,
+                    'descripcion': f'Turno {codigo} (Error)',
+                    'color': '#f8d7da',
+                    'horas': 0,
+                    'tipo': 'N'
+                })
+
+        # ===== INFORMACIÓN PARA FESTIVOS =====
+        holiday_dict = get_holidays_for_range(start_date, end_date)
+        dias_festivos_str = [d.strftime('%Y-%m-%d') for d in holiday_dict.keys()]
+        holiday_info = {d.strftime('%Y-%m-%d'): name for d, name in holiday_dict.items()}
+
+        # ===== CONTEXTO FINAL PARA EL TEMPLATE =====
+        context = {
             "programacion": programacion,
             "empleados": empleados,
             "empleados_agrupados": empleados_agrupados,
-            "fechas": fechas,
+            "bloques_info": bloques_info,
+            "fechas": fechas,  # Convertir a strings
             "malla": malla,
-        })
-# Se realiza el intercambio de terceros, se selecciona el tercero 1 y el tercero 2, se intercambian las letras de turno de los terceros 1 y 2 
-# con esto logramos realizar la API funcion de intercambio de terceros, debe en el front
-#  hacerse uso de esto buscando como realizaar de manera UX que se cambien
-#  los valores del documento, ya que el intercambio se hace segun lo planeado
+            "codigos_turno": codigos_turno_info,
+            "codigos_utilizados": list(codigos_utilizados),
+            "dias_festivos": dias_festivos_str,
+            "holiday_info": holiday_info,
+            "start_date": start_date,
+            "end_date": end_date,
+        }
+
+        return render(request, "admin/editar_malla_programacion.html", context)
+
     def intercambiar_terceros_view(self, request, programacion_id):
         programacion = get_object_or_404(ProgramacionHorario, pk=programacion_id)
         empleados = list(Tercero.objects.filter(centro_operativo=programacion.centro_operativo))
-        
-        # Agrupar empleados por filas reales del modelo de turno
+
+        # Agrupar empleados por fila real según el modelo de turno
         modelo_turno = programacion.modelo_turno
         filas_modelo = modelo_turno.letras.values_list('fila', flat=True).distinct().order_by('fila')
-        
-        # Obtener asignaciones para agrupar por fila real
+
+        # Obtener asignaciones para agrupar por fila
         asignaciones = AsignacionTurno.objects.filter(programacion=programacion)
         filas_empleados = {}
-        
-        # Agrupar empleados por su fila asignada
         for asignacion in asignaciones:
             fila = asignacion.fila
             tercero_id = asignacion.tercero_id
             if fila not in filas_empleados:
                 filas_empleados[fila] = set()
             filas_empleados[fila].add(tercero_id)
-        
+
         # Crear bloques basados en las filas del modelo
         empleados_agrupados = []
         for fila in filas_modelo:
@@ -144,71 +182,47 @@ class ProgramacionHorarioAdmin(admin.ModelAdmin):
                     tercero = Tercero.objects.get(id_tercero=tercero_id)
                     terceros_en_fila.append(tercero)
                 empleados_agrupados.append(terceros_en_fila)
-        
+
         if request.method == 'POST':
             tercero1_id = request.POST.get('tercero1')
             tercero2_id = request.POST.get('tercero2')
-            
+
             if tercero1_id and tercero2_id and tercero1_id != tercero2_id:
                 try:
-                    # Verificar que ambos terceros existen
                     tercero1 = Tercero.objects.get(pk=tercero1_id)
                     tercero2 = Tercero.objects.get(pk=tercero2_id)
                     
-                    # Verificar que ambos terceros pertenecen al mismo centro operativo
                     if tercero1.centro_operativo != tercero2.centro_operativo:
                         messages.error(request, "Los terceros deben pertenecer al mismo centro operativo.")
                         return redirect(request.path)
                     
-                    # Obtener las asignaciones de ambos terceros
-                    asignaciones1 = AsignacionTurno.objects.filter(
-                        programacion=programacion,
-                        tercero=tercero1
-                    ).order_by('dia')
-                    asignaciones2 = AsignacionTurno.objects.filter(
-                        programacion=programacion,
-                        tercero=tercero2
-                    ).order_by('dia')
-                    
-                    print(f"Intercambiando letras de turno en admin: {tercero1} <-> {tercero2}")
-                    print(f"Asignaciones tercero1: {asignaciones1.count()}")
-                    print(f"Asignaciones tercero2: {asignaciones2.count()}")
-                    
-                    # Guardar las letras de turno originales
-                    letras_tercero1_originales = {asig.dia: asig.letra_turno for asig in asignaciones1}
-                    letras_tercero2_originales = {asig.dia: asig.letra_turno for asig in asignaciones2}
-                    
+                    asignaciones1 = AsignacionTurno.objects.filter(programacion=programacion, tercero=tercero1).order_by('dia')
+                    asignaciones2 = AsignacionTurno.objects.filter(programacion=programacion, tercero=tercero2).order_by('dia')
+
+                    letras_t1 = {a.dia: a.letra_turno for a in asignaciones1}
+                    letras_t2 = {a.dia: a.letra_turno for a in asignaciones2}
+
                     cambios_realizados = 0
-                    
-                    # Tercero1 recibe letras de tercero2
-                    for asignacion in asignaciones1:
-                        if asignacion.dia in letras_tercero2_originales:
-                            letra_original = asignacion.letra_turno
-                            asignacion.letra_turno = letras_tercero2_originales[asignacion.dia]
-                            asignacion.save()
+                    for asig in asignaciones1:
+                        if asig.dia in letras_t2:
+                            asig.letra_turno = letras_t2[asig.dia]
+                            asig.save()
                             cambios_realizados += 1
-                            print(f"Asignación {asignacion.id} - {tercero1} día {asignacion.dia}: {letra_original} → {asignacion.letra_turno}")
-                    
-                    # Tercero2 recibe letras de tercero1
-                    for asignacion in asignaciones2:
-                        if asignacion.dia in letras_tercero1_originales:
-                            letra_original = asignacion.letra_turno
-                            asignacion.letra_turno = letras_tercero1_originales[asignacion.dia]
-                            asignacion.save()
+                    for asig in asignaciones2:
+                        if asig.dia in letras_t1:
+                            asig.letra_turno = letras_t1[asig.dia]
+                            asig.save()
                             cambios_realizados += 1
-                            print(f"Asignación {asignacion.id} - {tercero2} día {asignacion.dia}: {letra_original} → {asignacion.letra_turno}")
-                    
+
                     messages.success(request, f"Letras de turno intercambiadas correctamente: {tercero1} <-> {tercero2}. {cambios_realizados} cambios realizados.")
                     return redirect(request.path)
-                    
                 except Tercero.DoesNotExist:
                     messages.error(request, "Uno o ambos terceros no existen.")
                 except Exception as e:
-                    print(f"Error al intercambiar letras de turno en admin: {str(e)}")
                     messages.error(request, f"Error al intercambiar letras de turno: {str(e)}")
             else:
                 messages.error(request, "Debe seleccionar dos terceros diferentes.")
-        
+
         return render(request, "admin/intercambiar_terceros.html", {
             "programacion": programacion,
             "empleados_agrupados": empleados_agrupados,
@@ -216,30 +230,17 @@ class ProgramacionHorarioAdmin(admin.ModelAdmin):
         })
 
     def save_model(self, request, obj, form, change):
-        empleados = list(Tercero.objects.filter(centro_operativo=obj.centro_operativo))
-        from django.contrib import messages
-        # Validación previa (sin crear asignaciones)
-        centro_operativo = obj.centro_operativo
-        modelo_turno = obj.modelo_turno
-        pv = getattr(centro_operativo, 'promesa_valor', None)
-        tipo = getattr(modelo_turno, 'tipo', None)
         try:
-            if tipo == 'F' and pv is not None:
-                min_personas = pv * 4
-                if len(empleados) < min_personas:
-                    raise ValueError(f"Para modelos de tipo FIJO se requieren al menos {min_personas} personas para realizar esta programacion. Solo hay {len(empleados)} empleados disponibles.")
-            # Si pasa la validación, guarda el objeto
+            empleados = list(Tercero.objects.filter(centro_operativo=obj.centro_operativo, estado_tercero='A'))
+            if not change:  # Solo al crear
+                programar_turnos(obj.modelo_turno, empleados, obj.fecha_inicio, obj.fecha_fin, obj)
             super().save_model(request, obj, form, change)
-            # Ahora sí crea las asignaciones
-            programar_turnos(
-                obj.modelo_turno,
-                empleados,
-                obj.fecha_inicio,
-                obj.fecha_fin,
-                obj
-            )
         except ValueError as e:
             messages.error(request, str(e))
+
+    def extender_programacion_view(self, request, programacion_id):
+        programacion = self.get_object(request, programacion_id)
+        return self.extender_programacion(request, queryset=self.model.objects.filter(pk=programacion_id))
 
     def extender_programacion(self, request, queryset):
         if queryset.count() != 1:
@@ -257,7 +258,6 @@ class ProgramacionHorarioAdmin(admin.ModelAdmin):
                     if fecha_inicio_ext <= programacion.fecha_fin:
                         self.message_user(request, "La fecha de inicio de la extensión debe ser posterior al fin de la programación actual.", level=messages.ERROR)
                         return redirect(request.path)
-                    # Obtener la matriz de letras del modelo de turno
                     letras_qs = LetraTurno.objects.filter(modelo_turno=programacion.modelo_turno)
                     matriz = {}
                     max_fila = 0
@@ -270,9 +270,7 @@ class ProgramacionHorarioAdmin(admin.ModelAdmin):
                         self.message_user(request, "No se encontraron letras de turno para el modelo.", level=messages.ERROR)
                         return redirect(request.path)
                     ultimas_posiciones = {}
-                    for asignacion in AsignacionTurno.objects.filter(
-                        programacion=programacion
-                    ).order_by('tercero_id', '-dia'):
+                    for asignacion in AsignacionTurno.objects.filter(programacion=programacion).order_by('tercero_id', '-dia'):
                         if asignacion.tercero.id_tercero not in ultimas_posiciones:
                             ultimas_posiciones[asignacion.tercero.id_tercero] = {
                                 'fila': asignacion.fila,
@@ -325,20 +323,13 @@ class ProgramacionHorarioAdmin(admin.ModelAdmin):
                     return redirect(request.path)
         else:
             form = ProgramacionExtensionForm()
-        from django.shortcuts import render
         return render(request, "admin/extender_programacion.html", {
             "form": form,
             "programacion": programacion
         })
-    extender_programacion.short_description = "Extender programación seleccionada"
-
-    def extender_programacion_view(self, request, programacion_id):
-        programacion = self.get_object(request, programacion_id)
-        return self.extender_programacion(request, queryset=self.model.objects.filter(pk=programacion_id))
 
     def change_view(self, request, object_id, form_url='', extra_context=None):
-        if not extra_context:
-            extra_context = {}
+        extra_context = extra_context or {}
         extra_context['extra_button'] = format_html(
             '<a class="button" href="{}">Extender programación</a> '
             '<a class="button" href="{}">Editar malla</a> '
@@ -361,15 +352,15 @@ class BitacoraAdmin(admin.ModelAdmin):
     list_filter = ('tipo_accion', 'modulo', 'usuario', 'fecha_hora')
     search_fields = ('usuario__username', 'descripcion', 'modelo_afectado')
     readonly_fields = ('usuario', 'fecha_hora', 'ip_address', 'tipo_accion', 'modulo', 'modelo_afectado', 
-                      'objeto_id', 'descripcion', 'valores_anteriores', 'valores_nuevos', 'campos_modificados')
+                       'objeto_id', 'descripcion', 'valores_anteriores', 'valores_nuevos', 'campos_modificados')
     date_hierarchy = 'fecha_hora'
     ordering = ('-fecha_hora',)
-    
+
     def has_add_permission(self, request):
-        return False  # No permitir crear registros manualmente
-    
+        return False
+
     def has_change_permission(self, request, obj=None):
-        return False  # No permitir editar registros
-    
+        return False
+
     def has_delete_permission(self, request, obj=None):
-        return True  # Permitir eliminar registros si es necesario
+        return True

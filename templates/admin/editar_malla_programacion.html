@@ -1,118 +1,557 @@
 {% extends "admin/base_site.html" %}
-{% load dict_get %}
-{% block content %}
-  <h1>Editar malla de programación: {{ programacion }}</h1>
-  <form id="malla-form" onsubmit="return false;">
-    <table style="border-collapse: collapse;">
-      <tr>
-        <th style="border:1px solid #ccc;padding:4px;">Empleado</th>
-        <th style="border:1px solid #ccc;padding:4px;">Cargo</th>
-        {% for fecha in fechas %}
-          <th style="border:1px solid #ccc;padding:4px;">{{ fecha|date:"d/m" }}</th>
-        {% endfor %}
-      </tr>
-      {% for grupo in empleados_agrupados %}
-        <tr>
-          <td colspan="{{ fechas|length|add:'2' }}" style="background:#eee; text-align:center;">Bloque {{ forloop.counter }}</td>
-        </tr>
-        {% for empleado in grupo %}
-          <tr>
-            <td style="border:1px solid #ccc;padding:4px;">{{ empleado }}</td>
-            <td style="border:1px solid #ccc;padding:4px;">{{ empleado.cargo.nombre }}</td>
-            {% for fecha in fechas %}
-              {% with fila=malla|dict_get:empleado.id_tercero %}
-                {% if fila %}
-                  {% with asignacion=fila|dict_get:fecha %}
-                    <td style="border:1px solid #ccc;padding:2px;min-width:32px;">
-                      <input type="text"
-                             class="letra-input"
-                             data-tercero="{{ empleado.id_tercero }}"
-                             data-fecha="{{ fecha }}"
-                             value="{{ asignacion.letra_turno|default_if_none:'' }}"
-                             size="1"
-                             maxlength="1"
-                             style="text-align:center;" />
-                    </td>
-                  {% endwith %}
-                {% else %}
-                  <td style="border:1px solid #ccc;padding:2px;min-width:32px;">
-                    <input type="text"
-                           class="letra-input"
-                           data-tercero="{{ empleado.id_tercero }}"
-                           data-fecha="{{ fecha }}"
-                           value=""
-                           size="2"
-                           maxlength="2"
-                           style="text-align:center;" />
-                  </td>
-                {% endif %}
-              {% endwith %}
-            {% endfor %}
-          </tr>
-        {% endfor %}
-      {% endfor %}
-    </table>
-    <br>
-    <button type="button" onclick="enviarMalla()">Guardar cambios</button>
-    <a href="../" style="margin-left:20px;">Volver</a>
-    <div id="mensaje" style="margin-top:10px;"></div>
-  </form>
+{% load i18n admin_urls static programacion_filters %}
+
+{% block extrastyle %}
+{{ block.super }}
+<style>
+    /* Calendar container */
+    .calendario-container {
+        margin: 20px 0;
+        overflow-x: auto;
+    }
+    
+    /* Calendar styling */
+    .calendario-table {
+        width: 100%;
+        border-collapse: collapse;
+        font-size: 14px;
+    }
+    
+    .calendario-table th, 
+    .calendario-table td {
+        border: 1px solid #ddd;
+        padding: 8px;
+        text-align: center;
+        vertical-align: middle;
+    }
+    
+    /* Header styling */
+    .calendario-table th {
+        background-color: #f2f2f2;
+        position: sticky;
+        top: 0;
+        z-index: 10;
+        white-space: nowrap;
+    }
+    
+    /* Employee column styling */
+    .empleado-col {
+        text-align: left;
+        padding: 8px 12px;
+        white-space: nowrap;
+        min-width: 200px;
+        position: sticky;
+        left: 0;
+        background-color: #fff;
+        z-index: 5;
+    }
+    
+    /* Employee header styling */
+    .empleado-header {
+        position: sticky;
+        left: 0;
+        top: 0;
+        z-index: 15;
+        background-color: #f2f2f2;
+        text-align: left;
+    }
+    
+    /* Cargo column styling */
+    .cargo-col {
+        text-align: left;
+        padding: 8px 12px;
+        white-space: nowrap;
+        min-width: 150px;
+        position: sticky;
+        left: 200px;
+        background-color: #fff;
+        z-index: 5;
+    }
+    
+    /* Cargo header styling */
+    .cargo-header {
+        position: sticky;
+        left: 200px;
+        top: 0;
+        z-index: 15;
+        background-color: #f2f2f2;
+        text-align: left;
+    }
+    
+    /* Block header styling */
+    .bloque-header {
+        background-color: #e6f3ff;
+        font-weight: bold;
+        text-align: left;
+        padding: 10px;
+    }
+    
+    /* Shift input styling */
+    .turno-input {
+        width: 30px;
+        text-align: center;
+        border: 1px solid #ccc;
+        padding: 4px;
+        font-weight: bold;
+        border-radius: 4px;
+        text-transform: uppercase;
+    }
+    
+    /* Shift color coding */
+    .turno-A { background-color: #d4edda; }
+    .turno-B { background-color: #d1ecf1; }
+    .turno-C { background-color: #fff3cd; }
+    .turno-D { background-color: #f8d7da; }
+    .turno-X { background-color: #e2e3e5; }
+    
+    /* Weekend styling */
+    .weekend { background-color: #f8f9fa; }
+    
+    /* Filter panel styling */
+    .filter-panel {
+        background-color: #f8f8f8;
+        padding: 15px;
+        margin-bottom: 20px;
+        border-radius: 4px;
+        border: 1px solid #ddd;
+    }
+    
+    .filter-row {
+        display: flex;
+        gap: 15px;
+        align-items: center;
+        flex-wrap: wrap;
+        margin-bottom: 10px;
+    }
+    
+    /* Legend styling */
+    .turnos-legend {
+        margin: 15px 0;
+        padding: 10px;
+        background-color: #f8f8f8;
+        border-radius: 4px;
+        border: 1px solid #ddd;
+    }
+    
+    .legend-item {
+        display: inline-block;
+        margin-right: 15px;
+        padding: 5px;
+    }
+    
+    .color-box {
+        display: inline-block;
+        width: 20px;
+        height: 20px;
+        margin-right: 5px;
+        vertical-align: middle;
+        border: 1px solid #ccc;
+    }
+    
+    /* Holiday styling */
+    .festivo {
+        background-color: #e6de3d !important;
+    }
+    
+    .holiday-indicator {
+        display: inline-block;
+        margin-left: 5px;
+        color: #856404;
+    }
+    
+    /* Resumen de Horas styling */
+    .resumen-horas-container {
+        margin: 30px 0;
+        overflow-x: auto;
+    }
+    
+    .resumen-table {
+        width: 100%;
+        border-collapse: collapse;
+        font-size: 14px;
+    }
+    
+    .resumen-table th,
+    .resumen-table td {
+        border: 1px solid #ddd;
+        padding: 10px;
+        text-align: center;
+    }
+    
+    .resumen-table th {
+        background-color: #343a40;
+        color: white;
+        position: sticky;
+        top: 0;
+        z-index: 10;
+    }
+    
+    .resumen-table .empleado-col {
+        text-align: left;
+        padding: 8px 12px;
+        white-space: nowrap;
+        min-width: 200px;
+        position: sticky;
+        left: 0;
+        background-color: #fff;
+        z-index: 5;
+    }
+    
+    .resumen-table .empleado-header {
+        position: sticky;
+        left: 0;
+        top: 0;
+        z-index: 15;
+        background-color: #343a40;
+        color: white;
+        text-align: left;
+    }
+    
+    .resumen-table .total-row {
+        background-color: #f2f2f2;
+        font-weight: bold;
+    }
+    
+    /* Generar CSS dinámico solo para códigos utilizados */
+    {% for codigo in codigos_turno %}
+    .turno-{{ codigo.codigo }} {
+        background-color: {{ codigo.color }};
+        color: #333;
+        font-weight: bold;
+    }
+    {% endfor %}
+    
+    /* Estilos adicionales para la tabla de resumen */
+    .resumen-table th small {
+        font-weight: normal;
+        opacity: 0.8;
+    }
+    
+    .alert {
+        padding: 15px;
+        margin: 20px 0;
+        border: 1px solid transparent;
+        border-radius: 4px;
+    }
+    
+    .alert-info {
+        color: #31708f;
+        background-color: #d9edf7;
+        border-color: #bce8f1;
+    }
+</style>
 {% endblock %}
 
+{% block content %}
+<h1>{{ programacion.modelo_turno.nombre }} - {{ programacion.centro_operativo.nombre }}</h1>
+<h2>Período: {{ programacion.fecha_inicio|date:"d/m/Y" }} - {{ programacion.fecha_fin|date:"d/m/Y" }}</h2>
+
+<!-- Filter panel -->
+<div class="filter-panel">
+    <h3>Filtros</h3>
+    <form method="get">
+        <div class="filter-row">
+            <div>
+                <label for="start_date">Fecha Inicio:</label>
+                <input type="date" id="start_date" name="start_date" value="{{ start_date|date:'Y-m-d' }}">
+            </div>
+            
+            <div>
+                <label for="end_date">Fecha Fin:</label>
+                <input type="date" id="end_date" name="end_date" value="{{ end_date|date:'Y-m-d' }}">
+            </div>
+            
+            <div>
+                <button type="submit" class="button">Filtrar</button>
+                <a href="?clear=1" class="button">Limpiar</a>
+            </div>
+        </div>
+    </form>
+</div>
+
+<!-- Legend for shift codes -->
+<div class="turnos-legend">
+    <h3>Códigos de Turno</h3>
+    {% for codigo in codigos_turno %}
+    <div class="legend-item">
+        <span class="color-box" style="background-color: {{ codigo.color }}"></span>
+        <strong>{{ codigo.codigo }}</strong> - {{ codigo.descripcion }} 
+        <small>({{ codigo.horas }} horas)</small>
+    </div>
+    {% endfor %}
+</div>
+
+<!-- Calendar form -->
+<form method="post">
+    {% csrf_token %}
+    
+    <div class="calendario-container">
+        <table class="calendario-table">
+            <thead>
+                <tr>
+                    <th class="empleado-header">Empleado</th>
+                    <th class="cargo-header">Cargo</th>
+                    {% for fecha in fechas %}
+                    <th class="{% if fecha.weekday == 5 or fecha.weekday == 6 %}weekend{% endif %}">
+                        {{ fecha|date:"d/m" }}<br>
+                        <small>{{ fecha|date:"D"|upper }}</small>
+                    </th>
+                    {% endfor %}
+                </tr>
+            </thead>
+            <tbody>
+                {% for grupo in empleados_agrupados %}
+                    <tr>
+                        <td colspan="{{ fechas|length|add:2 }}" class="bloque-header">
+                            Bloque {{ forloop.counter }}
+                        </td>
+                    </tr>
+                    {% for empleado in grupo %}
+                        <tr>
+                            <td class="empleado-col">{{ empleado.nombre_tercero }} {{ empleado.apellido_tercero }}</td>
+                            <td class="cargo-col">{{ empleado.cargo_predefinido.nombre|default:"-" }}</td>
+                            {% for fecha in fechas %}
+                                {% with asignacion=malla|get:empleado.id_tercero|get:fecha %}
+                                <td class="{% if fecha.weekday == 5 or fecha.weekday == 6 %}weekend{% endif %} turno-{{ asignacion.letra_turno }}">
+                                    <input type="text" name="letra_{{ empleado.id_tercero }}_{{ fecha }}" 
+                                           value="{{ asignacion.letra_turno }}" maxlength="1" class="turno-input"
+                                           onchange="this.value=this.value.toUpperCase()">
+                                </td>
+                                {% endwith %}
+                            {% endfor %}
+                        </tr>
+                    {% endfor %}
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+    
+    <!-- Reemplaza la tabla de resumen existente -->
+    <!-- Asegurar que la tabla de resumen esté después del calendario -->
+    <div class="resumen-horas-container">
+        <h3>Resumen de Horas</h3>
+        {% if codigos_turno %}
+        <table class="resumen-table">
+            <thead>
+                <tr>
+                    <th class="empleado-header">Empleado</th>
+                    <th>Total Horas</th>
+                    <th>HDF (Fin de Semana)</th>
+                    <th>HDO (Festivos)</th>
+                    {% for codigo in codigos_turno %}
+                    <th>Turnos {{ codigo.codigo }} <br><small>({{ codigo.horas }}h)</small></th>
+                    {% endfor %}
+                </tr>
+            </thead>
+            <tbody>
+                {% for grupo in empleados_agrupados %}
+                    <tr class="bloque-header">
+                        <td colspan="{{ codigos_turno|length|add:4 }}">Bloque {{ forloop.counter }}</td>
+                    </tr>
+                    {% for empleado in grupo %}
+                    <tr class="empleado-resumen" data-tercero-id="{{ empleado.id_tercero }}">
+                        <td class="empleado-col">{{ empleado.nombre_tercero }} {{ empleado.apellido_tercero }}</td>
+                        <td id="total-horas-{{ empleado.id_tercero }}">0</td>
+                        <td id="horas-finde-{{ empleado.id_tercero }}">0</td>
+                        <td id="horas-festivos-{{ empleado.id_tercero }}">0</td>
+                        {% for codigo in codigos_turno %}
+                        <td id="turnos-{{ codigo.codigo }}-{{ empleado.id_tercero }}">0</td>
+                        {% endfor %}
+                    </tr>
+                    {% endfor %}
+                {% endfor %}
+                <tr class="total-row">
+                    <td class="empleado-col"><strong>TOTALES</strong></td>
+                    <td id="gran-total-horas">0</td>
+                    <td id="gran-total-finde">0</td>
+                    <td id="gran-total-festivos">0</td>
+                    {% for codigo in codigos_turno %}
+                    <td id="gran-total-{{ codigo.codigo }}">0</td>
+                    {% endfor %}
+                </tr>
+            </tbody>
+        </table>
+        {% else %}
+        <div class="alert alert-info">
+            <strong>No hay códigos de turno utilizados en esta programación.</strong>
+            <p>Asigne turnos en la malla para ver el resumen de horas.</p>
+        </div>
+        {% endif %}
+    </div>
+    
+    <div class="submit-row">
+        <input type="submit" value="Guardar cambios" class="default">
+    </div>
+</form>
+
+<script src="{% url 'holidays_js' %}?start_date={{ start_date|date:'Y-m-d' }}&end_date={{ end_date|date:'Y-m-d' }}&programacion_id={{ programacion.id }}"></script>
 <script>
-window.enviarMalla = function() {
-  alert('Función enviarMalla llamada');
-  const inputs = document.querySelectorAll('.letra-input');
-  const cambios = [];
-  inputs.forEach(input => {
-    cambios.push({
-      tercero_id: input.dataset.tercero,
-      fecha: input.dataset.fecha,
-      letra: input.value
-    });
-  });
-
-  fetch('/api/programacion/{{ programacion.id }}/editar_malla/', {
-    method: 'POST',
-    headers: {
-      'Content-Type': 'application/json',
-      'X-CSRFToken': getCookie('csrftoken')
-    },
-    body: JSON.stringify({
-      cambios: cambios
-    })
-  })
-  .then(response => response.json())
-  .then(data => {
-    if (data.mensaje) {
-      document.getElementById('mensaje').innerText = data.mensaje;
-    } else if (data.error) {
-      document.getElementById('mensaje').innerText = data.error;
-    } else {
-      document.getElementById('mensaje').innerText = 'Respuesta inesperada del servidor';
-    }
-  })
-  .catch(error => {
-    document.getElementById('mensaje').innerText = 'Error al guardar la malla';
-  });
-}
-
-function getCookie(name) {
-    let cookieValue = null;
-    if (document.cookie && document.cookie !== '') {
-        const cookies = document.cookie.split(';');
-        for (let i = 0; i < cookies.length; i++) {
-            const cookie = cookies[i].trim();
-            if (cookie.substring(0, name.length + 1) === (name + '=')) {
-                cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
-                break;
-            }
+document.addEventListener('DOMContentLoaded', function() {
+    // Lista dinámica de códigos utilizados en esta programación
+    const codigosUtilizados = [
+        {% for codigo in codigos_turno %}
+        '{{ codigo.codigo }}',
+        {% endfor %}
+    ];
+    
+    // Horas por código dinámicas
+    const horasPorTurno = {
+        {% for codigo in codigos_turno %}
+        '{{ codigo.codigo }}': {{ codigo.horas }},
+        {% endfor %}
+    };
+    
+    console.log('Códigos utilizados:', codigosUtilizados);
+    console.log('Horas por turno:', horasPorTurno);
+    
+    // Función para calcular totales
+    function calcularTotales() {
+        console.log('Calculando totales...');
+        
+        // Solo proceder si hay códigos utilizados
+        if (codigosUtilizados.length === 0) {
+            console.log('No hay códigos utilizados');
+            return;
         }
+        
+        // Initialize grand totals
+        let granTotalHoras = 0;
+        let granTotalFinde = 0;
+        let granTotalFestivos = 0;
+        
+        // Initialize counters for each shift type used in this programming
+        const granTotalPorCodigo = {};
+        codigosUtilizados.forEach(codigo => {
+            granTotalPorCodigo[codigo] = 0;
+        });
+        
+        // Process each employee
+        document.querySelectorAll('.empleado-resumen').forEach(function(fila) {
+            const terceroId = fila.dataset.terceroId;
+            let totalHoras = 0;
+            let horasFinde = 0;
+            let horasFestivos = 0;
+            
+            // Initialize counters for this employee
+            const turnosPorCodigo = {};
+            codigosUtilizados.forEach(codigo => {
+                turnosPorCodigo[codigo] = 0;
+            });
+            
+            // Get all inputs for this employee
+            document.querySelectorAll(`input[name^="letra_${terceroId}_"]`).forEach(function(input) {
+                const letra = input.value.toUpperCase();
+                
+                // Only count codes used in this programming
+                if (codigosUtilizados.includes(letra)) {
+                    // Count this code
+                    turnosPorCodigo[letra]++;
+                    
+                    // Add hours
+                    const horas = horasPorTurno[letra] || 0;
+                    totalHoras += horas;
+                    
+                    // Extract date from input name (format: letra_ID_YYYY-MM-DD)
+                    const fechaStr = input.name.split('_')[2];
+                    
+                    // Check if weekend
+                    if (input.parentElement.classList.contains('weekend') && horas > 0) {
+                        horasFinde += horas;
+                    }
+                    
+                    // Check if holiday (if esFestivo function is available)
+                    if (typeof esFestivo === 'function' && esFestivo(fechaStr) && horas > 0) {
+                        horasFestivos += horas;
+                    }
+                }
+            });
+            
+            // Update employee summary
+            const totalHorasElement = document.getElementById(`total-horas-${terceroId}`);
+            const horasFindeElement = document.getElementById(`horas-finde-${terceroId}`);
+            const horasFestivosElement = document.getElementById(`horas-festivos-${terceroId}`);
+            
+            if (totalHorasElement) {
+                totalHorasElement.textContent = totalHoras;
+                console.log(`Empleado ${terceroId}: ${totalHoras} horas`);
+            }
+            if (horasFindeElement) horasFindeElement.textContent = horasFinde;
+            if (horasFestivosElement) horasFestivosElement.textContent = horasFestivos;
+            
+            // Update shift counts for this employee
+            codigosUtilizados.forEach(codigo => {
+                const element = document.getElementById(`turnos-${codigo}-${terceroId}`);
+                if (element) {
+                    element.textContent = turnosPorCodigo[codigo];
+                }
+                
+                // Add to grand totals
+                granTotalPorCodigo[codigo] += turnosPorCodigo[codigo];
+            });
+            
+            // Add to grand totals
+            granTotalHoras += totalHoras;
+            granTotalFinde += horasFinde;
+            granTotalFestivos += horasFestivos;
+        });
+        
+        // Update grand totals
+        const granTotalHorasElement = document.getElementById('gran-total-horas');
+        const granTotalFindeElement = document.getElementById('gran-total-finde');
+        const granTotalFestivosElement = document.getElementById('gran-total-festivos');
+        
+        if (granTotalHorasElement) {
+            granTotalHorasElement.textContent = granTotalHoras;
+            console.log(`Gran total horas: ${granTotalHoras}`);
+        }
+        if (granTotalFindeElement) granTotalFindeElement.textContent = granTotalFinde;
+        if (granTotalFestivosElement) granTotalFestivosElement.textContent = granTotalFestivos;
+        
+        // Update grand totals for each code
+        codigosUtilizados.forEach(codigo => {
+            const element = document.getElementById(`gran-total-${codigo}`);
+            if (element) {
+                element.textContent = granTotalPorCodigo[codigo];
+            }
+        });
+        
+        console.log('Cálculo completado');
     }
-    return cookieValue;
-}
+    
+    // Apply turno color class when input changes
+    document.querySelectorAll('.turno-input').forEach(function(input) {
+        input.addEventListener('input', function() {
+            var value = this.value.toUpperCase();
+            this.value = value;
+            
+            // Remove all existing turno classes
+            var classList = this.parentElement.classList;
+            for (var i = classList.length - 1; i >= 0; i--) {
+                if (classList[i].startsWith('turno-')) {
+                    this.parentElement.classList.remove(classList[i]);
+                }
+            }
+            
+            // Add the appropriate class if it's a code used in this programming
+            if (codigosUtilizados.includes(value)) {
+                this.parentElement.classList.add('turno-' + value);
+            }
+        });
+        
+        // También calcular cuando cambie el valor
+        input.addEventListener('change', calcularTotales);
+        input.addEventListener('keyup', calcularTotales);
+    });
+    
+    // Calculate totals on page load with delay
+    setTimeout(function() {
+        calcularTotales();
+    }, 500);
+    
+    // También calcular cada vez que la página se cargue completamente
+    window.addEventListener('load', function() {
+        setTimeout(calcularTotales, 1000);
+    });
+});
 </script>
-
-{% comment %}
-Se requiere un filtro dict_get para acceder a los valores de un diccionario anidado en la plantilla.
-{% endcomment %}
+{% endblock %}

@@ -1,5 +1,5 @@
 from rest_framework.routers import DefaultRouter
-from .views import ProgramacionHorarioViewSet, AsignacionTurnoViewSet, malla_turnos, editar_malla_api, intercambiar_terceros_api, test_bitacora
+from .views import ProgramacionHorarioViewSet, AsignacionTurnoViewSet, malla_turnos, editar_malla_api, intercambiar_terceros_api, test_bitacora, HolidayJsView
 from django.urls import path, include
 
 router = DefaultRouter()
@@ -12,6 +12,7 @@ urlpatterns = [
     path('programacion/<int:programacion_id>/editar_malla/', editar_malla_api, name='editar_malla_api'),
     path('programacion/<int:programacion_id>/intercambiar_terceros/', intercambiar_terceros_api, name='intercambiar_terceros_api'),
     path('test-bitacora/', test_bitacora, name='test_bitacora'),
+    path('js/holidays.js', HolidayJsView.as_view(), name='holidays_js'),
 ]
 
 #urlpatterns += [
