@@ -43,7 +43,8 @@ class ProgramacionHorarioAdmin(admin.ModelAdmin):
         if request.method == 'POST':
             cambios = 0
             # Se obtienen empleados relacionados con la programación y se generan todas las fechas del rango
-            empleados_qs = Tercero.objects.filter(asignaciones__programacion=programacion).distinct()
+            empleados_qs = Tercero.objects.filter(centro_operativo=programacion.centro_operativo,
+                estado_tercero=1 )  # Solo activos
             fechas_qs = [programacion.fecha_inicio + timedelta(days=i) for i in range((programacion.fecha_fin - programacion.fecha_inicio).days + 1)]
 
             for emp in empleados_qs:
@@ -71,29 +72,42 @@ class ProgramacionHorarioAdmin(admin.ModelAdmin):
         end_date = programacion.fecha_fin
         fechas = [start_date + timedelta(days=i) for i in range((end_date - start_date).days + 1)]
 
-        # Optimización de consultas: se obtienen asignaciones y empleados
+        # Obtener TODOS los empleados activos del centro operativo (no solo los que tienen asignaciones)
+        empleados = Tercero.objects.filter(
+            centro_operativo=programacion.centro_operativo,
+            estado_tercero=1  # Estado activo es 1, no 'A'
+        )
+        
+        # Obtener todas las asignaciones existentes
         asignaciones = AsignacionTurno.objects.filter(programacion=programacion).select_related('tercero')
-        terceros_ids = asignaciones.values_list('tercero_id', flat=True).distinct()
-        empleados = Tercero.objects.filter(id_tercero__in=terceros_ids)
 
-        # Construcción de la malla (diccionario con claves de fecha y valores de turno)
+        # Construcción de la malla: crear celdas vacías para TODOS los empleados
         malla = {emp.id_tercero: {fecha.strftime('%Y-%m-%d'): '' for fecha in fechas} for emp in empleados}
+        
+        # Llenar la malla con las asignaciones existentes
         for asignacion in asignaciones:
             fecha_str = asignacion.dia.strftime('%Y-%m-%d')
             if asignacion.tercero_id in malla and fecha_str in malla[asignacion.tercero_id]:
                 malla[asignacion.tercero_id][fecha_str] = asignacion.letra_turno or ''
 
-        # Agrupar empleados según la "fila" asignada, para formar bloques
+        # Agrupar empleados por fila (solo los que tienen asignaciones para determinar la fila)
         empleados_agrupados = []
         bloques_info = []
         filas_empleados = {}
+        
         for asignacion in asignaciones:
             if asignacion.fila not in filas_empleados:
                 filas_empleados[asignacion.fila] = set()
             filas_empleados[asignacion.fila].add(asignacion.tercero)
-        for fila, emps in sorted(filas_empleados.items()):
-            empleados_agrupados.append(list(emps))
-            bloques_info.append({'numero': fila, 'empleados': len(emps)})
+        
+        # Si no hay asignaciones, crear un bloque con todos los empleados
+        if not filas_empleados:
+            empleados_agrupados = [list(empleados)]
+            bloques_info = [{'numero': 1, 'empleados': len(empleados)}]
+        else:
+            for fila, emps in sorted(filas_empleados.items()):
+                empleados_agrupados.append(list(emps))
+                bloques_info.append({'numero': fila, 'empleados': len(emps)})
 
         # ===== CÓDIGOS DE TURNO DINÁMICOS =====
         codigos_utilizados = asignaciones.exclude(letra_turno__isnull=True)\
@@ -230,11 +244,33 @@ class ProgramacionHorarioAdmin(admin.ModelAdmin):
         })
 
     def save_model(self, request, obj, form, change):
+        empleados = list(Tercero.objects.filter(centro_operativo=obj.centro_operativo, estado_tercero=1))  # Corrección: usar estado=1
+        from django.contrib import messages
+        
+        # Validación previa (sin crear asignaciones)
+        centro_operativo = obj.centro_operativo
+        modelo_turno = obj.modelo_turno
+        pv = getattr(centro_operativo, 'promesa_valor', None)
+        tipo = getattr(modelo_turno, 'tipo', None)
+        
         try:
-            empleados = list(Tercero.objects.filter(centro_operativo=obj.centro_operativo, estado_tercero='A'))
-            if not change:  # Solo al crear
-                programar_turnos(obj.modelo_turno, empleados, obj.fecha_inicio, obj.fecha_fin, obj)
+            if tipo == 'F' and pv is not None:
+                min_personas = pv * 4
+                if len(empleados) < min_personas:
+                    raise ValueError(f"Para modelos de tipo FIJO se requieren al menos {min_personas} personas para realizar esta programacion. Solo hay {len(empleados)} empleados disponibles.")
+        
+            # PASO 1: Si pasa la validación, guarda el objeto PRIMERO
             super().save_model(request, obj, form, change)
+            
+            # PASO 2: Ahora sí crea las asignaciones (solo al crear, no al editar)
+            if not change:  # Solo al crear nuevas programaciones
+                programar_turnos(
+                    obj.modelo_turno,
+                    empleados,
+                    obj.fecha_inicio,
+                    obj.fecha_fin,
+                    obj
+                )
         except ValueError as e:
             messages.error(request, str(e))
 

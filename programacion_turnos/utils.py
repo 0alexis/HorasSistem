@@ -91,7 +91,7 @@ def programar_turnos(modelo_turno, empleados, fecha_inicio, fecha_fin, programac
     tipo = getattr(modelo_turno, 'tipo', None)
 #calculo para promesa de valor cuando el modelo es fijo
     if tipo == 'F' and pv is not None:
-        min_personas = pv * 4 #valor predetermiando para puntos fijos
+        min_personas = pv * 4 #valor predetermiando para manejar cantidad de casetas fijas
         if len(empleados) < min_personas:
             raise ValueError(f"Para modelos de tipo FIJO se requieren al menos {min_personas} personas para realizar esta programacion. Solo hay {len(empleados)} empleados disponibles.")
    

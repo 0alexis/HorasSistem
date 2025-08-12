@@ -1,0 +1,631 @@
+/* Variables de colores REGENCY oficiales */
+:root {
+    --regency-red: #a51e1e;           
+    --regency-dark-red: #8b1a1a;      
+    --regency-light-red: #c53030;     
+    --regency-gray: #6b7280;          
+    --regency-dark-gray: #374151;     
+    --regency-light-gray: #f9fafb;    
+    --regency-border: #e5e7eb;        
+    --regency-white: #ffffff;         
+    --background-gradient: linear-gradient(135deg, #a51e1e 0%, #701a1a 100%);
+    --shadow-regency: 0 10px 25px rgba(165, 30, 30, 0.15);
+    --shadow-dark: 0 20px 40px rgba(0, 0, 0, 0.1);
+    --background-color: #f8f9fa; /* Blanco cálido */
+    --text-color: #343a40; /* Gris oscuro */
+    --box-background-color: #ffffff; /* Blanco */
+    --box-shadow-color: rgba(0, 0, 0, 0.1); /* Sombra */
+}
+
+/* Modo oscuro */
+[data-theme="dark"] {
+    --background-color: #343a40; /* Gris oscuro */
+    --text-color: #f8f9fa; /* Blanco cálido */
+    --box-background-color: #495057; /* Gris */
+    --box-shadow-color: rgba(255, 255, 255, 0.1); /* Sombra */
+}
+
+/* Reset y base */
+* {
+    box-sizing: border-box;
+    margin: 0;
+    padding: 0;
+}
+
+body.login {
+    background-color: #f8f9fa; /* Blanco cálido */
+    color: #343a40; /* Gris oscuro */
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    min-height: 100vh;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 10px;
+    position: relative;
+    overflow: hidden;
+    margin: 0;
+}
+
+/* Contenedor principal - Más compacto */
+.login-container {
+    position: relative;
+    z-index: 100;                     /* Cambiar de 10 a 100 */
+    width: 100%;
+    max-width: 340px;                 /* Cambiar de 360px a 340px */
+    margin: 0 auto;
+    transform: translateY(-3vh);      /* Cambiar de -5vh a -3vh */
+}
+
+/* Caja de login - Con bordes suaves */
+.login-box {
+    background-color: #ffffff; /* Blanco */
+    background: rgba(255, 255, 255, 0.98);
+    backdrop-filter: blur(20px);
+    border-radius: 16px;
+    padding: 18px 15px;
+    box-shadow: 0 8px 20px rgba(0, 0, 0, 0.07); /* Sombra más sutil */
+    border: 1px solid var(--regency-border);   /* Borde suave y visible */
+    position: relative;
+    overflow: hidden; /* Cambiar a hidden para que el borde se vea bien */
+    width: 100%;
+    margin: 5px;
+    z-index: 101;
+}
+
+/* ELIMINAR ESTA REGLA PARA QUITAR LA LÍNEA ROJA */
+/*
+.login-box::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 6px;
+    background: linear-gradient(90deg, var(--regency-red), var(--regency-dark-red));
+}
+*/
+
+/* Header del login */
+.login-header {
+    text-align: center;
+    margin-bottom: 15px;              /* Cambiar de 18px a 15px */
+}
+
+.logo-container {
+    background: var(--regency-white);
+    padding: 8px;                     /* Cambiar de 10px a 8px */
+    border-radius: 10px;              /* Cambiar de 12px a 10px */
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    margin-bottom: 12px;              /* Cambiar de 20px a 12px */
+    box-shadow: 0 4px 12px rgba(165, 30, 30, 0.1);
+    border: 2px solid var(--regency-red);
+    min-height: 40px;                 /* Cambiar de 45px a 40px */
+    min-width: 60px;                  /* Cambiar de 65px a 60px */
+}
+
+.login-logo {
+    max-height: 25px;                 /* Cambiar de 30px a 25px */
+    max-width: 80px;                  /* Cambiar de 90px a 80px */
+    width: auto;
+    height: auto;
+    display: block;
+}
+
+/* Logo de texto como fallback */
+.logo-text {
+    text-align: center;
+}
+
+.logo-letter {
+    font-size: 28px;
+    font-weight: 900;
+    color: var(--regency-white);
+    background: var(--regency-red);
+    width: 50px;
+    height: 50px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 8px;
+    margin: 0 auto 8px;
+    position: relative;
+    z-index: 1;
+}
+
+.logo-company {
+    font-size: 14px;
+    font-weight: 700;
+    color: var(--regency-red);
+    letter-spacing: 2px;
+    display: block;
+}
+
+.login-header h2 {
+    color: #374151; /* Gris oscuro */
+    font-size: 19px;                  /* Cambiar de 22px a 19px */
+    font-weight: 700;
+    margin-bottom: 5px;               /* Cambiar de 8px a 5px */
+    line-height: 1.2;                 /* Cambiar de 1.3 a 1.2 */
+}
+
+.login-subtitle {
+    color: #a51e1e; /* Rojo Regency */
+    font-size: 11px;                  /* Cambiar de 13px a 11px */
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;            /* Cambiar de 0.8px a 0.5px */
+}
+
+/* Alertas */
+.alert {
+    padding: 14px 18px;
+    border-radius: 12px;
+    margin-bottom: 20px;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    font-size: 14px;
+    font-weight: 500;
+}
+
+.alert-error {
+    background-color: #fef2f2;
+    color: var(--regency-red);
+    border: 1px solid #fecaca;
+    border-left: 4px solid var(--regency-red);
+}
+
+/* Formulario */
+.login-form {
+    display: flex;
+    flex-direction: column;
+    gap: 24px;
+}
+
+.form-group {
+    margin-bottom: 10px;              /* Cambiar de 12px a 10px */
+}
+
+.form-label {
+    display: flex;
+    align-items: center;
+    gap: 6px;                         /* Cambiar de 8px a 6px */
+    margin-bottom: 6px;               /* Cambiar de 10px a 6px */
+    color: var(--regency-dark-gray);
+    font-weight: 600;
+    font-size: 13px;                  /* Cambiar de 14px a 13px */
+}
+
+.input-container {
+    position: relative;
+}
+
+.form-input,
+.form-group input[type="text"],
+.form-group input[type="password"] {
+    width: 100%;
+    padding: 12px 14px;               /* Cambiar de 14px 16px a 12px 14px */
+    border: 2px solid var(--regency-border);
+    border-radius: 10px;              /* Cambiar de 12px a 10px */
+    font-size: 14px;                  /* Cambiar de 15px a 14px */
+    transition: all 0.3s ease;
+    background: var(--regency-white);
+    color: var(--regency-dark-gray);
+    font-weight: 500;
+    min-height: 42px;                 /* Cambiar de 48px a 42px */
+    position: relative;
+    z-index: 102;                     /* AGREGAR z-index alto para inputs */
+}
+
+.form-input:focus,
+.form-group input[type="text"]:focus,
+.form-group input[type="password"]:focus {
+    outline: none;
+    border-color: var(--regency-red);
+    box-shadow: 0 0 0 3px rgba(165, 30, 30, 0.1);
+    transform: translateY(-1px);
+}
+
+.form-input::placeholder {
+    color: var(--regency-gray);
+    opacity: 0.7;
+}
+
+.field-error {
+    color: var(--regency-red);
+    font-size: 12px;
+    margin-top: 6px;
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    font-weight: 600;
+}
+
+/* Botón de login */
+.form-actions {
+    margin: 10px 0;                   /* Cambiar de 12px a 10px */
+}
+
+.btn-login {
+    width: 100%;
+    background: linear-gradient(135deg, #a51e1e, #8b1a1a);
+    color: #ffffff;
+    border: none;
+    padding: 12px 20px;               /* Cambiar de 16px 24px a 12px 20px */
+    border-radius: 10px;              /* Cambiar de 12px a 10px */
+    font-size: 14px;                  /* Cambiar de 15px a 14px */
+    font-weight: 700;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;                         /* Cambiar de 10px a 8px */
+    text-transform: uppercase;
+    letter-spacing: 0.8px;            /* Cambiar de 1px a 0.8px */
+    position: relative;
+    overflow: hidden;
+    min-height: 44px;                 /* AGREGAR altura mínima */
+    z-index: 102;                     /* AGREGAR z-index muy alto */
+}
+
+.btn-login::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: -100%;
+    width: 100%;
+    height: 100%;
+    background: linear-gradient(90deg, transparent, rgba(255,255,255,0.2), transparent);
+    transition: left 0.5s;
+}
+
+.btn-login:hover::before {
+    left: 100%;
+}
+
+.btn-login:hover {
+    transform: translateY(-2px);
+    box-shadow: var(--shadow-regency);
+    background: linear-gradient(135deg, var(--regency-light-red), var(--regency-red));
+}
+
+.btn-login:active {
+    transform: translateY(0);
+}
+
+/* Enlaces */
+.forgot-password {
+    text-align: center;
+    margin: 10px 0;                   /* Cambiar de 20px a 10px */
+}
+
+.forgot-password a {
+    color: var(--regency-red);
+    text-decoration: none;
+    font-size: 12px;                  /* Cambiar de 14px a 12px */
+    font-weight: 600;
+    transition: all 0.3s ease;
+}
+
+.forgot-password a:hover {
+    color: var(--regency-dark-red);
+    text-decoration: underline;
+}
+
+/* Footer */
+.login-footer {
+    text-align: center;
+    margin-top: 12px;                 /* Cambiar de 15px a 12px */
+    padding-top: 10px;                /* Cambiar de 12px a 10px */
+    border-top: 1px solid var(--regency-border);  /* Cambiar de 2px a 1px */
+}
+
+.login-footer p {
+    color: var(--regency-gray);
+    font-size: 10px;                  /* Cambiar de 12px a 10px */
+    margin: 2px 0;                    /* Cambiar de 4px a 2px */
+    font-weight: 500;
+    line-height: 1.3;                 /* AGREGAR para mejor legibilidad */
+}
+
+.login-footer p:first-child {
+    color: var(--regency-red);
+    font-weight: 600;
+}
+
+/* Decoración de fondo */
+.login-decoration {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    pointer-events: none;
+    z-index: 1;                       /* MANTENER z-index bajo */
+}
+
+.decoration-circle {
+    position: absolute;
+    border-radius: 50%;
+    background: rgba(255, 255, 255, 0.08);
+    animation: float 8s ease-in-out infinite;
+    border: 2px solid rgba(255, 255, 255, 0.1);
+    z-index: 1;                       /* AGREGAR z-index bajo */
+    pointer-events: none;             /* ASEGURAR que no interfiera */
+}
+
+.circle-1 {
+    width: 180px;
+    height: 180px;
+    top: 8%;
+    left: -5%;                        /* Mover más a la izquierda */
+    animation: float 12s ease-in-out infinite;
+    animation-delay: 0s;
+}
+
+.circle-2 {
+    width: 120px;
+    height: 120px;
+    top: 65%;
+    right: -3%;                       /* Mover más a la derecha */
+    animation: floatReverse 10s ease-in-out infinite;
+    animation-delay: 2s;
+}
+
+.circle-3 {
+    width: 90px;
+    height: 90px;
+    bottom: 10%;
+    left: 10%;                        /* Ajustar posición */
+    animation: pulse 8s ease-in-out infinite;
+    animation-delay: 4s;
+}
+
+.circle-4 {
+    width: 60px;
+    height: 60px;
+    top: 25%;
+    left: 85%;                        /* Mover más a la derecha */
+    animation: orbit 15s linear infinite;
+    animation-delay: 1s;
+}
+
+.circle-5 {
+    width: 140px;
+    height: 140px;
+    top: 50%;
+    left: -8%;                        /* Mover más a la izquierda */
+    animation: float 14s ease-in-out infinite;
+    animation-delay: 6s;
+}
+
+.circle-6 {
+    width: 80px;
+    height: 80px;
+    bottom: 5%;
+    right: 30%;                       /* Ajustar posición */
+    animation: bounce 9s ease-in-out infinite;
+    animation-delay: 3s;
+}
+
+.circle-7 {
+    width: 110px;
+    height: 110px;
+    top: 10%;
+    right: 25%;                       /* Mover más arriba */
+    animation: floatReverse 11s ease-in-out infinite;
+    animation-delay: 5s;
+}
+
+.circle-8 {
+    width: 70px;
+    height: 70px;
+    top: 80%;                         /* Mover más abajo */
+    left: 75%;
+    animation: wiggle 7s ease-in-out infinite;
+    animation-delay: 7s;
+}
+
+.circle-9 {
+    width: 50px;
+    height: 50px;
+    top: 35%;
+    right: 10%;                       /* Ajustar posición */
+    animation: pulse 6s ease-in-out infinite;
+    animation-delay: 8s;
+}
+
+.circle-10 {
+    width: 160px;
+    height: 160px;
+    bottom: 40%;
+    right: -5%;                       /* Mover más a la derecha */
+    animation: float 13s ease-in-out infinite;
+    animation-delay: 9s;
+}
+
+.circle-11 {
+    width: 40px;
+    height: 40px;
+    top: 90%;                         /* Mover más abajo */
+    left: 35%;
+    animation: orbit 18s linear infinite;
+    animation-delay: 10s;
+}
+
+.circle-12 {
+    width: 100px;
+    height: 100px;
+    top: 3%;
+    left: 40%;                        /* Ajustar posición */
+    animation: bounce 10s ease-in-out infinite;
+    animation-delay: 11s;
+}
+
+/* Animación original mejorada */
+@keyframes float {
+    0%, 100% {
+        transform: translateY(0px) rotate(0deg) scale(1);
+        opacity: 0.6;
+    }
+    33% {
+        transform: translateY(-25px) rotate(10deg) scale(1.05);
+        opacity: 0.8;
+    }
+    66% {
+        transform: translateY(-15px) rotate(-5deg) scale(0.95);
+        opacity: 0.7;
+    }
+}
+
+/* Animación flotante reversa */
+@keyframes floatReverse {
+    0%, 100% {
+        transform: translateY(0px) rotate(0deg) scale(1);
+        opacity: 0.5;
+    }
+    50% {
+        transform: translateY(30px) rotate(-15deg) scale(1.1);
+        opacity: 0.8;
+    }
+}
+
+/* Animación de pulso */
+@keyframes pulse {
+    0%, 100% {
+        transform: scale(1) rotate(0deg);
+        opacity: 0.4;
+    }
+    25% {
+        transform: scale(1.2) rotate(5deg);
+        opacity: 0.6;
+    }
+    50% {
+        transform: scale(0.8) rotate(-10deg);
+        opacity: 0.8;
+    }
+    75% {
+        transform: scale(1.1) rotate(3deg);
+        opacity: 0.5;
+    }
+}
+
+/* Animación orbital */
+@keyframes orbit {
+    0% {
+        transform: rotate(0deg) translateX(30px) rotate(0deg) scale(1);
+        opacity: 0.5;
+    }
+    25% {
+        transform: rotate(90deg) translateX(30px) rotate(-90deg) scale(1.1);
+        opacity: 0.7;
+    }
+    50% {
+        transform: rotate(180deg) translateX(30px) rotate(-180deg) scale(0.9);
+        opacity: 0.6;
+    }
+    75% {
+        transform: rotate(270deg) translateX(30px) rotate(-270deg) scale(1.05);
+        opacity: 0.8;
+    }
+    100% {
+        transform: rotate(360deg) translateX(30px) rotate(-360deg) scale(1);
+        opacity: 0.5;
+    }
+}
+
+/* Animación de rebote */
+@keyframes bounce {
+    0%, 100% {
+        transform: translateY(0px) scale(1);
+        opacity: 0.6;
+    }
+    25% {
+        transform: translateY(-20px) scale(1.1);
+        opacity: 0.8;
+    }
+    50% {
+        transform: translateY(0px) scale(0.95);
+        opacity: 0.7;
+    }
+    75% {
+        transform: translateY(-10px) scale(1.05);
+        opacity: 0.9;
+    }
+}
+
+/* Animación de ondulación */
+@keyframes wiggle {
+    0%, 100% {
+        transform: translateX(0px) rotate(0deg);
+        opacity: 0.5;
+    }
+    15% {
+        transform: translateX(-10px) rotate(-3deg);
+        opacity: 0.6;
+    }
+    30% {
+        transform: translateX(10px) rotate(3deg);
+        opacity: 0.7;
+    }
+    45% {
+        transform: translateX(-8px) rotate(-2deg);
+        opacity: 0.8;
+    }
+    60% {
+        transform: translateX(8px) rotate(2deg);
+        opacity: 0.6;
+    }
+    75% {
+        transform: translateX(-5px) rotate(-1deg);
+        opacity: 0.7;
+    }
+}
+
+/* Iconos */
+.icon-user::before { content: "👤"; font-size: 16px; color: var(--regency-red); }
+.icon-lock::before { content: "🔒"; font-size: 16px; color: var(--regency-red); }
+.icon-login::before { content: "🚀"; font-size: 16px; }
+.icon-alert::before { content: "⚠️"; font-size: 16px; }
+
+/* Responsive */
+@media (max-width: 768px) {
+    /* Reducir círculos en tablets */
+    .circle-1, .circle-5, .circle-10 {
+        width: 100px;
+        height: 100px;
+    }
+    
+    .circle-2, .circle-7 {
+        width: 70px;
+        height: 70px;
+    }
+    
+    .circle-3, .circle-6, .circle-8, .circle-12 {
+        width: 50px;
+        height: 50px;
+    }
+    
+    .circle-4, .circle-9, .circle-11 {
+        width: 35px;
+        height: 35px;
+    }
+}
+
+@media (max-width: 480px) {
+    /* En móviles, mantener solo círculos pequeños y lejos del centro */
+    .circle-1, .circle-5, .circle-10, .circle-7, .circle-12 {
+        display: none;                /* Ocultar círculos grandes */
+    }
+    
+    .login-container {
+        z-index: 200;                 /* Z-index muy alto en móviles */
+    }
+    
+    .decoration-circle {
+        opacity: 0.3;                 /* Reducir opacidad en móviles */
+    }
+}

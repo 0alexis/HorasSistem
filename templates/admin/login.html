@@ -1,0 +1,120 @@
+{% extends "admin/base_site.html" %}
+{% load i18n static %}
+
+{% block extrahead %}
+    {{ block.super }}
+    <link rel="stylesheet" type="text/css" href="{% static 'admin/css/login.css' %}?v=1.8">
+    <style>
+        /* Ocultar breadcrumb y navegación del admin */
+        #header, .breadcrumbs, #nav-sidebar {
+            display: none !important;
+        }
+    </style>
+    <!-- ELIMINAR EL BLOQUE <script> DE AQUÍ -->
+{% endblock %}
+
+{% block bodyclass %}{{ block.super }} login{% endblock %}
+
+{% block nav-global %}{% endblock %}
+{% block breadcrumbs %}{% endblock %}
+{% block nav-sidebar %}{% endblock %}
+
+{% block content_title %}{% endblock %}
+
+{% block content %}
+<!-- ELIMINAR EL BOTÓN <button onclick="toggleTheme()">...</button> DE AQUÍ -->
+<div class="login-container">
+    <div class="login-box">
+        <!-- Logo y título -->
+        <div class="login-header">
+            <div class="logo-container">
+                <img src="{% static 'img/logo_regency.png' %}" alt="REGENCY SERVICES" class="login-logo">
+            </div>
+            <h2>Sistema de Gestión de Turnos</h2>
+            <p class="login-subtitle">REGENCY SERVICES DE COLOMBIA S.A.S</p>
+        </div>
+
+        <!-- Mensajes de error -->
+        {% if form.errors and not form.non_field_errors %}
+            <div class="alert alert-error">
+                <i class="icon-alert"></i>
+                Por favor corrige los errores a continuación.
+            </div>
+        {% endif %}
+
+        {% if form.non_field_errors %}
+            {% for error in form.non_field_errors %}
+                <div class="alert alert-error">
+                    <i class="icon-alert"></i>
+                    {{ error }}
+                </div>
+            {% endfor %}
+        {% endif %}
+
+        <!-- Formulario de login -->
+        <form action="{{ app_path }}" method="post" id="login-form" class="login-form">
+            {% csrf_token %}
+            
+            <div class="form-group">
+                <label for="{{ form.username.id_for_label }}" class="form-label">
+                    <i class="icon-user"></i>
+                    Nombre de usuario
+                </label>
+                <div class="input-container">
+                    {{ form.username }}
+                </div>
+                {% if form.username.errors %}
+                    {% for error in form.username.errors %}
+                        <div class="field-error">{{ error }}</div>
+                    {% endfor %}
+                {% endif %}
+            </div>
+            
+            <div class="form-group">
+                <label for="{{ form.password.id_for_label }}" class="form-label">
+                    <i class="icon-lock"></i>
+                    Contraseña
+                </label>
+                <div class="input-container">
+                    {{ form.password }}
+                </div>
+                {% if form.password.errors %}
+                    {% for error in form.password.errors %}
+                        <div class="field-error">{{ error }}</div>
+                    {% endfor %}
+                {% endif %}
+            </div>
+            
+            <div class="form-actions">
+                <button type="submit" class="btn-login">
+                    <i class="icon-login"></i>
+                    Iniciar Sesión
+                </button>
+            </div>
+            
+            {% url 'admin_password_reset' as password_reset_url %}
+            {% if password_reset_url %}
+                <div class="forgot-password">
+                    <a href="{{ password_reset_url }}">¿Olvidaste tu contraseña?</a>
+                </div>
+            {% endif %}
+        </form>
+        
+        <!-- Footer -->
+        <div class="login-footer">
+            <p>&copy; 2025 REGENCY SERVICES DE COLOMBIA S.A.S</p>
+            <p>Sistema de Gestión de Turnos v1.0</p>
+        </div>
+    </div>
+    
+    <!-- Decoración de fondo -->
+    <div class="login-decoration">
+        <div class="decoration-circle circle-1"></div>
+        <div class="decoration-circle circle-2"></div>
+        <div class="decoration-circle circle-3"></div>
+        <div class="decoration-circle circle-4"></div>
+        <div class="decoration-circle circle-5"></div>
+        <div class="decoration-circle circle-6"></div>
+    </div>
+</div>
+{% endblock %}
