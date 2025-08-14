@@ -12,13 +12,14 @@ from django.http import JsonResponse
 from django.core.paginator import Paginator
 from django.db.models import Q
 from django.db import OperationalError
+from django.utils import timezone
 
+from datetime import datetime, timedelta
 from rest_framework.decorators import api_view
 from rest_framework.response import Response
 from rest_framework import status
 
-from usuarios.models import Tercero
-from .models import Empresa
+from .models import Empresa, Proyecto, CentroOperativo
 from .forms import EmpresaForm
 
 # =======================
@@ -62,53 +63,34 @@ def debug_models_info(request):
 
 @login_required
 def empresas_dashboard(request):
-    """Dashboard principal de empresas con métricas y resumen"""
-    try:
-        context = {
+    """Dashboard del módulo Empresas con métricas completas"""
+     
+     # Fecha actual y hace un mes
+    ahora = timezone.now()
+        
+    hace_un_mes = ahora - timedelta(days=30)
+        
+    context = {
             'total_empresas': Empresa.objects.count(),
-            'empresas_activas': Empresa.objects.filter(activo=True).count(),
-            'empresas_recientes': Empresa.objects.filter(activo=True).order_by('-id')[:5],
+            'empresa_activa': Empresa.objects.filter(activo=True).count(),
+            'empresas_inactivas': Empresa.objects.filter(activo=False).count(),
+            'empresas_mes_actual': Empresa.objects.filter(creado_en__gte=hace_un_mes).count(),
+            'empresas_recientes': Empresa.objects.all().order_by('-creado_en')[:10],
+
+
+ # Métricas de Proyectos
+            'proyectos_activos': Proyecto.objects.filter(activo=True).count(),
+            'total_proyectos': Proyecto.objects.count(),
+
+            # Métricas de Centros Operativos
+            'centros_operativos_activos': CentroOperativo.objects.filter(activo=True).count(),
+            'total_centros_operativos': CentroOperativo.objects.count(),
+
+        # Usuario actual
+            'user': request.user,
         }
-        # Métricas de Proyectos
-        try:
-            from .models import Proyecto
-            context['total_proyectos'] = Proyecto.objects.count()
-            context['proyectos_activos'] = Proyecto.objects.filter(activo=True).count()
-        except:
-            context['total_proyectos'] = 0
-            context['proyectos_activos'] = 0
         
-        # Métricas de Centros Operativos
-        try:
-            from .models import CentroOperativo
-            context['total_centros'] = CentroOperativo.objects.count()
-            context['centros_activos'] = CentroOperativo.objects.filter(activo=True).count()
-        except:
-            context['total_centros'] = 0
-            context['centros_activos'] = 0
-        
-        # Métricas de Empleados (Terceros)
-        try:
-            from usuarios.models import Tercero
-            context['total_empleados'] = Tercero.objects.count()
-            context['empleados_activos'] = Tercero.objects.filter(activo=True).count()
-        except:
-            context['total_empleados'] = 0
-            context['empleados_activos'] = 0 
-    except Exception as e:
-        messages.error(request, f'Error al cargar dashboard: {str(e)}')
-        context = {
-            'total_empresas': 0,
-            'empresas_activas': 0,
-            'empresas_recientes': [],
-            'total_proyectos': 0,
-            'proyectos_activos': 0,
-            'total_centros': 0,
-            'centros_activos': 0,
-            'total_empleados': 0,
-            'empleados_activos': 0,
-        }
-    return render(request, 'empresas/dashboard.html', context)
+    return render(request, 'dashboard.html', context)
 
 # =======================
 #     CRUD DE EMPRESAS
