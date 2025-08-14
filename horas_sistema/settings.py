@@ -265,9 +265,9 @@ SIMPLE_JWT = {
 
 # ========== PERSONALIZACIÓN DEL ADMIN ==========
 # Títulos personalizados del admin
-ADMIN_SITE_HEADER = "Sistema de Gestión de Turnos REGENCY"
-ADMIN_SITE_TITLE = "Panel de Control REGENCY"
-ADMIN_INDEX_TITLE = "Dashboard Principal"
+ADMIN_SITE_HEADER = "REGENCY SERVICES - Sistema de Gestión de Turnos"
+ADMIN_SITE_TITLE = "REGENCY Panel de Control"
+ADMIN_INDEX_TITLE = "Panel de Control Ejecutivo"
 
 # Configuración de archivos estáticos personalizados
 STATICFILES_DIRS = [
@@ -280,6 +280,7 @@ STATIC_ROOT = BASE_DIR / 'staticfiles'
 # Configuración de LOGIN/LOGOUT
 LOGIN_URL = '/admin/login/'
 LOGOUT_URL = '/admin/logout/'
-LOGIN_REDIRECT_URL = '/admin/'
+# Redirección después del login
+LOGIN_REDIRECT_URL = '/welcome/'
 LOGOUT_REDIRECT_URL = '/admin/login/'
 

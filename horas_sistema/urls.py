@@ -1,25 +1,13 @@
 """
 URL configuration for horas_sistema project.
-
-The `urlpatterns` list routes URLs to views. For more information please see:
-    https://docs.djangoproject.com/en/5.0/topics/http/urls/
-Examples:
-Function views
-    1. Add an import:  from my_app import views
-    2. Add a URL to urlpatterns:  path('', views.home, name='home')
-Class-based views
-    1. Add an import:  from other_app.views import Home
-    2. Add a URL to urlpatterns:  path('', Home.as_view(), name='home')
-Including another URLconf
-    1. Import the include() function: from django.urls import include, path
-    2. Add a URL to urlpatterns:  path('blog/', include('blog.urls'))
 """
 from django.contrib import admin
-from .import views
 from django.urls import path, include
+from django.shortcuts import redirect
 from rest_framework import permissions
 from drf_yasg.views import get_schema_view
 from drf_yasg import openapi
+from . import views
 
 schema_view = get_schema_view(
     openapi.Info(
@@ -32,23 +20,44 @@ schema_view = get_schema_view(
     ),
     public=True,
     permission_classes=(permissions.AllowAny,),
-     authentication_classes=[],  #prueba para que no se muestre el token en la documentacion swagger
+    authentication_classes=[],
 )
 
-urlpatterns = [
+# Vista para redirigir la raíz
+def home_redirect(request):
+    """Redirigir la raíz al welcome si está autenticado, sino al admin"""
+    if request.user.is_authenticated:
+        return redirect('welcome')
+    return redirect('admin:index')
 
+urlpatterns = [
+    # ========== RUTAS PRINCIPALES ==========
+    path('', home_redirect, name='home'),  # Ruta raíz
+    
+    # ========== ADMINISTRACIÓN ==========
     path('admin/logout/', views.custom_logout, name='admin_logout'),  
     path('admin/', admin.site.urls),
-    path('logout/', views.custom_logout, name='logout'),
-   
-
     
+    # ========== DASHBOARD WEB ==========
+    path('welcome/', views.welcome_view, name='welcome'),
+    path('logout/', views.custom_logout, name='logout'),
+    
+    # ========== APLICACIONES (CRUD COMPLETO) ==========
+    # Una sola ruta para empresas que incluye tanto el CRUD web como las APIs
+    path('empresas/', include('empresas.urls')),  # CRUD completo de empresas
+    
+    # Cuando estén listas, descomenta estas:
+    # path('turnos/', include('turnos.urls')),      # CRUD completo de turnos
+    # path('terceros/', include('terceros.urls')),  # CRUD completo de terceros
+    
+    # ========== APIs ESPECÍFICAS (OTRAS APLICACIONES) ==========
+    # Solo para aplicaciones que no tienen CRUD web o son específicamente APIs
+    path('api/usuarios/', include('usuarios.urls')),
+    path('api/modelos/', include('programacion_models.urls')),
+    path('api/', include('programacion_turnos.urls')),
+    
+    # ========== DOCUMENTACIÓN API ==========
     path('swagger<format>/', schema_view.without_ui(cache_timeout=0), name='schema-json'),
     path('swagger/', schema_view.with_ui('swagger', cache_timeout=0), name='schema-swagger-ui'),
     path('redoc/', schema_view.with_ui('redoc', cache_timeout=0), name='schema-redoc'),
-
-    path('api/usuarios/', include('usuarios.urls')),
-    path('api/empresas/', include('empresas.urls')), 
-    path('api/modelos/', include('programacion_models.urls')),
-    path('api/', include('programacion_turnos.urls')),
 ]

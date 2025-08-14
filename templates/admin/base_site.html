@@ -6,7 +6,56 @@
 <title>{% block title %}{% endblock %}</title>
 <link rel="stylesheet" type="text/css" href="{% static "admin/css/base.css" %}">
 {% block extrahead %}{% endblock %}
-{% block extrastyle %}{% endblock %}
+{% block extrastyle %}
+<!-- AGREGAR ESTILOS PERSONALIZADOS AQUÍ -->
+<style>
+    /* Colores REGENCY para el header */
+    #header {
+        background: linear-gradient(135deg, #b91c1c, #710c0c) !important;
+        border-bottom: 3px solid #991b1b !important;
+        box-shadow: 0 2px 10px rgba(185, 28, 28, 0.2) !important;
+    }
+
+    #branding h1 {
+        color: white !important;
+        font-weight: 300 !important;
+        font-size: 1.8em !important;
+        text-shadow: 0 1px 3px rgba(0,0,0,0.3) !important;
+    }
+
+    #user-tools {
+        color: white !important;
+        padding-right: 20px !important;
+    }
+
+    #user-tools p {
+        color: #fef2f2 !important;
+        font-weight: 500 !important;
+    }
+
+    #user-tools a {
+        color: #fee2e2 !important;
+        text-decoration: none !important;
+    }
+
+    #user-tools a:hover {
+        color: white !important;
+        background: rgba(255,255,255,0.1) !important;
+        padding: 3px 8px !important;
+        border-radius: 4px !important;
+    }
+
+    /* Breadcrumbs con colores suaves */
+    .breadcrumbs {
+        background: #fef2f2 !important;
+        border-bottom: 1px solid #fee2e2 !important;
+    }
+
+    .breadcrumbs a {
+        color: #b91c1c !important;
+    }
+</style>
+{% endblock %}
 <!--[if lte IE 7]><link rel="stylesheet" type="text/css" media="screen" href="{% static "admin/css/ie.css" %}" /><![endif]-->
 
 {% if LANGUAGE_BIDI %}<link rel="stylesheet" type="text/css" href="{% static "admin/css/rtl.css" %}">{% endif %}
@@ -22,7 +71,10 @@
     <!-- Header -->
     <div id="header">
         <div id="branding">
-        {% block branding %}<h1 id="site-name">{% trans 'Django administration' %}</h1>{% endblock %}
+        {% block branding %}
+            <img src="{% static 'img/logo_regency.png' %}" alt="REGENCY" style="height: 35px; vertical-align: middle; margin-right: 15px;" onerror="this.style.display='none'">
+            <h1 id="site-name">REGENCY SERVICES - Sistema de Gestión de  Turnos</h1>
+        {% endblock %}
         </div>
         {% if user.is_active and user.is_staff %}
         <div id="user-tools">
@@ -30,9 +82,7 @@
                 {% if user.has_usable_password %}
                 {% block welcome-msg %}
                     <p id="welcome-msg">
-                    {% blocktrans with full_name=user.get_full_name|default:user.username %}
-                        Welcome, {{ full_name }}.
-                    {% endblocktrans %}
+                        Bienvenido al Sistema de Gestión de Turnos, {{ user.get_full_name|default:user.username }}.
                     </p>
                 {% endblock %}
                 {% endif %}
@@ -41,14 +91,14 @@
                 <ul class="usertools">
                     {% if site_url %}
                     <li>
-                        <a href="{{ site_url }}">{% trans 'View site' %}</a>
+                        <a href="{{ site_url }}">{% trans 'Ver sitio' %}</a>
                     </li>
                     {% endif %}
                     <li>
-                        <a href="{% url 'admin:password_change' %}">{% trans 'Change password' %}</a>
+                        <a href="{% url 'admin:password_change' %}">{% trans 'Cambiar contraseña' %}</a>
                     </li>
                     <li>
-                        <a href="{% url 'admin:logout' %}">{% trans 'Log out' %}</a>
+                        <a href="{% url 'logout' %}">{% trans 'Cerrar sesión' %}</a>
                     </li>
                 </ul>
                 {% endif %}
@@ -61,7 +111,7 @@
     <!-- END Header -->
     {% block breadcrumbs %}
     <div class="breadcrumbs">
-    <a href="{% url 'admin:index' %}">{% trans 'Home' %}</a>
+    <a href="{% url 'admin:index' %}">{% trans 'Inicio' %}</a>
     {% if title %} &rsaquo; {{ title }}{% endif %}
     </div>
     {% endblock %}
