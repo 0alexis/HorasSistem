@@ -4,71 +4,212 @@
 {% block extrastyle %}
 {{ block.super }}
 <style>
-    .dashboard-header { 
-        display: flex; 
-        justify-content: space-between; 
-        align-items: center; 
-        margin-bottom: 1.5rem; 
+    :root {
+        --regency-red: #B91C1C;
+        --regency-red-dark: #991B1B;
+        --regency-red-light: #DC2626;
     }
-    .dashboard-header h1 { margin-bottom: 0; }
-    .text-success { color: #198754; font-weight: bold; }
-    .text-danger { color: #dc3545; font-weight: bold; }
-    .text-warning { color: #ffc107; font-weight: bold; }
+    
+    .main-header {
+        background: linear-gradient(135deg, var(--regency-red) 0%, var(--regency-red-dark) 100%);
+        color: white;
+        padding: 2rem;
+        margin: -20px -20px 2rem -20px;
+        border-radius: 0 0 12px 12px;
+        box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+    }
+    
+    .main-header h1 {
+        margin: 0;
+        font-size: 2rem;
+        font-weight: 300;
+    }
+    
     .breadcrumb {
-        margin-bottom: 1rem;
-        padding: 0.5rem;
-        background-color: #f8f9fa;
-        border-radius: 4px;
+        background: white;
+        border: 1px solid #e5e7eb;
+        border-radius: 8px;
+        padding: 1rem;
+        margin-bottom: 1.5rem;
+        box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
     }
+    
     .breadcrumb a {
-        color: #007cba;
+        color: var(--regency-red);
         text-decoration: none;
+        font-weight: 500;
+        display: inline-flex;
+        align-items: center;
+        gap: 0.5rem;
+    }
+    
+    .breadcrumb a:hover {
+        color: var(--regency-red-dark);
+    }
+    
+    .actions-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 2rem;
+        padding: 1.5rem;
+        background: white;
+        border-radius: 8px;
+        box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+    }
+    
+    .btn-regency {
+        background: linear-gradient(135deg, var(--regency-red) 0%, var(--regency-red-light) 100%);
+        color: white;
+        border: none;
+        padding: 0.75rem 1.5rem;
+        border-radius: 6px;
+        text-decoration: none;
+        font-weight: 500;
+        transition: all 0.3s ease;
+        display: inline-block;
+    }
+    
+    .btn-regency:hover {
+        background: linear-gradient(135deg, var(--regency-red-dark) 0%, var(--regency-red) 100%);
+        color: white;
+        transform: translateY(-1px);
+        box-shadow: 0 4px 8px rgba(185, 28, 28, 0.3);
+    }
+    
+    .programaciones-table {
+        background: white;
+        border-radius: 8px;
+        overflow: hidden;
+        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+    }
+    
+    .programaciones-table table {
+        width: 100%;
+        border-collapse: collapse;
+    }
+    
+    .programaciones-table th {
+        background: linear-gradient(135deg, #f8fafc 0%, #e2e8f0 100%);
+        color: #374151;
+        font-weight: 600;
+        padding: 1rem;
+        text-align: left;
+        border-bottom: 2px solid var(--regency-red);
+    }
+    
+    .programaciones-table td {
+        padding: 1rem;
+        border-bottom: 1px solid #e5e7eb;
+    }
+    
+    .programaciones-table tr:hover {
+        background-color: #f9fafb;
+    }
+    
+    .estado-badge {
+        padding: 0.25rem 0.75rem;
+        border-radius: 20px;
+        font-size: 0.875rem;
+        font-weight: 600;
+        text-transform: uppercase;
+    }
+    
+    .estado-activa {
+        background: #dcfce7;
+        color: #166534;
+    }
+    
+    .estado-finalizada {
+        background: #fee2e2;
+        color: #991b1b;
+    }
+    
+    .estado-futura {
+        background: #fef3c7;
+        color: #92400e;
+    }
+    
+    .btn-ver-malla {
+        background: white;
+        color: var(--regency-red);
+        border: 2px solid var(--regency-red);
+        padding: 0.5rem 1rem;
+        border-radius: 6px;
+        text-decoration: none;
+        font-weight: 500;
+        transition: all 0.3s ease;
+        display: inline-block;
+    }
+    
+    .btn-ver-malla:hover {
+        background: var(--regency-red);
+        color: white;
+    }
+    
+    .empty-state {
+        text-align: center;
+        padding: 3rem;
+        color: #6b7280;
     }
 </style>
 {% endblock %}
 
 {% block content %}
-<div class="breadcrumb">
-    <a href="{% url 'programacion_dashboard' %}">← Volver a Centros Operativos</a>
+<div class="main-header">
+    <h1>{{ centro_operativo.nombre }}</h1>
 </div>
 
-<div class="dashboard-header">
-    <h1>{{ title }}</h1>
-    <a href="{% url 'admin:programacion_turnos_programacionhorario_add' %}?centro_operativo={{ centro_operativo.id_centro }}" class="button">
-        Añadir Programación
+<div class="breadcrumb">
+    <a href="{% url 'programacion_dashboard' %}">
+        ← Volver a Centros Operativos
     </a>
 </div>
 
-<div id="changelist" class="module filtered">
-    <div class="results">
-        <table id="result_list">
-            <thead>
-                <tr>
-                    <th scope="col">Modelo Turno</th>
-                    <th scope="col">Fecha Inicio</th>
-                    <th scope="col">Fecha Fin</th>
-                    <th scope="col">Estado</th>
-                    <th scope="col">Acciones</th>
-                </tr>
-            </thead>
-            <tbody>
-                {% for prog in programaciones %}
-                <tr class="{% cycle 'row1' 'row2' %}">
-                    <td>{{ prog.modelo_turno.nombre }}</td>
-                    <td>{{ prog.fecha_inicio|date:"d/m/Y" }}</td>
-                    <td>{{ prog.fecha_fin|date:"d/m/Y" }}</td>
-                    <td><strong class="{{ prog.estado_css }}">{{ prog.estado }}</strong></td>
-                    <td>
-                        <a href="{% url 'malla_turnos' prog.id %}" class="button">Ver Malla</a>
-                    </td>
-                </tr>
-                {% empty %}
-                <tr>
-                    <td colspan="5">No hay programaciones para este centro.</td>
-                </tr>
-                {% endfor %}
-            </tbody>
-        </table>
-    </div>
+<div class="actions-header">
+    <h2 style="margin: 0; color: #374151;">Programaciones de Turnos</h2>
+    <a href="{% url 'crear_programacion_centro' centro_operativo.id_centro %}" class="btn-regency">
+        + Nueva Programación
+    </a>
+</div>
+
+<div class="programaciones-table">
+    <table>
+        <thead>
+            <tr>
+                <th>Modelo de Turno</th>
+                <th>Fecha Inicio</th>
+                <th>Fecha Fin</th>
+                <th>Estado</th>
+                <th>Acciones</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for prog in programaciones %}
+            <tr>
+                <td><strong>{{ prog.modelo_turno.nombre }}</strong></td>
+                <td>{{ prog.fecha_inicio|date:"d/m/Y" }}</td>
+                <td>{{ prog.fecha_fin|date:"d/m/Y" }}</td>
+                <td>
+                    <span class="estado-badge estado-{{ prog.estado|lower }}">
+                        {{ prog.estado }}
+                    </span>
+                </td>
+                <td>
+                    <a href="{% url 'malla_turnos' prog.id %}" class="btn-ver-malla">
+                        Ver Malla
+                    </a>
+                </td>
+            </tr>
+            {% empty %}
+            <tr>
+                <td colspan="5" class="empty-state">
+                    <h3>No hay programaciones para este centro</h3>
+                    <p>Cree una nueva programación para comenzar.</p>
+                </td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
 </div>
 {% endblock %}

@@ -1,8 +1,9 @@
-from django.shortcuts import render
+from django.shortcuts import render, redirect
 from django.views.generic import TemplateView
 from django.http import HttpResponse
 from datetime import datetime, timedelta
 from django.utils import timezone
+from django.contrib import messages
 
 # Create your views here.
 from rest_framework import viewsets
@@ -20,7 +21,7 @@ from rest_framework.decorators import api_view, permission_classes
 from rest_framework.permissions import IsAuthenticated
 from .serializers import EditarMallaRequestSerializer
 from .services.holiday_service import get_holidays_for_range
-
+from .forms import ProgramacionHorarioForm  
 
 class ProgramacionHorarioViewSet(viewsets.ModelViewSet):
     queryset = ProgramacionHorario.objects.all()
@@ -451,3 +452,26 @@ def programaciones_por_centro_view(request, centro_id):
         'title': f'Programaciones para {centro.nombre}'
     }
     return render(request, 'programacion_turnos/programaciones_por_centro.html', context)
+
+
+#### CREAR NUEVA PROGRAMACIÓN ####
+def crear_programacion_view(request, centro_id=None):
+    if request.method == 'POST':
+        form = ProgramacionHorarioForm(request.POST)
+        if form.is_valid():
+            programacion = form.save()
+            messages.success(request, f'Programación creada exitosamente para {programacion.centro_operativo.nombre}')
+            return redirect('programaciones_por_centro', centro_id=programacion.centro_operativo.id_centro)
+    else:
+        # Pre-seleccionar el centro operativo si viene desde un centro específico
+        initial_data = {}
+        if centro_id:
+            initial_data['centro_operativo'] = centro_id
+        form = ProgramacionHorarioForm(initial=initial_data)
+    
+    context = {
+        'form': form,
+        'centro_id': centro_id,
+        'title': 'Nueva Programación de Horario'
+    }
+    return render(request, 'programacion_turnos/crear_programacion.html', context)

@@ -1,0 +1,291 @@
+{% extends "admin/base_site.html" %}
+{% load i18n static %}
+
+{% block extrastyle %}
+{{ block.super }}
+<style>
+    :root {
+        --regency-red: #B91C1C;
+        --regency-red-dark: #991B1B;
+        --regency-red-light: #DC2626;
+    }
+    
+    .main-header {
+        background: linear-gradient(135deg, var(--regency-red) 0%, var(--regency-red-dark) 100%);
+        color: white;
+        padding: 2rem;
+        margin: -20px -20px 2rem -20px;
+        border-radius: 0 0 12px 12px;
+        box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+    }
+    
+    .main-header h1 {
+        margin: 0;
+        font-size: 2rem;
+        font-weight: 300;
+    }
+    
+    .breadcrumb-custom {
+        background: white;
+        border: 1px solid #e5e7eb;
+        border-radius: 8px;
+        padding: 1rem;
+        margin-bottom: 1.5rem;
+        box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+    }
+    
+    .breadcrumb-custom a {
+        color: var(--regency-red);
+        text-decoration: none;
+        font-weight: 500;
+        display: inline-flex;
+        align-items: center;
+        gap: 0.5rem;
+    }
+    
+    .breadcrumb-custom a:hover {
+        color: var(--regency-red-dark);
+    }
+    
+    .form-container {
+        background: white;
+        border-radius: 12px;
+        padding: 2rem;
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+        margin-bottom: 2rem;
+        max-width: 800px;
+        margin: 0 auto 2rem auto;
+    }
+    
+    .field-group {
+        background: #f9fafb;
+        border-radius: 8px;
+        padding: 1.5rem;
+        margin-bottom: 1.5rem;
+        border-left: 4px solid var(--regency-red);
+    }
+    
+    .field-group label {
+        font-weight: 600;
+        color: #374151;
+        margin-bottom: 0.5rem;
+        display: block;
+        font-size: 1rem;
+    }
+    
+    .form-control {
+        width: 100%;
+        padding: 0.75rem;
+        border: 2px solid #e5e7eb;
+        border-radius: 8px;
+        font-size: 1rem;
+        transition: all 0.3s ease;
+        background: white;
+    }
+    
+    .form-control:focus {
+        outline: none;
+        border-color: var(--regency-red);
+        box-shadow: 0 0 0 3px rgba(185, 28, 28, 0.1);
+    }
+    
+    .form-grid {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 1.5rem;
+    }
+    
+    .checkbox-field {
+        display: flex;
+        align-items: center;
+        gap: 0.75rem;
+        margin-top: 1rem;
+        padding: 1rem;
+        background: #f0f9ff;
+        border-radius: 8px;
+        border-left: 4px solid #0ea5e9;
+    }
+    
+    .form-check-input {
+        width: 1.25rem;
+        height: 1.25rem;
+        accent-color: var(--regency-red);
+    }
+    
+    .btn-container {
+        display: flex;
+        gap: 1rem;
+        justify-content: center;
+        margin-top: 2rem;
+    }
+    
+    .btn-regency {
+        background: linear-gradient(135deg, var(--regency-red) 0%, var(--regency-red-light) 100%);
+        color: white;
+        border: none;
+        padding: 0.875rem 2rem;
+        border-radius: 8px;
+        font-weight: 600;
+        font-size: 1rem;
+        cursor: pointer;
+        transition: all 0.3s ease;
+        text-decoration: none;
+        display: inline-block;
+    }
+    
+    .btn-regency:hover {
+        background: linear-gradient(135deg, var(--regency-red-dark) 0%, var(--regency-red) 100%);
+        transform: translateY(-1px);
+        box-shadow: 0 4px 8px rgba(185, 28, 28, 0.3);
+        color: white;
+    }
+    
+    .btn-secondary {
+        background: #6b7280;
+        color: white;
+        border: 2px solid #6b7280;
+        padding: 0.875rem 2rem;
+        border-radius: 8px;
+        font-weight: 600;
+        font-size: 1rem;
+        cursor: pointer;
+        transition: all 0.3s ease;
+        text-decoration: none;
+        display: inline-block;
+    }
+    
+    .btn-secondary:hover {
+        background: #4b5563;
+        border-color: #4b5563;
+        color: white;
+    }
+    
+    .help-text {
+        font-size: 0.875rem;
+        color: #6b7280;
+        margin-top: 0.25rem;
+        font-style: italic;
+    }
+    
+    .error-list {
+        color: #dc2626;
+        font-size: 0.875rem;
+        margin-top: 0.25rem;
+        list-style: none;
+        padding: 0;
+    }
+    
+    .error-list li {
+        margin-bottom: 0.25rem;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="main-header">
+    <h1>{{ title }}</h1>
+</div>
+
+<div class="breadcrumb-custom">
+    <a href="{% url 'programacion_dashboard' %}">← Centros Operativos</a>
+    {% if centro_id %}
+        <span style="margin: 0 0.5rem; color: #6b7280;">|</span>
+        <a href="{% url 'programaciones_por_centro' centro_id %}">Programaciones</a>
+    {% endif %}
+</div>
+
+<form method="post" novalidate>
+    {% csrf_token %}
+    
+    <div class="form-container">
+        <div class="field-group">
+            <label for="{{ form.centro_operativo.id_for_label }}">Centro Operativo *</label>
+            {{ form.centro_operativo }}
+            {% if form.centro_operativo.help_text %}
+                <div class="help-text">{{ form.centro_operativo.help_text }}</div>
+            {% endif %}
+            {% if form.centro_operativo.errors %}
+                <ul class="error-list">
+                    {% for error in form.centro_operativo.errors %}
+                        <li>{{ error }}</li>
+                    {% endfor %}
+                </ul>
+            {% endif %}
+        </div>
+        
+        <div class="field-group">
+            <label for="{{ form.modelo_turno.id_for_label }}">Modelo de Turno *</label>
+            {{ form.modelo_turno }}
+            {% if form.modelo_turno.help_text %}
+                <div class="help-text">{{ form.modelo_turno.help_text }}</div>
+            {% endif %}
+            {% if form.modelo_turno.errors %}
+                <ul class="error-list">
+                    {% for error in form.modelo_turno.errors %}
+                        <li>{{ error }}</li>
+                    {% endfor %}
+                </ul>
+            {% endif %}
+        </div>
+        
+        <div class="form-grid">
+            <div class="field-group">
+                <label for="{{ form.fecha_inicio.id_for_label }}">Fecha de Inicio *</label>
+                {{ form.fecha_inicio }}
+                {% if form.fecha_inicio.help_text %}
+                    <div class="help-text">{{ form.fecha_inicio.help_text }}</div>
+                {% endif %}
+                {% if form.fecha_inicio.errors %}
+                    <ul class="error-list">
+                        {% for error in form.fecha_inicio.errors %}
+                            <li>{{ error }}</li>
+                        {% endfor %}
+                    </ul>
+                {% endif %}
+            </div>
+            
+            <div class="field-group">
+                <label for="{{ form.fecha_fin.id_for_label }}">Fecha de Fin *</label>
+                {{ form.fecha_fin }}
+                {% if form.fecha_fin.help_text %}
+                    <div class="help-text">{{ form.fecha_fin.help_text }}</div>
+                {% endif %}
+                {% if form.fecha_fin.errors %}
+                    <ul class="error-list">
+                        {% for error in form.fecha_fin.errors %}
+                            <li>{{ error }}</li>
+                        {% endfor %}
+                    </ul>
+                {% endif %}
+            </div>
+        </div>
+        
+        <div class="field-group">
+            <label for="{{ form.creado_por.id_for_label }}">Creado por</label>
+            {{ form.creado_por }}
+            {% if form.creado_por.help_text %}
+                <div class="help-text">{{ form.creado_por.help_text }}</div>
+            {% endif %}
+            {% if form.creado_por.errors %}
+                <ul class="error-list">
+                    {% for error in form.creado_por.errors %}
+                        <li>{{ error }}</li>
+                    {% endfor %}
+                </ul>
+            {% endif %}
+        </div>
+        
+        <div class="checkbox-field">
+            {{ form.activo }}
+            <label for="{{ form.activo.id_for_label }}">Programación Activa</label>
+        </div>
+        
+        <div class="btn-container">
+            <button type="submit" class="btn-regency">Crear Programación</button>
+            <a href="{% if centro_id %}{% url 'programaciones_por_centro' centro_id %}{% else %}{% url 'programacion_dashboard' %}{% endif %}" class="btn-secondary">
+                Cancelar
+            </a>
+        </div>
+    </div>
+</form>
+{% endblock %}
