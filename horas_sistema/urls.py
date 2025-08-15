@@ -50,6 +50,9 @@ urlpatterns = [
     # path('turnos/', include('turnos.urls')),      # CRUD completo de turnos
     # path('terceros/', include('terceros.urls')),  # CRUD completo de terceros
     
+     # ========== DASHBOARD PROGRAMACIONES ==========
+    path('programacion_turnos/', include('programacion_turnos.urls')),
+
     # ========== APIs ESPECÍFICAS (OTRAS APLICACIONES) ==========
     # Solo para aplicaciones que no tienen CRUD web o son específicamente APIs
     path('api/usuarios/', include('usuarios.urls')),

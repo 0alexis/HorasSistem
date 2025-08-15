@@ -1,0 +1,57 @@
+<!-- filepath: programacion_turnos/templates/programacion_turnos/dashboard.html -->
+{% extends "admin/base_site.html" %}
+{% load i18n static %}
+
+{% block extrastyle %}
+{{ block.super }}
+<style>
+    .dashboard-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 1.5rem;
+    }
+    .dashboard-header h1 {
+        margin-bottom: 0;
+    }
+    .text-success { color: #198754; font-weight: bold; }
+    .text-danger { color: #dc3545; font-weight: bold; }
+    .text-warning { color: #ffc107; font-weight: bold; }
+    .actions a {
+        margin-left: 5px;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<h1>Seleccionar Centro Operativo</h1>
+
+<div id="changelist" class="module filtered">
+    <div class="results">
+        <table id="result_list">
+            <thead>
+                <tr>
+                    <th scope="col">Centro Operativo</th>
+                    <th scope="col">Acciones</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for centro in centros_operativos %}
+                <tr class="{% cycle 'row1' 'row2' %}">
+                    <td><strong>{{ centro.nombre }}</strong></td>
+                    <td>
+                        <a href="{% url 'programaciones_por_centro' centro.id_centro %}" class="button">
+                            Ver Programaciones
+                        </a>
+                    </td>
+                </tr>
+                {% empty %}
+                <tr>
+                    <td colspan="2">No hay centros operativos con programaciones.</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+{% endblock %}

@@ -1,0 +1,74 @@
+{% extends "admin/base_site.html" %}
+{% load i18n static %}
+
+{% block extrastyle %}
+{{ block.super }}
+<style>
+    .dashboard-header { 
+        display: flex; 
+        justify-content: space-between; 
+        align-items: center; 
+        margin-bottom: 1.5rem; 
+    }
+    .dashboard-header h1 { margin-bottom: 0; }
+    .text-success { color: #198754; font-weight: bold; }
+    .text-danger { color: #dc3545; font-weight: bold; }
+    .text-warning { color: #ffc107; font-weight: bold; }
+    .breadcrumb {
+        margin-bottom: 1rem;
+        padding: 0.5rem;
+        background-color: #f8f9fa;
+        border-radius: 4px;
+    }
+    .breadcrumb a {
+        color: #007cba;
+        text-decoration: none;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="breadcrumb">
+    <a href="{% url 'programacion_dashboard' %}">← Volver a Centros Operativos</a>
+</div>
+
+<div class="dashboard-header">
+    <h1>{{ title }}</h1>
+    <a href="{% url 'admin:programacion_turnos_programacionhorario_add' %}?centro_operativo={{ centro_operativo.id_centro }}" class="button">
+        Añadir Programación
+    </a>
+</div>
+
+<div id="changelist" class="module filtered">
+    <div class="results">
+        <table id="result_list">
+            <thead>
+                <tr>
+                    <th scope="col">Modelo Turno</th>
+                    <th scope="col">Fecha Inicio</th>
+                    <th scope="col">Fecha Fin</th>
+                    <th scope="col">Estado</th>
+                    <th scope="col">Acciones</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for prog in programaciones %}
+                <tr class="{% cycle 'row1' 'row2' %}">
+                    <td>{{ prog.modelo_turno.nombre }}</td>
+                    <td>{{ prog.fecha_inicio|date:"d/m/Y" }}</td>
+                    <td>{{ prog.fecha_fin|date:"d/m/Y" }}</td>
+                    <td><strong class="{{ prog.estado_css }}">{{ prog.estado }}</strong></td>
+                    <td>
+                        <a href="{% url 'malla_turnos' prog.id %}" class="button">Ver Malla</a>
+                    </td>
+                </tr>
+                {% empty %}
+                <tr>
+                    <td colspan="5">No hay programaciones para este centro.</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+{% endblock %}

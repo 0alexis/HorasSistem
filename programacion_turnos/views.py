@@ -2,10 +2,11 @@ from django.shortcuts import render
 from django.views.generic import TemplateView
 from django.http import HttpResponse
 from datetime import datetime, timedelta
+from django.utils import timezone
 
 # Create your views here.
 from rest_framework import viewsets
-from .models import ProgramacionHorario, AsignacionTurno
+from .models import ProgramacionHorario, AsignacionTurno, LetraTurno
 from .serializers import ProgramacionHorarioSerializer, AsignacionTurnoSerializer
 from usuarios.models import Tercero, CodigoTurno
 from .utils import programar_turnos
@@ -14,7 +15,7 @@ from rest_framework.decorators import action
 from rest_framework.response import Response
 from rest_framework import status
 from .serializers import ProgramacionExtensionSerializer
-from .models import AsignacionTurno, LetraTurno
+from empresas.models import CentroOperativo
 from rest_framework.decorators import api_view, permission_classes
 from rest_framework.permissions import IsAuthenticated
 from .serializers import EditarMallaRequestSerializer
@@ -408,3 +409,45 @@ class HolidayJsView(TemplateView):
             context['codigos_turno'] = []
         
         return context
+    
+############DASHBOARD PRINCIPAL PARA DAR INICIO A LAS PROGRAMACIONES DESDE AQUI NACERA TODDO #############
+
+
+############DASHBOARD PRINCIPAL - NIVEL 1: LISTA DE CENTROS OPERATIVOS #############
+def dashboard_view(request):
+    # Obtenemos solo los centros operativos que tienen al menos una programación.
+    centros = CentroOperativo.objects.filter(
+        programacionhorario__isnull=False
+    ).distinct().order_by('nombre')
+
+    context = {
+        'centros_operativos': centros,
+        'title': 'Seleccionar Centro Operativo'
+    }
+    return render(request, 'programacion_turnos/dashboard.html', context)
+
+############ NUEVA VISTA - NIVEL 2: PROGRAMACIONES POR CENTRO #############
+def programaciones_por_centro_view(request, centro_id):
+    centro = CentroOperativo.objects.get(id_centro=centro_id)
+    programaciones_list = ProgramacionHorario.objects.filter(
+        centro_operativo=centro
+    ).select_related('modelo_turno').order_by('-fecha_inicio')
+
+    today = timezone.now().date()
+    for prog in programaciones_list:
+        if prog.fecha_fin < today:
+            prog.estado = 'Finalizada'
+            prog.estado_css = 'text-danger'
+        elif prog.fecha_inicio > today:
+            prog.estado = 'Futura'
+            prog.estado_css = 'text-warning'
+        else:
+            prog.estado = 'Activa'
+            prog.estado_css = 'text-success'
+
+    context = {
+        'centro_operativo': centro,
+        'programaciones': programaciones_list,
+        'title': f'Programaciones para {centro.nombre}'
+    }
+    return render(request, 'programacion_turnos/programaciones_por_centro.html', context)
