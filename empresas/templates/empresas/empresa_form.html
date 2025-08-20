@@ -1,0 +1,367 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <title>{% if form.instance.pk %}Editar Empresa{% else %}Nueva Empresa{% endif %} - REGENCY</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    {% load static %}
+    <style>
+        :root {
+            --color-primary: #B91C1C;
+            --color-secondary: #991B1B;
+            --color-accent: #7F1D1D;
+            --color-light: #FEF2F2;
+            --color-dark: #450A0A;
+        }
+        
+        body {
+            background-color: #F8FAFC;
+        }
+        
+        .header-corporativo {
+            background: linear-gradient(135deg, var(--color-primary), var(--color-secondary));
+            color: white;
+            padding: 20px;
+            border-radius: 10px;
+            margin-bottom: 30px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        }
+        
+        .logo-empresa {
+            height: 60px;
+            margin-right: 20px;
+            background: white;
+            padding: 5px;
+            border-radius: 8px;
+        }
+        
+        .btn-regency {
+            background-color: var(--color-primary);
+            border-color: var(--color-primary);
+            color: white;
+            font-weight: 500;
+        }
+        
+        .btn-regency:hover {
+            background-color: var(--color-secondary);
+            border-color: var(--color-secondary);
+            color: white;
+        }
+        
+        .btn-regency-outline {
+            border-color: var(--color-primary);
+            color: var(--color-primary);
+            font-weight: 500;
+        }
+        
+        .btn-regency-outline:hover {
+            background-color: var(--color-primary);
+            border-color: var(--color-primary);
+            color: white;
+        }
+        
+        .form-control:focus, .form-select:focus {
+            border-color: var(--color-primary);
+            box-shadow: 0 0 0 0.2rem rgba(185, 28, 28, 0.25);
+        }
+        
+        .card-header-regency {
+            background-color: var(--color-primary);
+            color: white;
+            font-weight: 600;
+        }
+        
+        .card-header-secondary {
+            background-color: var(--color-secondary);
+            color: white;
+            font-weight: 600;
+        }
+        
+        .shadow-regency {
+            box-shadow: 0 4px 6px rgba(185, 28, 28, 0.1);
+        }
+        
+        .breadcrumb-regency {
+            background-color: white;
+            border: 1px solid #e5e7eb;
+            border-radius: 8px;
+            padding: 1rem;
+            margin-bottom: 1.5rem;
+            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+        }
+        
+        .breadcrumb-regency a {
+            color: var(--color-primary);
+            text-decoration: none;
+            font-weight: 500;
+        }
+        
+        .breadcrumb-regency a:hover {
+            color: var(--color-secondary);
+        }
+        
+        .required-field::after {
+            content: " *";
+            color: var(--color-primary);
+            font-weight: bold;
+        }
+        
+        .form-section {
+            border-left: 4px solid var(--color-primary);
+            padding-left: 15px;
+            margin-bottom: 20px;
+        }
+        
+        .alert-regency {
+            background-color: var(--color-light);
+            border-color: var(--color-primary);
+            color: var(--color-dark);
+        }
+    </style>
+</head>
+<body>
+    <div class="container-fluid">
+        <div class="row">
+            <div class="col-12">
+                <!-- Header Corporativo -->
+                <div class="header-corporativo">
+                    <div class="d-flex align-items-center">
+                        <img src="{% static '/img/logo_regency.png' %}" alt="REGENCY SERVICES" class="logo-empresa">
+                        <div>
+                            <h1 class="mb-1">
+                                {% if form.instance.pk %}
+                                    ✏️ Editar Empresa
+                                {% else %}
+                                    ➕ Nueva Empresa
+                                {% endif %}
+                            </h1>
+                            <p class="mb-0 opacity-75">
+                                {% if form.instance.pk %}
+                                    Modificar información de la empresa: {{ form.instance.nombre }}
+                                {% else %}
+                                    Registrar nueva empresa en el sistema REGENCY
+                                {% endif %}
+                            </p>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Breadcrumb -->
+                <div class="breadcrumb-regency">
+                    <a href="{% url 'empresas:dashboard' %}">🏠 Dashboard</a>
+                    <span class="text-muted mx-2">→</span>
+                    <a href="{% url 'empresas:empresas_list' %}">📋 Lista de Empresas</a>
+                    <span class="text-muted mx-2">→</span>
+                    <span class="text-muted">
+                        {% if form.instance.pk %}✏️ Editar{% else %}➕ Nueva{% endif %}
+                    </span>
+                </div>
+
+                <!-- Formulario Principal -->
+                <div class="row">
+                    <div class="col-lg-8">
+                        <div class="card shadow-regency">
+                            <div class="card-header card-header-regency">
+                                <h5 class="mb-0">📝 Información de la Empresa</h5>
+                            </div>
+                            <div class="card-body">
+                                {% if form.errors %}
+                                    <div class="alert alert-danger alert-regency" role="alert">
+                                        <h6>❌ Por favor corrija los siguientes errores:</h6>
+                                        {% for field, errors in form.errors.items %}
+                                            <ul class="mb-0">
+                                                {% for error in errors %}
+                                                    <li><strong>{{ field }}:</strong> {{ error }}</li>
+                                                {% endfor %}
+                                            </ul>
+                                        {% endfor %}
+                                    </div>
+                                {% endif %}
+
+                                <form method="post">
+                                    {% csrf_token %}
+                                    
+                                    <!-- Sección: Información Básica -->
+                                    <div class="form-section">
+                                        <h6 class="text-primary fw-bold mb-3">🏢 Información Básica</h6>
+                                        <div class="row">
+                                            <div class="col-md-8">
+                                                <div class="mb-3">
+                                                    <label for="{{ form.nombre.id_for_label }}" class="form-label required-field">
+                                                        Nombre de la Empresa
+                                                    </label>
+                                                    {{ form.nombre }}
+                                                    {% if form.nombre.help_text %}
+                                                        <div class="form-text">{{ form.nombre.help_text }}</div>
+                                                    {% endif %}
+                                                </div>
+                                            </div>
+                                            <div class="col-md-4">
+                                                <div class="mb-3">
+                                                    <label for="{{ form.nit.id_for_label }}" class="form-label required-field">
+                                                        NIT
+                                                    </label>
+                                                    {{ form.nit }}
+                                                    {% if form.nit.help_text %}
+                                                        <div class="form-text">{{ form.nit.help_text }}</div>
+                                                    {% endif %}
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    <!-- Sección: Información de Contacto -->
+                                    <div class="form-section">
+                                        <h6 class="text-primary fw-bold mb-3">📞 Información de Contacto</h6>
+                                        <div class="row">
+                                            <div class="col-md-6">
+                                                <div class="mb-3">
+                                                    <label for="{{ form.telefono.id_for_label }}" class="form-label">
+                                                        Teléfono
+                                                    </label>
+                                                    {{ form.telefono }}
+                                                </div>
+                                            </div>
+                                            <div class="col-md-6">
+                                                <div class="mb-3">
+                                                    <label for="{{ form.email.id_for_label }}" class="form-label">
+                                                        Email
+                                                    </label>
+                                                    {{ form.email }}
+                                                </div>
+                                            </div>
+                                        </div>
+                                        <div class="mb-3">
+                                            <label for="{{ form.direccion.id_for_label }}" class="form-label">
+                                                Dirección
+                                            </label>
+                                            {{ form.direccion }}
+                                        </div>
+                                    </div>
+
+                                    <!-- Sección: Estado y Configuración -->
+                                    <div class="form-section">
+                                        <h6 class="text-primary fw-bold mb-3">⚙️ Estado y Configuración</h6>
+                                        <div class="row">
+                                            <div class="col-md-6">
+                                                <div class="form-check form-switch">
+                                                    {{ form.activo }}
+                                                    <label class="form-check-label" for="{{ form.activo.id_for_label }}">
+                                                        <strong>Empresa Activa</strong>
+                                                        <small class="d-block text-muted">
+                                                            La empresa puede operar y crear proyectos
+                                                        </small>
+                                                    </label>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    <!-- Botones de Acción -->
+                                    <div class="d-flex justify-content-between pt-3 border-top">
+                                        <a href="{% url 'empresas:empresas_list' %}" class="btn btn-outline-secondary">
+                                            ← Cancelar
+                                        </a>
+                                        <button type="submit" class="btn btn-regency btn-lg">
+                                            {% if form.instance.pk %}
+                                                💾 Actualizar Empresa
+                                            {% else %}
+                                                ➕ Crear Empresa
+                                            {% endif %}
+                                        </button>
+                                    </div>
+                                </form>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Panel Lateral -->
+                    <div class="col-lg-4">
+                        <!-- Ayuda e Información -->
+                        <div class="card shadow-regency mb-3">
+                            <div class="card-header card-header-secondary">
+                                <h5 class="mb-0">💡 Ayuda e Información</h5>
+                            </div>
+                            <div class="card-body">
+                                <div class="alert alert-regency">
+                                    <h6 class="fw-bold">📋 Campos Obligatorios</h6>
+                                    <ul class="mb-0">
+                                        <li>Nombre de la Empresa</li>
+                                        <li>NIT (Número de Identificación Tributaria)</li>
+                                    </ul>
+                                </div>
+                                
+                                <h6 class="fw-bold mt-3">📝 Consejos:</h6>
+                                <ul class="small">
+                                    <li>Use el nombre completo y oficial de la empresa</li>
+                                    <li>Verifique que el NIT sea correcto</li>
+                                    <li>Complete la información de contacto para mejor comunicación</li>
+                                    <li>Una empresa activa puede crear proyectos y centros operativos</li>
+                                </ul>
+                            </div>
+                        </div>
+
+                        <!-- Acciones Rápidas -->
+                        <div class="card shadow-regency">
+                            <div class="card-header card-header-regency">
+                                <h5 class="mb-0">⚡ Acciones Rápidas</h5>
+                            </div>
+                            <div class="card-body">
+                                <div class="d-grid gap-2">
+                                    <a href="{% url 'empresas:dashboard' %}" class="btn btn-regency-outline">
+                                        🏠 Ir al Dashboard
+                                    </a>
+                                    <a href="{% url 'empresas:empresas_list' %}" class="btn btn-regency-outline">
+                                        📋 Lista de Empresas
+                                    </a>
+                                    {% if form.instance.pk %}
+                                        <hr>
+                                        <a href="{% url 'empresas:empresa_detail' form.instance.pk %}" class="btn btn-outline-info">
+                                            👁️ Ver Detalles
+                                        </a>
+                                    {% endif %}
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Bootstrap JS -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/js/bootstrap.bundle.min.js"></script>
+    
+    <!-- Script para mejorar la UX del formulario -->
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            // Agregar clases de Bootstrap a los campos del formulario
+            const formControls = document.querySelectorAll('input[type="text"], input[type="email"], input[type="tel"], textarea, select');
+            formControls.forEach(control => {
+                control.classList.add('form-control');
+            });
+            
+            // Agregar clase especial a checkboxes
+            const checkboxes = document.querySelectorAll('input[type="checkbox"]');
+            checkboxes.forEach(checkbox => {
+                checkbox.classList.add('form-check-input');
+            });
+            
+            // Validación en tiempo real del NIT (ejemplo básico)
+            const nitInput = document.querySelector('input[name="nit"]');
+            if (nitInput) {
+                nitInput.addEventListener('input', function() {
+                    // Remover caracteres no numéricos excepto guiones
+                    this.value = this.value.replace(/[^0-9-]/g, '');
+                });
+            }
+            
+            // Auto-focus en el primer campo
+            const firstInput = document.querySelector('input[name="nombre"]');
+            if (firstInput) {
+                firstInput.focus();
+            }
+        });
+    </script>
+</body>
+</html>

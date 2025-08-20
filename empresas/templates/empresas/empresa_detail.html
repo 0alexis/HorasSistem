@@ -1,0 +1,297 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <title>{{ empresa.nombre }} - Detalle de Empresa - REGENCY</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    {% load static %}
+    <style>
+        :root {
+            --color-primary: #B91C1C;
+            --color-secondary: #991B1B;
+            --color-accent: #7F1D1D;
+            --color-light: #FEF2F2;
+            --color-dark: #450A0A;
+        }
+        
+        body {
+            background-color: #F8FAFC;
+        }
+        
+        .header-corporativo {
+            background: linear-gradient(135deg, var(--color-primary), var(--color-secondary));
+            color: white;
+            padding: 20px;
+            border-radius: 10px;
+            margin-bottom: 30px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        }
+        
+        .logo-empresa {
+            height: 60px;
+            margin-right: 20px;
+            background: white;
+            padding: 5px;
+            border-radius: 8px;
+        }
+        
+        .btn-regency {
+            background-color: var(--color-primary);
+            border-color: var(--color-primary);
+            color: white;
+            font-weight: 500;
+        }
+        
+        .btn-regency:hover {
+            background-color: var(--color-secondary);
+            border-color: var(--color-secondary);
+            color: white;
+        }
+        
+        .btn-regency-outline {
+            border-color: var(--color-primary);
+            color: var(--color-primary);
+            font-weight: 500;
+        }
+        
+        .btn-regency-outline:hover {
+            background-color: var(--color-primary);
+            border-color: var(--color-primary);
+            color: white;
+        }
+        
+        .card-header-regency {
+            background-color: var(--color-primary);
+            color: white;
+            font-weight: 600;
+        }
+        
+        .card-header-secondary {
+            background-color: var(--color-secondary);
+            color: white;
+            font-weight: 600;
+        }
+        
+        .shadow-regency {
+            box-shadow: 0 4px 6px rgba(185, 28, 28, 0.1);
+        }
+        
+        .breadcrumb-regency {
+            background-color: white;
+            border: 1px solid #e5e7eb;
+            border-radius: 8px;
+            padding: 1rem;
+            margin-bottom: 1.5rem;
+            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+        }
+        
+        .breadcrumb-regency a {
+            color: var(--color-primary);
+            text-decoration: none;
+            font-weight: 500;
+        }
+        
+        .breadcrumb-regency a:hover {
+            color: var(--color-secondary);
+        }
+        
+        .info-item {
+            border-left: 4px solid var(--color-primary);
+            padding-left: 15px;
+            margin-bottom: 15px;
+        }
+        
+        .badge-active {
+            background-color: #059669 !important;
+        }
+        
+        .badge-inactive {
+            background-color: var(--color-primary) !important;
+        }
+    </style>
+</head>
+<body>
+    <div class="container-fluid">
+        <div class="row">
+            <div class="col-12">
+                <!-- Header Corporativo -->
+                <div class="header-corporativo">
+                    <div class="d-flex align-items-center justify-content-between">
+                        <div class="d-flex align-items-center">
+                            <img src="{% static '/img/logo_regency.png' %}" alt="REGENCY SERVICES" class="logo-empresa">
+                            <div>
+                                <h1 class="mb-1">🏢 {{ empresa.nombre }}</h1>
+                                <p class="mb-0 opacity-75">
+                                    {% if empresa.activo %}
+                                        <span class="badge bg-success">✅ Empresa Activa</span>
+                                    {% else %}
+                                        <span class="badge bg-danger">❌ Empresa Inactiva</span>
+                                    {% endif %}
+                                    | NIT: {{ empresa.nit }}
+                                </p>
+                            </div>
+                        </div>
+                        
+                        <!-- Botones de Acción -->
+                        <div class="d-flex gap-2">
+                            <a href="{% url 'empresas:empresa_update' empresa.pk %}" class="btn btn-warning">
+                                ✏️ Editar
+                            </a>
+                            <a href="{% url 'empresas:empresas_list' %}" class="btn btn-light">
+                                📋 Lista
+                            </a>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Breadcrumb -->
+                <div class="breadcrumb-regency">
+                    <a href="{% url 'empresas:dashboard' %}">🏠 Dashboard</a>
+                    <span class="text-muted mx-2">→</span>
+                    <a href="{% url 'empresas:empresas_list' %}">📋 Lista de Empresas</a>
+                    <span class="text-muted mx-2">→</span>
+                    <span class="text-muted">👁️ {{ empresa.nombre }}</span>
+                </div>
+
+                <!-- Mensajes -->
+                {% if messages %}
+                    {% for message in messages %}
+                        <div class="alert alert-{{ message.tags }} alert-dismissible fade show" role="alert">
+                            {{ message }}
+                            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                        </div>
+                    {% endfor %}
+                {% endif %}
+
+                <!-- Contenido Principal -->
+                <div class="row">
+                    <div class="col-lg-8">
+                        <!-- Información General -->
+                        <div class="card shadow-regency mb-4">
+                            <div class="card-header card-header-regency">
+                                <h5 class="mb-0">📝 Información General</h5>
+                            </div>
+                            <div class="card-body">
+                                <div class="row">
+                                    <div class="col-md-6">
+                                        <div class="info-item">
+                                            <h6 class="fw-bold mb-1">🏢 Nombre Completo</h6>
+                                            <p class="mb-0">{{ empresa.nombre }}</p>
+                                        </div>
+                                        
+                                        <div class="info-item">
+                                            <h6 class="fw-bold mb-1">🆔 NIT</h6>
+                                            <p class="mb-0">{{ empresa.nit }}</p>
+                                        </div>
+                                        
+                                        <div class="info-item">
+                                            <h6 class="fw-bold mb-1">⚙️ Estado</h6>
+                                            <p class="mb-0">
+                                                {% if empresa.activo %}
+                                                    <span class="badge badge-active">✅ Activa</span>
+                                                {% else %}
+                                                    <span class="badge badge-inactive">❌ Inactiva</span>
+                                                {% endif %}
+                                            </p>
+                                        </div>
+                                    </div>
+                                    
+                                    <div class="col-md-6">
+                                        <div class="info-item">
+                                            <h6 class="fw-bold mb-1">📧 Email</h6>
+                                            <p class="mb-0">
+                                                {% if empresa.email %}
+                                                    <a href="mailto:{{ empresa.email }}">{{ empresa.email }}</a>
+                                                {% else %}
+                                                    <span class="text-muted">No registrado</span>
+                                                {% endif %}
+                                            </p>
+                                        </div>
+                                        
+                                        <div class="info-item">
+                                            <h6 class="fw-bold mb-1">📞 Teléfono</h6>
+                                            <p class="mb-0">
+                                                {% if empresa.telefono %}
+                                                    <a href="tel:{{ empresa.telefono }}">{{ empresa.telefono }}</a>
+                                                {% else %}
+                                                    <span class="text-muted">No registrado</span>
+                                                {% endif %}
+                                            </p>
+                                        </div>
+                                        
+                                        <div class="info-item">
+                                            <h6 class="fw-bold mb-1">📍 Dirección</h6>
+                                            <p class="mb-0">
+                                                {% if empresa.direccion %}
+                                                    {{ empresa.direccion }}
+                                                {% else %}
+                                                    <span class="text-muted">No registrada</span>
+                                                {% endif %}
+                                            </p>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Proyectos Relacionados (si existen) -->
+                    
+                    </div>
+
+                    <!-- Panel Lateral -->
+                    <div class="col-lg-4">
+                        <!-- Acciones Rápidas -->
+                        <div class="card shadow-regency mb-3">
+                            <div class="card-header card-header-regency">
+                                <h5 class="mb-0">⚡ Acciones Rápidas</h5>
+                            </div>
+                            <div class="card-body">
+                                <div class="d-grid gap-2">
+                                    <a href="{% url 'empresas:empresa_update' empresa.pk %}" class="btn btn-regency">
+                                        ✏️ Editar Empresa
+                                    </a>
+                                    <a href="{% url 'empresas:dashboard' %}" class="btn btn-regency-outline">
+                                        🏠 Ir al Dashboard
+                                    </a>
+                                    <a href="{% url 'empresas:empresas_list' %}" class="btn btn-regency-outline">
+                                        📋 Lista de Empresas
+                                    </a>
+                                    <hr>
+                                    <a href="{% url 'empresas:empresa_create' %}" class="btn btn-outline-success">
+                                        ➕ Nueva Empresa
+                                    </a>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Información del Sistema -->
+                        <div class="card shadow-regency">
+                            <div class="card-header card-header-secondary">
+                                <h5 class="mb-0">📊 Información del Sistema</h5>
+                            </div>
+                            <div class="card-body">
+                                <div class="info-item">
+                                    <h6 class="fw-bold mb-1">📅 Fecha de Registro</h6>
+                                    <p class="mb-0 small">{{ empresa.creado_en|date:"d/m/Y H:i" }}</p>
+                                </div>
+                                
+                                {% if empresa.actualizado_en %}
+                                <div class="info-item">
+                                    <h6 class="fw-bold mb-1">🔄 Última Actualización</h6>
+                                    <p class="mb-0 small">{{ empresa.actualizado_en|date:"d/m/Y H:i" }}</p>
+                                </div>
+                                {% endif %}
+                                
+                                
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Bootstrap JS -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+</html>

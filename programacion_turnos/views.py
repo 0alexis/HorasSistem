@@ -1,4 +1,4 @@
-from django.shortcuts import render, redirect
+from django.shortcuts import render, redirect, get_object_or_404
 from django.views.generic import TemplateView
 from django.http import HttpResponse
 from datetime import datetime, timedelta
@@ -278,21 +278,51 @@ def intercambiar_terceros_api(request, programacion_id):
         return Response({"error": f"Error al intercambiar letras de turno: {str(e)}"}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
 
 def malla_turnos(request, programacion_id):
-    programacion = ProgramacionHorario.objects.get(id=programacion_id)
-    empleados = list(Tercero.objects.filter(centro_operativo=programacion.centro_operativo))
-    fechas = [programacion.fecha_inicio + timedelta(days=i) for i in range((programacion.fecha_fin - programacion.fecha_inicio).days + 1)]
-    asignaciones = AsignacionTurno.objects.filter(programacion=programacion)
-
-    # Construir malla: {empleado_id: {fecha: letra}}
-    malla = {emp.id_tercero: {fecha: '' for fecha in fechas} for emp in empleados}
+    programacion = get_object_or_404(ProgramacionHorario, id=programacion_id)
+    
+    empleados = Tercero.objects.filter(
+        asignacionturno__programacion=programacion
+    ).distinct().select_related('cargo_predefinido').order_by('nombre_tercero')
+    
+    # Fechas
+    fecha_inicio = programacion.fecha_inicio
+    fecha_fin = programacion.fecha_fin
+    fechas = []
+    fecha_actual = fecha_inicio
+    while fecha_actual <= fecha_fin:
+        fechas.append(fecha_actual)
+        fecha_actual += timedelta(days=1)
+    
+    # Asignaciones - solo 'tercero' porque letra_turno es CharField
+    asignaciones = AsignacionTurno.objects.filter(
+        programacion=programacion
+    ).select_related('tercero')
+    
+    # Crear matriz - CORREGIR: usar 'dia' en lugar de 'fecha'
+    matriz_turnos = {}
     for asignacion in asignaciones:
-        malla[asignacion.tercero_id][asignacion.dia] = asignacion.letra_turno
-
-    return render(request, 'malla_turnos.html', {
+        key = f"{asignacion.tercero.id_tercero}_{asignacion.dia.strftime('%Y-%m-%d')}"  # ← 'dia' no 'fecha'
+        matriz_turnos[key] = asignacion.letra_turno 
+    
+    # Debug temporal
+    print("=== DEBUG ASIGNACIONES ===")
+    print(f"Total asignaciones: {asignaciones.count()}")
+    for asig in asignaciones[:3]:
+        print(f"Tercero: {asig.tercero.nombre_tercero}, Día: {asig.dia}, Letra: {asig.letra_turno}")
+    print("=== FIN DEBUG ===")
+    
+    context = {
+        'programacion': programacion,
         'empleados': empleados,
         'fechas': fechas,
-        'malla': malla,
-    })
+        'matriz_turnos': matriz_turnos,
+        'total_empleados': empleados.count(),
+        'total_dias': len(fechas),
+        'total_turnos': asignaciones.count(),
+        'title': f'Malla de Turnos - {programacion.centro_operativo.nombre}'
+    }
+    
+    return render(request, 'malla/malla_turno.html', context)
 
 @api_view(['GET'])
 def test_bitacora(request):
@@ -460,8 +490,13 @@ def crear_programacion_view(request, centro_id=None):
         form = ProgramacionHorarioForm(request.POST)
         if form.is_valid():
             programacion = form.save()
+            # AGREGAR ESTA LÍNEA PARA GENERAR ASIGNACIONES
+            from .serializers import generar_asignaciones
+            generar_asignaciones(programacion)
             messages.success(request, f'Programación creada exitosamente para {programacion.centro_operativo.nombre}')
             return redirect('programaciones_por_centro', centro_id=programacion.centro_operativo.id_centro)
+        else:
+            messages.error(request, 'Error en el formulario. Revise los datos ingresados.')
     else:
         # Pre-seleccionar el centro operativo si viene desde un centro específico
         initial_data = {}
@@ -475,3 +510,4 @@ def crear_programacion_view(request, centro_id=None):
         'title': 'Nueva Programación de Horario'
     }
     return render(request, 'programacion_turnos/crear_programacion.html', context)
+

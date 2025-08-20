@@ -13,6 +13,8 @@ from django.core.paginator import Paginator
 from django.db.models import Q
 from django.db import OperationalError
 from django.utils import timezone
+from django.views.generic import CreateView, UpdateView, DetailView, ListView
+from django.urls import reverse_lazy
 
 from datetime import datetime, timedelta
 from rest_framework.decorators import api_view
@@ -20,7 +22,7 @@ from rest_framework.response import Response
 from rest_framework import status
 
 from .models import Empresa, Proyecto, CentroOperativo
-from .forms import EmpresaForm
+from .forms import EmpresaFiltroForm, EmpresaForm
 
 # =======================
 #   APIs DE SISTEMA
@@ -98,22 +100,73 @@ def empresas_dashboard(request):
 
 @login_required
 def empresas_list(request):
-    """Lista de empresas con filtros y búsqueda"""
+    """Lista de empresas con filtros y búsqueda (incluye redirección por NIT)"""
     try:
-        empresas = Empresa.objects.all().order_by('-id')
-        search = request.GET.get('search')
-        activo = request.GET.get('activo')
-        if search:
-            empresas = empresas.filter(Q(nombre__icontains=search) | Q(nit__icontains=search))
-        if activo:
-            empresas = empresas.filter(activo=activo == 'true')
+        form = EmpresaFiltroForm(request.GET or None)
+        empresas = Empresa.objects.all().order_by('-id_empresa')
+        
+        # Verificar si es una búsqueda por NIT exacto para redirección directa
+        if form.is_valid():
+            search = form.cleaned_data.get('search')
+            
+            # Redirección directa por NIT exacto
+            if search and form.is_nit_search():
+                empresa = form.get_empresa_by_nit()
+                if empresa:
+                    messages.success(request, f'🎯 Empresa encontrada: {empresa.nombre}')
+                    return redirect('empresas:empresa_detail', pk=empresa.id_empresa)
+                else:
+                    messages.warning(request, f'❌ No se encontró empresa con NIT: {search}')
+            
+            # Filtros normales si no es búsqueda por NIT o no se encontró
+            if search:
+                empresas = empresas.filter(
+                    Q(nombre__icontains=search) | 
+                    Q(nit__icontains=search) | 
+                    Q(email__icontains=search)
+                )
+            
+            # Filtro por estado
+            activo = form.cleaned_data.get('activo')
+            if activo == 'true':
+                empresas = empresas.filter(activo=True)
+            elif activo == 'false':
+                empresas = empresas.filter(activo=False)
+            
+            # Ordenamiento
+            ordenar_por = form.cleaned_data.get('ordenar_por')
+            if ordenar_por:
+                empresas = empresas.order_by(ordenar_por)
+        
+        # Paginación
         paginator = Paginator(empresas, 10)
         page_number = request.GET.get('page')
         empresas_page = paginator.get_page(page_number)
-        context = {'empresas': empresas_page, 'search': search, 'activo': activo, 'total_empresas': empresas.count()}
+        
+        # Variables para mantener compatibilidad con template existente
+        search = request.GET.get('search', '')
+        activo = request.GET.get('activo', '')
+        
+        context = {
+            'form': form,
+            'empresas': empresas_page,
+            'search': search,
+            'activo': activo,
+            'total_empresas': empresas.count(),
+            'is_filtered': bool(search or activo)
+        }
+        
     except Exception as e:
         messages.error(request, f'Error al cargar empresas: {str(e)}')
-        context = {'empresas': [], 'search': '', 'activo': '', 'total_empresas': 0}
+        context = {
+            'form': EmpresaFiltroForm(),
+            'empresas': [],
+            'search': '',
+            'activo': '',
+            'total_empresas': 0,
+            'is_filtered': False
+        }
+    
     return render(request, 'empresas/empresas_list.html', context)
 
 @login_required
@@ -188,7 +241,7 @@ def empresa_delete(request, pk):
 def empresas_activas_api(request):
     """API para obtener empresas activas"""
     try:
-        empresas = Empresa.objects.filter(activo=True).values('id', 'nombre')
+        empresas = Empresa.objects.filter(activo=True).values('id_empresa', 'nombre')
         return JsonResponse({'empresas': list(empresas)})
     except Exception as e:
         return JsonResponse({'error': str(e)}, status=500)
@@ -328,3 +381,34 @@ def cargo_update(request, pk):
 @login_required
 def cargo_delete(request, pk):
     return render(request, 'empresas/en_desarrollo.html', {'modulo': 'Cargos'})
+
+class EmpresaDetailView(DetailView):
+    model = Empresa
+    template_name = 'empresas/empresa_detail.html'
+    context_object_name = 'empresa'
+##DETALLE DE LA EMPRESA, TAMBIEN EDITAR DETALLES Y ACTUALIZARLE##
+class EmpresaCreateView(CreateView):
+    model = Empresa
+    form_class = EmpresaForm
+    template_name = 'empresas/empresa_form.html'
+    
+    def form_valid(self, form):
+        messages.success(self.request, f'✅ Empresa "{form.instance.nombre}" creada exitosamente!')
+        return super().form_valid(form)
+    
+    def get_success_url(self):
+        # Redirige al detalle de la empresa recién creada
+        return reverse_lazy('empresas:empresa_detail', kwargs={'pk': self.object.pk})
+
+class EmpresaUpdateView(UpdateView):
+    model = Empresa
+    form_class = EmpresaForm
+    template_name = 'empresas/empresa_form.html'
+    
+    def form_valid(self, form):
+        messages.success(self.request, f'✅ Empresa "{form.instance.nombre}" actualizada exitosamente!')
+        return super().form_valid(form)
+    
+    def get_success_url(self):
+        # Redirige al detalle de la empresa editada
+        return reverse_lazy('empresas:empresa_detail', kwargs={'pk': self.object.pk})

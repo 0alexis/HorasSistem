@@ -1,0 +1,481 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <title>Lista de Empresas - REGENCY</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    {% load static %}
+    <style>
+        :root {
+            --color-primary: #B91C1C;
+            --color-secondary: #991B1B;
+            --color-accent: #7F1D1D;
+            --color-light: #FEF2F2;
+            --color-dark: #450A0A;
+        }
+        
+        body {
+            background-color: #F8FAFC;
+        }
+        
+        .header-corporativo {
+            background: linear-gradient(135deg, var(--color-primary), var(--color-secondary));
+            color: white;
+            padding: 20px;
+            border-radius: 10px;
+            margin-bottom: 30px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        }
+        
+        .logo-empresa {
+            height: 60px;
+            margin-right: 20px;
+            background: white;
+            padding: 5px;
+            border-radius: 8px;
+        }
+        
+        .btn-regency {
+            background-color: var(--color-primary);
+            border-color: var(--color-primary);
+            color: white;
+            font-weight: 500;
+        }
+        
+        .btn-regency:hover {
+            background-color: var(--color-secondary);
+            border-color: var(--color-secondary);
+            color: white;
+        }
+        
+        .btn-regency-outline {
+            border-color: var(--color-primary);
+            color: var(--color-primary);
+            font-weight: 500;
+        }
+        
+        .btn-regency-outline:hover {
+            background-color: var(--color-primary);
+            border-color: var(--color-primary);
+            color: white;
+        }
+        
+        .form-control:focus, .form-select:focus {
+            border-color: var(--color-primary);
+            box-shadow: 0 0 0 0.2rem rgba(185, 28, 28, 0.25);
+        }
+        
+        .card-header-regency {
+            background-color: var(--color-primary);
+            color: white;
+            font-weight: 600;
+        }
+        
+        .card-header-secondary {
+            background-color: var(--color-secondary);
+            color: white;
+            font-weight: 600;
+        }
+        
+        .shadow-regency {
+            box-shadow: 0 4px 6px rgba(185, 28, 28, 0.1);
+        }
+        
+        .breadcrumb-regency {
+            background-color: white;
+            border: 1px solid #e5e7eb;
+            border-radius: 8px;
+            padding: 1rem;
+            margin-bottom: 1.5rem;
+            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+        }
+        
+        .breadcrumb-regency a {
+            color: var(--color-primary);
+            text-decoration: none;
+            font-weight: 500;
+        }
+        
+        .breadcrumb-regency a:hover {
+            color: var(--color-secondary);
+        }
+        
+        .table-regency {
+            border-radius: 8px;
+            overflow: hidden;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+        }
+        
+        .table-regency thead {
+            background-color: var(--color-primary);
+            color: white;
+        }
+        
+        .table-regency tbody tr:hover {
+            background-color: var(--color-light);
+        }
+        
+        .badge-active {
+            background-color: #059669 !important;
+        }
+        
+        .badge-inactive {
+            background-color: #EF4444 !important;
+        }
+        
+        .empresa-card {
+            transition: transform 0.2s, box-shadow 0.2s;
+            border-left: 4px solid var(--color-primary);
+        }
+        
+        .empresa-card:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 16px rgba(185, 28, 28, 0.15);
+        }
+        
+        .nit-hint {
+            animation: fadeIn 0.3s ease-in;
+        }
+        
+        @keyframes fadeIn {
+            from { opacity: 0; }
+            to { opacity: 1; }
+        }
+        
+        .pagination .page-link {
+            color: var(--color-primary);
+            border-color: var(--color-primary);
+        }
+        
+        .pagination .page-link:hover {
+            background-color: var(--color-primary);
+            border-color: var(--color-primary);
+            color: white;
+        }
+        
+        .pagination .page-item.active .page-link {
+            background-color: var(--color-primary);
+            border-color: var(--color-primary);
+        }
+    </style>
+</head>
+<body>
+    <div class="container-fluid">
+        <div class="row">
+            <div class="col-12">
+                <!-- Header Corporativo -->
+                <div class="header-corporativo">
+                    <div class="d-flex align-items-center justify-content-between">
+                        <div class="d-flex align-items-center">
+                            <img src="{% static '/img/logo_regency.png' %}" alt="REGENCY SERVICES" class="logo-empresa">
+                            <div>
+                                <h1 class="mb-1">📋 Lista de Empresas</h1>
+                                <p class="mb-0 opacity-75">
+                                    Gestión completa del directorio empresarial REGENCY
+                                </p>
+                            </div>
+                        </div>
+                        
+                        <!-- Botón Nueva Empresa -->
+                        <div>
+                            <a href="{% url 'empresas:empresa_create' %}" class="btn btn-light btn-lg">
+                                ➕ Nueva Empresa
+                            </a>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Breadcrumb -->
+                <div class="breadcrumb-regency">
+                    <a href="{% url 'empresas:dashboard' %}">🏠 Dashboard</a>
+                    <span class="text-muted mx-2">→</span>
+                    <span class="text-muted">📋 Lista de Empresas</span>
+                </div>
+
+                <!-- Mensajes -->
+                {% if messages %}
+                    {% for message in messages %}
+                        <div class="alert alert-{{ message.tags }} alert-dismissible fade show" role="alert">
+                            {{ message }}
+                            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                        </div>
+                    {% endfor %}
+                {% endif %}
+
+                <!-- Panel de Búsqueda y Filtros -->
+                <div class="card shadow-regency mb-4">
+                    <div class="card-header card-header-regency">
+                        <h5 class="mb-0">🔍 Búsqueda Rápida y Filtros</h5>
+                    </div>
+                    <div class="card-body">
+                        <form method="get" id="search-form">
+                            <div class="row g-3">
+                                <div class="col-lg-6">
+                                    <label for="{{ form.search.id_for_label }}" class="form-label">
+                                        {{ form.search.label }}
+                                    </label>
+                                    {{ form.search }}
+                                    <div class="form-text">
+                                        💡 <strong>Truco:</strong> Escriba un NIT completo (ej: 900123456-1) y presione Enter para ir directamente al detalle
+                                    </div>
+                                </div>
+                                <div class="col-lg-3">
+                                    <label for="{{ form.activo.id_for_label }}" class="form-label">
+                                        {{ form.activo.label }}
+                                    </label>
+                                    {{ form.activo }}
+                                </div>
+                                <div class="col-lg-3">
+                                    <label for="{{ form.ordenar_por.id_for_label }}" class="form-label">
+                                        {{ form.ordenar_por.label }}
+                                    </label>
+                                    {{ form.ordenar_por }}
+                                </div>
+                            </div>
+                            
+                            <div class="row mt-3">
+                                <div class="col-12">
+                                    <button type="submit" class="btn btn-regency">
+                                        🔍 Buscar / Filtrar
+                                    </button>
+                                    
+                                    {% if is_filtered %}
+                                        <a href="{% url 'empresas:empresas_list' %}" class="btn btn-outline-secondary ms-2">
+                                            🗑️ Limpiar Filtros
+                                        </a>
+                                    {% endif %}
+                                    
+                                    <div class="float-end">
+                                        <span class="badge bg-secondary fs-6">
+                                            📊 {{ total_empresas }} empresa{{ total_empresas|pluralize }}
+                                            {% if is_filtered %}encontrada{{ total_empresas|pluralize }}{% endif %}
+                                        </span>
+                                    </div>
+                                </div>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+
+                <!-- Lista de Empresas -->
+                {% if empresas %}
+                    <div class="row">
+                        {% for empresa in empresas %}
+                            <div class="col-lg-6 col-xl-4 mb-4">
+                                <div class="card empresa-card h-100">
+                                    <div class="card-header d-flex justify-content-between align-items-center">
+                                        <h6 class="mb-0 fw-bold text-truncate">
+                                            🏢 {{ empresa.nombre }}
+                                        </h6>
+                                        {% if empresa.activo %}
+                                            <span class="badge badge-active">✅ Activa</span>
+                                        {% else %}
+                                            <span class="badge badge-inactive">❌ Inactiva</span>
+                                        {% endif %}
+                                    </div>
+                                    <div class="card-body">
+                                        <div class="mb-2">
+                                            <small class="text-muted">🆔 NIT:</small>
+                                            <strong>{{ empresa.nit }}</strong>
+                                        </div>
+                                        
+                                        {% if empresa.email %}
+                                            <div class="mb-2">
+                                                <small class="text-muted">📧 Email:</small>
+                                                <br><small>{{ empresa.email|truncatechars:30 }}</small>
+                                            </div>
+                                        {% endif %}
+                                        
+                                        {% if empresa.telefono %}
+                                            <div class="mb-2">
+                                                <small class="text-muted">📞 Teléfono:</small>
+                                                <br><small>{{ empresa.telefono }}</small>
+                                            </div>
+                                        {% endif %}
+                                        
+                                        {% if empresa.direccion %}
+                                            <div class="mb-2">
+                                                <small class="text-muted">📍 Dirección:</small>
+                                                <br><small>{{ empresa.direccion|truncatechars:50 }}</small>
+                                            </div>
+                                        {% endif %}
+                                    </div>
+                                    <div class="card-footer bg-transparent">
+                                        <div class="d-flex justify-content-between align-items-center">
+                                            <small class="text-muted">
+                                                📅 {{ empresa.creado_en|date:"d/m/Y" }}
+                                            </small>
+                                            <div class="btn-group btn-group-sm">
+                                                <a href="{% url 'empresas:empresa_detail' empresa.pk %}" 
+                                                   class="btn btn-regency-outline" title="Ver detalle">
+                                                    👁️
+                                                </a>
+                                                <a href="{% url 'empresas:empresa_update' empresa.pk %}" 
+                                                   class="btn btn-outline-warning" title="Editar">
+                                                    ✏️
+                                                </a>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        {% endfor %}
+                    </div>
+
+                    <!-- Paginación -->
+                    {% if empresas.has_other_pages %}
+                        <div class="d-flex justify-content-center mt-4">
+                            <nav aria-label="Paginación de empresas">
+                                <ul class="pagination pagination-lg">
+                                    {% if empresas.has_previous %}
+                                        <li class="page-item">
+                                            <a class="page-link" href="?{% if search %}search={{ search }}&{% endif %}{% if activo %}activo={{ activo }}&{% endif %}page={{ empresas.previous_page_number }}">
+                                                ⬅️ Anterior
+                                            </a>
+                                        </li>
+                                    {% endif %}
+                                    
+                                    <li class="page-item active">
+                                        <span class="page-link">
+                                            Página {{ empresas.number }} de {{ empresas.paginator.num_pages }}
+                                        </span>
+                                    </li>
+                                    
+                                    {% if empresas.has_next %}
+                                        <li class="page-item">
+                                            <a class="page-link" href="?{% if search %}search={{ search }}&{% endif %}{% if activo %}activo={{ activo }}&{% endif %}page={{ empresas.next_page_number }}">
+                                                Siguiente ➡️
+                                            </a>
+                                        </li>
+                                    {% endif %}
+                                </ul>
+                            </nav>
+                        </div>
+                    {% endif %}
+
+                {% else %}
+                    <!-- Estado Vacío -->
+                    <div class="row justify-content-center">
+                        <div class="col-md-8">
+                            <div class="card shadow-regency text-center">
+                                <div class="card-body py-5">
+                                    {% if is_filtered %}
+                                        <div class="mb-4">
+                                            <i class="fas fa-search" style="font-size: 3rem; color: var(--color-primary);"></i>
+                                        </div>
+                                        <h4>🔍 No se encontraron empresas</h4>
+                                        <p class="text-muted mb-4">
+                                            No hay empresas que coincidan con los criterios de búsqueda:
+                                            {% if search %}<strong>"{{ search }}"</strong>{% endif %}
+                                        </p>
+                                        <div class="d-flex justify-content-center gap-2">
+                                            <a href="{% url 'empresas:empresas_list' %}" class="btn btn-regency-outline">
+                                                🗑️ Limpiar Filtros
+                                            </a>
+                                            <a href="{% url 'empresas:empresa_create' %}" class="btn btn-regency">
+                                                ➕ Crear Nueva Empresa
+                                            </a>
+                                        </div>
+                                    {% else %}
+                                        <div class="mb-4">
+                                            <i class="fas fa-building" style="font-size: 3rem; color: var(--color-primary);"></i>
+                                        </div>
+                                        <h4>🏢 No hay empresas registradas</h4>
+                                        <p class="text-muted mb-4">
+                                            Comience creando la primera empresa en el sistema REGENCY.
+                                        </p>
+                                        <a href="{% url 'empresas:empresa_create' %}" class="btn btn-regency btn-lg">
+                                            ➕ Crear Primera Empresa
+                                        </a>
+                                    {% endif %}
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                {% endif %}
+
+            </div>
+        </div>
+    </div>
+
+    <!-- Bootstrap JS -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/js/bootstrap.bundle.min.js"></script>
+    
+    <!-- Script para UX mejorada -->
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            const searchInput = document.querySelector('input[name="search"]');
+            const searchForm = document.getElementById('search-form');
+            
+            if (searchInput) {
+                // Detectar Enter para búsqueda rápida
+                searchInput.addEventListener('keypress', function(e) {
+                    if (e.key === 'Enter') {
+                        e.preventDefault();
+                        searchForm.submit();
+                    }
+                });
+                
+                // Validación visual en tiempo real para NIT
+                searchInput.addEventListener('input', function() {
+                    const value = this.value.trim();
+                    const nitPattern = /^\d{8,12}-?\d?$/;
+                    
+                    if (value && nitPattern.test(value)) {
+                        this.style.borderColor = '#059669'; // Verde para NIT válido
+                        this.style.boxShadow = '0 0 0 0.2rem rgba(5, 150, 105, 0.25)';
+                        
+                        // Mostrar hint
+                        let hint = this.parentElement.querySelector('.nit-hint');
+                        if (!hint) {
+                            hint = document.createElement('div');
+                            hint.className = 'nit-hint form-text text-success fw-bold mt-1';
+                            this.parentElement.appendChild(hint);
+                        }
+                        hint.innerHTML = '🎯 ¡NIT detectado! Presione Enter para ir directamente al detalle';
+                    } else if (value) {
+                        this.style.borderColor = '#B91C1C'; // Rojo REGENCY para búsqueda normal
+                        this.style.boxShadow = '0 0 0 0.2rem rgba(185, 28, 28, 0.25)';
+                        
+                        // Quitar hint
+                        const hint = this.parentElement.querySelector('.nit-hint');
+                        if (hint) hint.remove();
+                    } else {
+                        this.style.borderColor = '';
+                        this.style.boxShadow = '';
+                        
+                        // Quitar hint
+                        const hint = this.parentElement.querySelector('.nit-hint');
+                        if (hint) hint.remove();
+                    }
+                });
+                
+                // Focus automático
+                searchInput.focus();
+            }
+            
+            // Animación de cards
+            const cards = document.querySelectorAll('.empresa-card');
+            cards.forEach((card, index) => {
+                card.style.animationDelay = `${index * 0.1}s`;
+                card.classList.add('fade-in');
+            });
+        });
+    </script>
+    
+    <style>
+        .fade-in {
+            animation: fadeInUp 0.6s ease forwards;
+            opacity: 0;
+            transform: translateY(20px);
+        }
+        
+        @keyframes fadeInUp {
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+    </style>
+</body>
+</html>

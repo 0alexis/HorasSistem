@@ -80,13 +80,53 @@
         border-radius: 8px;
         font-size: 1rem;
         transition: all 0.3s ease;
-        background: white;
+        background-color: #ffffff !important;
+        color: #000000 !important;
+        font-weight: 500 !important;
+    }
+    
+    /* SOLUCIÓN DIRECTA PARA SELECT */
+    select.form-control,
+    select,
+    .form-control select {
+        color: #000000 !important;
+        background-color: #ffffff !important;
+        font-weight: 500 !important;
+        text-shadow: none !important;
+        -webkit-text-fill-color: #000000 !important;
+        -webkit-appearance: menulist !important;
+        -moz-appearance: menulist !important;
+        appearance: menulist !important;
+    }
+    
+    /* Forzar color en opciones */
+    select option {
+        color: #000000 !important;
+        background-color: #ffffff !important;
+        font-weight: normal !important;
+    }
+    
+    /* Selectores ultra específicos */
+    #id_centro_operativo,
+    #id_modelo_turno,
+    #id_cargo_predefinido,
+    #id_creado_por {
+        color: #000000 !important;
+        
+        font-weight: 500 !important;
+        -webkit-text-fill-color: #000000 !important;
+    }
+    
+    /* Resetear cualquier herencia */
+    * select {
+        color: #000000 !important;
     }
     
     .form-control:focus {
         outline: none;
         border-color: var(--regency-red);
         box-shadow: 0 0 0 3px rgba(185, 28, 28, 0.1);
+        color: #000000 !important;
     }
     
     .form-grid {
@@ -103,7 +143,7 @@
         padding: 1rem;
         background: #f0f9ff;
         border-radius: 8px;
-        border-left: 4px solid #0ea5e9;
+        border-left: 4px solid #83c6e4;
     }
     
     .form-check-input {
@@ -198,12 +238,10 @@
     {% csrf_token %}
     
     <div class="form-container">
+        <!-- Centro Operativo -->
         <div class="field-group">
             <label for="{{ form.centro_operativo.id_for_label }}">Centro Operativo *</label>
             {{ form.centro_operativo }}
-            {% if form.centro_operativo.help_text %}
-                <div class="help-text">{{ form.centro_operativo.help_text }}</div>
-            {% endif %}
             {% if form.centro_operativo.errors %}
                 <ul class="error-list">
                     {% for error in form.centro_operativo.errors %}
@@ -213,12 +251,10 @@
             {% endif %}
         </div>
         
+        <!-- Modelo de Turno -->
         <div class="field-group">
             <label for="{{ form.modelo_turno.id_for_label }}">Modelo de Turno *</label>
             {{ form.modelo_turno }}
-            {% if form.modelo_turno.help_text %}
-                <div class="help-text">{{ form.modelo_turno.help_text }}</div>
-            {% endif %}
             {% if form.modelo_turno.errors %}
                 <ul class="error-list">
                     {% for error in form.modelo_turno.errors %}
@@ -228,13 +264,27 @@
             {% endif %}
         </div>
         
+        <!-- NUEVO: Cargo Predefinido -->
+        <div class="field-group">
+            <label for="{{ form.cargo_predefinido.id_for_label }}">Cargo *</label>
+            {{ form.cargo_predefinido }}
+            {% if form.cargo_predefinido.errors %}
+                <ul class="error-list">
+                    {% for error in form.cargo_predefinido.errors %}
+                        <li>{{ error }}</li>
+                    {% endfor %}
+                </ul>
+            {% endif %}
+            <div class="help-text">
+                Seleccione el cargo específico para esta programación
+            </div>
+        </div>
+        
+        <!-- Fechas -->
         <div class="form-grid">
             <div class="field-group">
                 <label for="{{ form.fecha_inicio.id_for_label }}">Fecha de Inicio *</label>
                 {{ form.fecha_inicio }}
-                {% if form.fecha_inicio.help_text %}
-                    <div class="help-text">{{ form.fecha_inicio.help_text }}</div>
-                {% endif %}
                 {% if form.fecha_inicio.errors %}
                     <ul class="error-list">
                         {% for error in form.fecha_inicio.errors %}
@@ -247,9 +297,6 @@
             <div class="field-group">
                 <label for="{{ form.fecha_fin.id_for_label }}">Fecha de Fin *</label>
                 {{ form.fecha_fin }}
-                {% if form.fecha_fin.help_text %}
-                    <div class="help-text">{{ form.fecha_fin.help_text }}</div>
-                {% endif %}
                 {% if form.fecha_fin.errors %}
                     <ul class="error-list">
                         {% for error in form.fecha_fin.errors %}
@@ -260,12 +307,10 @@
             </div>
         </div>
         
+        <!-- Usuario Responsable -->
         <div class="field-group">
             <label for="{{ form.creado_por.id_for_label }}">Creado por</label>
             {{ form.creado_por }}
-            {% if form.creado_por.help_text %}
-                <div class="help-text">{{ form.creado_por.help_text }}</div>
-            {% endif %}
             {% if form.creado_por.errors %}
                 <ul class="error-list">
                     {% for error in form.creado_por.errors %}
@@ -275,15 +320,29 @@
             {% endif %}
         </div>
         
-        <div class="checkbox-field">
-            {{ form.activo }}
-            <label for="{{ form.activo.id_for_label }}">Programación Activa</label>
+        <!-- Estado Activo -->
+        <div class="field-group">
+            <div class="checkbox-field">
+                {{ form.activo }}
+                <label for="{{ form.activo.id_for_label }}">Programación Activa</label>
+            </div>
+            {% if form.activo.errors %}
+                <ul class="error-list">
+                    {% for error in form.activo.errors %}
+                        <li>{{ error }}</li>
+                    {% endfor %}
+                </ul>
+            {% endif %}
         </div>
         
+        <!-- Botones -->
         <div class="btn-container">
-            <button type="submit" class="btn-regency">Crear Programación</button>
-            <a href="{% if centro_id %}{% url 'programaciones_por_centro' centro_id %}{% else %}{% url 'programacion_dashboard' %}{% endif %}" class="btn-secondary">
-                Cancelar
+            <button type="submit" class="btn btn-regency">
+                <i class="fas fa-save"></i> Crear Programación
+            </button>
+            <a href="{% if centro_id %}{% url 'programaciones_por_centro' centro_id %}{% else %}{% url 'programacion_dashboard' %}{% endif %}" 
+               class="btn btn-secondary">
+                <i class="fas fa-times"></i> Cancelar
             </a>
         </div>
     </div>

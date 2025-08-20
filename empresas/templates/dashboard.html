@@ -151,26 +151,8 @@
                             </div>
                         </div>
                     </div>
-                    <div class="col-md-3">
-                        <div class="card card-metric-2 shadow-regency">
-                            <div class="card-body text-center">
-                               
-                                <h5 class="card-title mb-2">PROYECTOS ACTIVOS</h5>
-                                <h2 class="display-3 fw-bold">{{ proyectos_activos }}</h2>
-                                <small class="opacity-75">de {{ total_proyectos }} registrados</small>
-                            </div>
-                        </div>
-                    </div>
-                    <div class="col-md-3">
-                        <div class="card card-metric-3 shadow-regency">
-                            <div class="card-body text-center">
-                                
-                                <h5 class="card-title mb-2">CENTROS OPERATIVOS</h5>
-                                <h2 class="display-3 fw-bold">{{ centros_operativos_activos }}</h2>
-                                <small class="opacity-75">de {{ total_centros_operativos }} registrados</small>
-                            </div>
-                        </div>
-                    </div>
+                    
+                    
                     <div class="col-md-3">
                         <div class="card card-metric-4 shadow-regency">
                             <div class="card-body text-center">
@@ -212,18 +194,11 @@
                                         <a href="#" class="btn btn-regency-outline btn-lg w-100">
                                             <div class="d-flex align-items-center justify-content-center">
                                                 <span class="me-2">📊</span>
-                                                <span>Reportes</span>
+                                                <span>...</span>
                                             </div>
                                         </a>
                                     </div>
-                                    <div class="col-md-3">
-                                        <a href="#" class="btn btn-regency-outline btn-lg w-100">
-                                            <div class="d-flex align-items-center justify-content-center">
-                                                <span class="me-2">🔍</span>
-                                                <span>Búsqueda Avanzada</span>
-                                            </div>
-                                        </a>
-                                    </div>
+                                    
                                 </div>
                             </div>
                         </div>
@@ -269,14 +244,9 @@
                                                 <td>{{ empresa.fecha_creacion|date:"d/m/Y" }}</td>
                                                 <td>
                                                     <div class="btn-group" role="group">
-                                                        <a href="{% url 'empresas:empresa_detail' empresa.pk %}" 
-                                                           class="btn btn-sm btn-outline-primary" title="Ver detalles">
-                                                            👁️
-                                                        </a>
-                                                        <a href="{% url 'empresas:empresa_update' empresa.pk %}" 
-                                                           class="btn btn-sm btn-outline-warning" title="Editar">
-                                                            ✏️
-                                                        </a>
+                                                        <a href="{% url 'empresas:empresa_detail' empresa.pk %}" class="btn btn-sm btn-outline-warning" title=" Ver Detalle"> 👁️</a>
+                                                            
+                                                        <a href="{% url 'empresas:empresa_update' empresa.pk %}" class="btn btn-sm btn-outline-warning" title="Editar">✏️</a>
                                                     </div>
                                                 </td>
                                             </tr>
@@ -324,7 +294,7 @@
                                         <span class="me-2">🏭</span> Centros Operativos
                                     </a>
                                     <a href="#" class="btn btn-outline-secondary">
-                                        <span class="me-2">📊</span> Reportes
+                                        <span class="me-2">📊</span> ...
                                     </a>
                                 </div>
                             </div>

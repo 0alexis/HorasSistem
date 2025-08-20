@@ -1,13 +1,13 @@
 from django import forms
 from .models import ProgramacionHorario
-from empresas.models import CentroOperativo
+from empresas.models import CentroOperativo, CargoPredefinido
 from usuarios.models import Usuario
 import re
 
 class ProgramacionHorarioForm(forms.ModelForm):
     class Meta:
         model = ProgramacionHorario
-        fields = ['centro_operativo', 'modelo_turno', 'fecha_inicio', 'fecha_fin', 'creado_por', 'activo']
+        fields = ['centro_operativo', 'modelo_turno', 'cargo_predefinido', 'fecha_inicio', 'fecha_fin', 'creado_por', 'activo']
         widgets = {
             'centro_operativo': forms.Select(attrs={
                 'class': 'form-control',
@@ -16,6 +16,10 @@ class ProgramacionHorarioForm(forms.ModelForm):
             'modelo_turno': forms.Select(attrs={
                 'class': 'form-control',
                 'id': 'id_modelo_turno'
+            }),
+            'cargo_predefinido': forms.Select(attrs={
+                'class': 'form-control',
+                'id': 'id_cargo_predefinido'
             }),
             'fecha_inicio': forms.DateInput(attrs={
                 'type': 'date',
@@ -41,6 +45,7 @@ class ProgramacionHorarioForm(forms.ModelForm):
         super().__init__(*args, **kwargs)
         # Personalizar las opciones de los campos
         self.fields['centro_operativo'].queryset = CentroOperativo.objects.filter(activo=True)
+        self.fields['cargo_predefinido'].queryset = CargoPredefinido.objects.filter(activo=True)
         self.fields['creado_por'].queryset = Usuario.objects.filter(is_active=True)
         
         # Hacer algunos campos opcionales para mejor UX

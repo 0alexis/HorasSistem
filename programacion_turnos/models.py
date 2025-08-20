@@ -4,6 +4,7 @@ from django.utils import timezone
 from django.conf import settings
 from programacion_models.models import ModeloTurno, LetraTurno
 from usuarios.models import Tercero, CodigoTurno
+from empresas.models import CargoPredefinido
 
 # Manager personalizado para soft delete de ProgramacionHorario
 class ActivoProgramacionManager(models.Manager):
@@ -14,6 +15,7 @@ class ProgramacionHorario(models.Model):
     # terceros = models.ManyToManyField('usuarios.Tercero', related_name='programaciones')
     centro_operativo = models.ForeignKey('empresas.CentroOperativo', on_delete=models.CASCADE)
     modelo_turno = models.ForeignKey('programacion_models.ModeloTurno', on_delete=models.PROTECT)
+    cargo_predefinido = models.ForeignKey('empresas.CargoPredefinido', on_delete=models.PROTECT)
     fecha_inicio = models.DateField()
     fecha_fin = models.DateField()
     creado_por = models.ForeignKey('usuarios.Usuario', on_delete=models.SET_NULL, null=True)

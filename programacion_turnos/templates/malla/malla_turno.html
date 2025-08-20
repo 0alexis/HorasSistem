@@ -1,0 +1,314 @@
+{% extends "admin/base_site.html" %}
+{% load i18n static %}
+
+
+{% load malla_extras %}
+
+
+{% block extrastyle %}
+{{ block.super }}
+<style>
+    :root {
+        --regency-red: #B91C1C;
+        --regency-red-dark: #991B1B;
+        --regency-red-light: #DC2626;
+    }
+    
+    .main-header {
+        background: linear-gradient(135deg, var(--regency-red) 0%, var(--regency-red-dark) 100%);
+        color: white;
+        padding: 2rem;
+        margin: -20px -20px 2rem -20px;
+        border-radius: 0 0 12px 12px;
+        box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+    }
+    
+    .main-header h1 {
+        margin: 0;
+        font-size: 2rem;
+        font-weight: 300;
+    }
+    
+    .programacion-stats {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+        gap: 1rem;
+        margin-top: 1rem;
+        opacity: 0.9;
+    }
+    
+    .stat-item {
+        background: rgba(255, 255, 255, 0.1);
+        padding: 1rem;
+        border-radius: 8px;
+        text-align: center;
+    }
+    
+    .stat-number {
+        font-size: 1.5rem;
+        font-weight: bold;
+        display: block;
+    }
+    
+    .stat-label {
+        font-size: 0.9rem;
+        margin-top: 0.25rem;
+    }
+    
+    .breadcrumb-custom {
+        background: white;
+        border: 1px solid #e5e7eb;
+        border-radius: 8px;
+        padding: 1rem;
+        margin-bottom: 1.5rem;
+        box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+    }
+    
+    .breadcrumb-custom a {
+        color: var(--regency-red);
+        text-decoration: none;
+        font-weight: 500;
+        margin-right: 0.5rem;
+    }
+    
+    .malla-container {
+        background: white;
+        border-radius: 12px;
+        overflow: hidden;
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+        overflow-x: auto;
+    }
+    
+    .malla-table {
+        width: 100%;
+        border-collapse: collapse;
+        min-width: 800px;
+    }
+    
+    .malla-table th {
+        background: linear-gradient(135deg, #f8fafc 0%, #e2e8f0 100%);
+        color: #374151;
+        font-weight: 600;
+        padding: 1rem 0.75rem;
+        text-align: center;
+        border-bottom: 2px solid var(--regency-red);
+        position: sticky;
+        top: 0;
+        z-index: 10;
+    }
+    
+    .empleado-header {
+        text-align: left;
+        min-width: 200px;
+        max-width: 200px;
+        position: sticky;
+        left: 0;
+        background: linear-gradient(135deg, #f8fafc 0%, #e2e8f0 100%);
+        z-index: 11;
+    }
+    
+    .fecha-header {
+        min-width: 80px;
+        text-align: center;
+    }
+    
+    .fecha-dia {
+        font-size: 1.1rem;
+        font-weight: bold;
+        color: var(--regency-red);
+    }
+    
+    .fecha-mes {
+        font-size: 0.8rem;
+        color: #6b7280;
+    }
+    
+    .fecha-dow {
+        font-size: 0.7rem;
+        color: #9ca3af;
+        text-transform: uppercase;
+    }
+    
+    .malla-table td {
+        padding: 0.75rem;
+        border-bottom: 1px solid #e5e7eb;
+        text-align: center;
+        vertical-align: middle;
+    }
+    
+    .empleado-cell {
+        text-align: left;
+        min-width: 200px;
+        max-width: 200px;
+        position: sticky;
+        left: 0;
+        background: white;
+        border-right: 2px solid #e5e7eb;
+        z-index: 9;
+    }
+    
+    .empleado-nombre {
+        font-weight: 600;
+        color: #374151;
+        font-size: 0.9rem;
+    }
+    
+    .empleado-cargo {
+        font-size: 0.8rem;
+        color: #6b7280;
+        margin-top: 0.25rem;
+    }
+    
+    .turno-cell {
+        min-width: 80px;
+        position: relative;
+    }
+    
+    .turno-letra {
+        display: inline-block;
+        width: 40px;
+        height: 40px;
+        line-height: 40px;
+        border-radius: 50%;
+        font-weight: bold;
+        font-size: 0.9rem;
+        text-align: center;
+    }
+    
+    /* Colores por tipo de turno */
+    .turno-F {
+        background: #fef3c7;
+        color: #92400e;
+        border: 2px solid #f59e0b;
+    }
+    
+    .turno-H {
+        background: #dbeafe;
+        color: #1e40af;
+        border: 2px solid #3b82f6;
+    }
+    
+    .turno-D {
+        background: #dcfce7;
+        color: #166534;
+        border: 2px solid #22c55e;
+    }
+    
+    .turno-N {
+        background: #e0e7ff;
+        color: #3730a3;
+        border: 2px solid #6366f1;
+    }
+    
+    .turno-L {
+        background: #fce7f3;
+        color: #be185d;
+        border: 2px solid #ec4899;
+    }
+    
+    .turno-vacio {
+        background: #f9fafb;
+        color: #9ca3af;
+        border: 2px dashed #d1d5db;
+    }
+    
+    .malla-table tr:hover {
+        background-color: #f8fafc;
+    }
+    
+    .malla-table tr:hover .empleado-cell {
+        background-color: #f8fafc;
+    }
+    
+    /* Responsivo */
+    @media (max-width: 768px) {
+        .programacion-stats {
+            grid-template-columns: 1fr;
+        }
+        
+        .malla-container {
+            margin: 0 -1rem;
+            border-radius: 0;
+        }
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="main-header">
+    <h1>{{ title }}</h1>
+    <div class="programacion-stats">
+        <div class="stat-item">
+            <span class="stat-number">{{ total_empleados }}</span>
+            <span class="stat-label">Empleados</span>
+        </div>
+        <div class="stat-item">
+            <span class="stat-number">{{ total_dias }}</span>
+            <span class="stat-label">Días Programados</span>
+        </div>
+        <div class="stat-item">
+            <span class="stat-number">{{ total_turnos }}</span>
+            <span class="stat-label">Turnos Asignados</span>
+        </div>
+        <div class="stat-item">
+            <span class="stat-number">{{ programacion.modelo_turno.nombre }}</span>
+            <span class="stat-label">Modelo de Turno</span>
+        </div>
+    </div>
+</div>
+
+<div class="breadcrumb-custom">
+    <a href="{% url 'programacion_dashboard' %}">← Centros Operativos</a>
+    <span style="color: #6b7280;">|</span>
+    <a href="{% url 'programaciones_por_centro' programacion.centro_operativo.id_centro %}">
+        {{ programacion.centro_operativo.nombre }}
+    </a>
+    <span style="color: #6b7280;">| Malla de Turnos</span>
+</div>
+
+<div class="malla-container">
+    <table class="malla-table">
+        <thead>
+            <tr>
+                <th class="empleado-header">Empleado</th>
+                {% for fecha in fechas %}
+                <th class="fecha-header">
+                    <div class="fecha-dia">{{ fecha.day }}</div>
+                    <div class="fecha-mes">{{ fecha|date:"m/y" }}</div>
+                    <div class="fecha-dow">{{ fecha|date:"D" }}</div>
+                </th>
+                {% endfor %}
+            </tr>
+        </thead>
+        <tbody>
+            {% for empleado in empleados %}
+            <tr>
+                <td class="empleado-cell">
+                    <div class="empleado-nombre">{{ empleado.nombre_tercero }}</div>
+                    <div class="empleado-cargo">{{ empleado.cargo_predefinido.nombre|default:"Sin cargo" }}</div>
+                </td>
+                {% for fecha in fechas %}
+                <td class="turno-cell">
+                    {% with key=empleado.id_tercero|add:"_"|add:fecha|date:"Y-m-d" turno=matriz_turnos|default_if_none:"" %}
+                        {% if key in matriz_turnos %}
+                            <span class="turno-letra turno-{{ matriz_turnos|dict_get:key }}">
+                                {{ matriz_turnos|dict_get:key }}
+                            </span>
+                        {% else %}
+                            <span class="turno-letra turno-vacio">-</span>
+                        {% endif %}
+                    {% endwith %}
+                </td>
+                {% endfor %}
+            </tr>
+            {% empty %}
+            <tr>
+                <td colspan="{{ fechas|length|add:1 }}" style="text-align: center; padding: 2rem;">
+                    No hay empleados asignados a esta programación.
+                </td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>
+{% endblock %}
