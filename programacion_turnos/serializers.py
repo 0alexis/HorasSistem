@@ -12,6 +12,11 @@ class ProgramacionHorarioSerializer(serializers.ModelSerializer):
         model = ProgramacionHorario
         fields = '__all__'
 
+    def create(self, validated_data):
+        programacion = super().create(validated_data)
+        generar_asignaciones(programacion)
+        return programacion
+
 class AsignacionTurnoSerializer(serializers.ModelSerializer):
     class Meta:
         model = AsignacionTurno
@@ -38,7 +43,7 @@ class ModeloTurnoSerializer(serializers.ModelSerializer):
                             valor=valor
                         )
         return instance
-#extender las fechas dentro de una misma programacion ya antes realizada
+
 class ProgramacionExtensionSerializer(serializers.Serializer):
     fecha_inicio_ext = serializers.DateField()
     fecha_fin_ext = serializers.DateField()
@@ -49,86 +54,188 @@ class ProgramacionExtensionSerializer(serializers.Serializer):
         return data
 
 def generar_asignaciones(programacion):
-    print("Entrando a generar_asignaciones")
-    print(f"Centro operativo: {programacion.centro_operativo}")
-    print(f"Cargo seleccionado: {programacion.cargo_predefinido}")
+    """
+    Genera asignaciones de turnos para una programación específica.
     
-    # OBTENER TERCEROS CORRECTAMENTE
-    from empresas.models import AsignacionTerceroEmpresa
-    from usuarios.models import Tercero
+    Esta función:
+    1. Filtra terceros del centro operativo seleccionado
+    2. Solo considera terceros con el cargo predefinido específico
+    3. Solo incluye terceros activos
+    4. Genera asignaciones basadas en el modelo de turno
+    """
+    print("=== INICIANDO GENERACIÓN DE ASIGNACIONES ===")
+    print(f"Programación ID: {programacion.id}")
+    print(f"Centro operativo: {programacion.centro_operativo.nombre}")
+    print(f"Modelo de turno: {programacion.modelo_turno.nombre}")
+    print(f"Cargo predefinido: {programacion.cargo_predefinido.nombre}")
+    print(f"Fechas: {programacion.fecha_inicio} - {programacion.fecha_fin}")
     
-    # Opción 1: Terceros asignados específicamente a este centro operativo
-    asignaciones_centro = AsignacionTerceroEmpresa.objects.filter(
-        centro_operativo=programacion.centro_operativo,
-        activo=True
-    )
-    terceros_centro = [asignacion.tercero for asignacion in asignaciones_centro]
-    print(f"Terceros asignados al centro: {len(terceros_centro)}")
-    
-    # Opción 2: Si no hay terceros específicos del centro, buscar por cargo
-    if not terceros_centro:
-        terceros_por_cargo = Tercero.objects.filter(
-            cargo_predefinido=programacion.cargo_predefinido,
-            activo=True
-        )
-        print(f"Terceros activos con el cargo '{programacion.cargo_predefinido}': {len(terceros_por_cargo)}")
-        terceros = list(terceros_por_cargo)
-    else:
-        # Filtrar terceros del centro por el cargo específico
-        terceros = [t for t in terceros_centro if t.cargo_predefinido_id == programacion.cargo_predefinido.id]
-        print(f"Terceros del centro con cargo específico: {len(terceros)}")
-    
-    print(f"Terceros finales a programar: {[str(t) for t in terceros]}")
-    
-    if len(terceros) == 0:
-        print("❌ NO HAY TERCEROS PARA PROGRAMAR")
-        print("Verificar:")
-        print("1. ¿Hay terceros asignados al centro operativo en AsignacionTerceroEmpresa?")
-        print("2. ¿Hay terceros con el cargo seleccionado y activos?")
-        print(f"3. ¿El cargo {programacion.cargo_predefinido} tiene terceros asignados?")
-        return
-    
-    fecha_inicio = programacion.fecha_inicio
-    fecha_fin = programacion.fecha_fin
-
-    letras_qs = LetraTurno.objects.filter(modelo_turno=programacion.modelo_turno)
-    print(f"Letras de turno disponibles: {[letra.letra for letra in letras_qs]}")
-    
-    if not letras_qs.exists():
-        print("❌ NO HAY LETRAS DE TURNO PARA EL MODELO SELECCIONADO")
-        return
-    
-    letras = list(letras_qs)
-    fecha_actual = fecha_inicio
-    indice_tercero = 0
-    indice_letra = 0
-    
-    # Generar asignaciones día por día
-    while fecha_actual <= fecha_fin:
-        for tercero in terceros:
-            letra_actual = letras[indice_letra % len(letras)]
-            
-            # Crear asignación
-            asignacion = AsignacionTurno.objects.create(
-                programacion=programacion,
-                tercero=tercero,
-                fecha=fecha_actual,
-                letra_turno=letra_actual,
-                activo=True
-            )
-            print(f"Creada asignación: {tercero} - {fecha_actual} - {letra_actual.letra}")
-            
-            indice_letra += 1
+    try:
+        # PASO 1: OBTENER TERCEROS DEL CENTRO OPERATIVO CON EL CARGO SELECCIONADO
+        from usuarios.models import Tercero
         
-        fecha_actual += timedelta(days=1)
-    
-    print(f"✅ Programación completada desde {fecha_inicio} hasta {fecha_fin}")
+        # LÓGICA CORRECTA: Buscar directamente en Tercero por centro_operativo y cargo_predefinido
+        terceros_candidatos = Tercero.objects.filter(
+            centro_operativo=programacion.centro_operativo,  # Centro seleccionado
+            cargo_predefinido=programacion.cargo_predefinido,  # Cargo seleccionado
+            estado_tercero=1  # Solo activos
+        ).select_related('cargo_predefinido')
+        
+        print(f"\n=== ANÁLISIS DE TERCEROS ===")
+        print(f"Centro operativo seleccionado: {programacion.centro_operativo.nombre}")
+        print(f"Cargo seleccionado: {programacion.cargo_predefinido.nombre}")
+        print(f"Total de terceros encontrados: {terceros_candidatos.count()}")
+        
+        if not terceros_candidatos.exists():
+            print("❌ NO HAY TERCEROS VÁLIDOS PARA LA PROGRAMACIÓN")
+            print("\n🔍 DIAGNÓSTICO:")
+            print("Verificar que:")
+            print("1. Los terceros estén asignados al centro operativo seleccionado")
+            print("2. Los terceros tengan asignado el cargo correcto")
+            print("3. Los terceros estén activos (estado_tercero = 1)")
+            
+            # Mostrar estadísticas para debugging
+            total_terceros_centro = Tercero.objects.filter(
+                centro_operativo=programacion.centro_operativo
+            ).count()
+            
+            terceros_con_cargo = Tercero.objects.filter(
+                centro_operativo=programacion.centro_operativo,
+                cargo_predefinido=programacion.cargo_predefinido
+            ).count()
+            
+            terceros_activos = Tercero.objects.filter(
+                centro_operativo=programacion.centro_operativo,
+                estado_tercero=1
+            ).count()
+            
+            print(f"\n📊 ESTADÍSTICAS DEL CENTRO '{programacion.centro_operativo.nombre}':")
+            print(f"   - Total terceros en centro: {total_terceros_centro}")
+            print(f"   - Terceros con cargo '{programacion.cargo_predefinido.nombre}': {terceros_con_cargo}")
+            print(f"   - Terceros activos: {terceros_activos}")
+            
+            # Verificar si hay terceros con el cargo en otros centros
+            terceros_cargo_total = Tercero.objects.filter(
+                cargo_predefinido=programacion.cargo_predefinido,
+                estado_tercero=1
+            ).count()
+            
+            print(f"\n📊 ESTADÍSTICAS GENERALES:")
+            print(f"   - Total terceros con cargo '{programacion.cargo_predefinido.nombre}' en TODA la empresa: {terceros_cargo_total}")
+            
+            if terceros_cargo_total > 0 and terceros_con_cargo == 0:
+                print(f"\n💡 SOLUCIÓN:")
+                print(f"   Hay {terceros_cargo_total} terceros con cargo '{programacion.cargo_predefinido.nombre}'")
+                print(f"   pero NINGUNO está en el centro '{programacion.centro_operativo.nombre}'")
+                print(f"   Verifique la asignación de centro operativo en la tabla Tercero")
+            
+            return
+        
+        # Mostrar terceros seleccionados
+        print(f"\n=== TERCEROS SELECCIONADOS PARA PROGRAMACIÓN ===")
+        for i, tercero in enumerate(terceros_candidatos, 1):
+            print(f"   {i}. {tercero.nombre_tercero} {tercero.apellido_tercero}")
+            print(f"      - Documento: {tercero.documento}")
+            print(f"      - Centro: {tercero.centro_operativo.nombre}")
+            print(f"      - Cargo: {tercero.cargo_predefinido.nombre}")
 
-def perform_create(self, serializer):
-    programacion = serializer.save()
-    generar_asignaciones(programacion)
-    #guardar la asignacion que se cree
-    #esta presentando problemas al guardar la asignacion
+        # PASO 2: OBTENER LETRAS DE TURNO DEL MODELO
+        letras_qs = LetraTurno.objects.filter(
+            modelo_turno=programacion.modelo_turno
+        ).order_by('fila', 'columna')
+        
+        print(f"\n=== CONFIGURACIÓN DEL MODELO DE TURNO ===")
+        print(f"Letras de turno encontradas: {letras_qs.count()}")
+        
+        if not letras_qs.exists():
+            print("❌ NO HAY LETRAS DE TURNO PARA EL MODELO SELECCIONADO")
+            print("Verificar que el modelo de turno tenga letras configuradas")
+            return
+        
+        # Construir matriz de letras
+        matriz = {}
+        max_fila = 0
+        max_col = 0
+        
+        for letra in letras_qs:
+            if isinstance(letra.valor, list):
+                print(f"⚠️ Valor {letra.valor} es una lista, usando el primer elemento.")
+                matriz[(letra.fila, letra.columna)] = letra.valor[0] if letra.valor else ''
+            else:
+                matriz[(letra.fila, letra.columna)] = letra.valor
+            max_fila = max(max_fila, letra.fila)
+            max_col = max(max_col, letra.columna)
+        
+        print(f"Matriz construida: {matriz}")
+        print(f"Dimensiones: {max_fila + 1} filas × {max_col + 1} columnas")
+        
+        # PASO 3: CALCULAR PARÁMETROS DE PROGRAMACIÓN
+        fecha_inicio = programacion.fecha_inicio
+        fecha_fin = programacion.fecha_fin
+        dias = (fecha_fin - fecha_inicio).days + 1
+        num_terceros = len(terceros_candidatos)
+        
+        print(f"\n=== PARÁMETROS DE PROGRAMACIÓN ===")
+        print(f"Rango de días: {dias} días")
+        print(f"Total de terceros: {num_terceros}")
+        print(f"Total de asignaciones a crear: {dias * num_terceros}")
+        
+        if not matriz:
+            print("❌ Matriz vacía, no se crean asignaciones.")
+            return
+        
+        # PASO 4: CREAR ASIGNACIONES
+        print(f"\n=== INICIANDO CREACIÓN DE ASIGNACIONES ===")
+        
+        # Limpiar asignaciones existentes si las hay
+        asignaciones_existentes = AsignacionTurno.objects.filter(programacion=programacion)
+        if asignaciones_existentes.exists():
+            print(f"⚠️ Eliminando {asignaciones_existentes.count()} asignaciones existentes...")
+            asignaciones_existentes.delete()
+        
+        # Crear nuevas asignaciones
+        asignaciones_creadas = 0
+        for idx, tercero in enumerate(terceros_candidatos):
+            fila = idx % (max_fila + 1)
+            print(f"\n👤 Tercero {idx+1}: {tercero.nombre_tercero} {tercero.apellido_tercero} - Asignado a Fila {fila}")
+            
+            for dia_offset in range(dias):
+                fecha = fecha_inicio + timedelta(days=dia_offset)
+                columna = dia_offset % (max_col + 1)
+                letra = matriz.get((fila, columna))
+                
+                if letra:
+                    try:
+                        AsignacionTurno.objects.create(
+                            programacion=programacion,
+                            tercero=tercero,
+                            dia=fecha,
+                            letra_turno=letra,
+                            fila=fila,
+                            columna=columna
+                        )
+                        asignaciones_creadas += 1
+                        print(f"   ✅ {fecha.strftime('%Y-%m-%d')}: {letra}")
+                    except Exception as e:
+                        print(f"   ❌ Error al crear asignación: {e}")
+                else:
+                    print(f"   ⚠️ {fecha.strftime('%Y-%m-%d')}: Letra vacía para fila={fila}, columna={columna}")
+        
+        # PASO 5: VERIFICACIÓN FINAL
+        total_asignaciones = AsignacionTurno.objects.filter(programacion=programacion).count()
+        print(f"\n=== PROGRAMACIÓN COMPLETADA ===")
+        print(f"✅ Total de asignaciones creadas: {asignaciones_creadas}")
+        print(f"✅ Total de asignaciones en BD: {total_asignaciones}")
+        print(f"✅ Programación exitosa para {num_terceros} terceros en {dias} días")
+        
+        if asignaciones_creadas != dias * num_terceros:
+            print(f"⚠️ Se esperaban {dias * num_terceros} asignaciones, se crearon {asignaciones_creadas}")
+        
+    except Exception as e:
+        print(f"❌ ERROR GENERAL EN GENERAR_ASIGNACIONES: {e}")
+        import traceback
+        traceback.print_exc()
+        raise
 
 class CambioMallaSerializer(serializers.Serializer):
     tercero_id = serializers.IntegerField()

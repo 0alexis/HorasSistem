@@ -28,7 +28,6 @@ def registrar_todos_los_modelos():
     
     for app_config in installed_apps:
         if app_config.label in apps_a_rastrear:
-            print(f"🔍 Registrando modelos de {app_config.label}...")
             
             for model in app_config.get_models():
                 # Excluir modelos del sistema Django
@@ -40,12 +39,10 @@ def registrar_todos_los_modelos():
                         pre_save.connect(capturar_valores_anteriores_automatico, sender=model)
                         
                         modelos_registrados.append(f"{model._meta.app_label}.{model._meta.model_name}")
-                        print(f"  ✅ {model._meta.verbose_name} ({model._meta.model_name})")
                         
                     except Exception as e:
-                        print(f"  ❌ Error registrando {model._meta.model_name}: {e}")
-    
-    print(f"\n🎯 Total de modelos registrados en bitácora: {len(modelos_registrados)}")
+                        pass
+
     return modelos_registrados
 
 def registrar_modelo_especifico(model_class):
@@ -57,11 +54,9 @@ def registrar_modelo_especifico(model_class):
         post_delete.connect(registrar_eliminacion_automatica, sender=model_class)
         pre_save.connect(capturar_valores_anteriores_automatico, sender=model_class)
         
-        print(f"✅ Modelo {model_class._meta.model_name} registrado en bitácora")
         return True
         
     except Exception as e:
-        print(f"❌ Error registrando {model_class._meta.model_name}: {e}")
         return False
 
 def obtener_modelos_rastreados():

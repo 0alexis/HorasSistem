@@ -244,7 +244,20 @@ class ProgramacionHorarioAdmin(admin.ModelAdmin):
         })
 
     def save_model(self, request, obj, form, change):
-        empleados = list(Tercero.objects.filter(centro_operativo=obj.centro_operativo, estado_tercero=1))  # Corrección: usar estado=1
+        # Obtener empleados del centro operativo con el cargo específico y activos
+        from empresas.models import AsignacionTerceroEmpresa
+        
+        asignaciones_centro = AsignacionTerceroEmpresa.objects.filter(
+            centro_operativo=obj.centro_operativo,
+            activo=True
+        )
+        
+        empleados = [
+            asignacion.tercero for asignacion in asignaciones_centro
+            if asignacion.tercero.cargo_predefinido_id == obj.cargo_predefinido.id_cargo_predefinido
+            and asignacion.tercero.estado_tercero == 1
+        ]
+        
         from django.contrib import messages
         
         # Validación previa (sin crear asignaciones)
@@ -258,19 +271,17 @@ class ProgramacionHorarioAdmin(admin.ModelAdmin):
                 min_personas = pv * 4
                 if len(empleados) < min_personas:
                     raise ValueError(f"Para modelos de tipo FIJO se requieren al menos {min_personas} personas para realizar esta programacion. Solo hay {len(empleados)} empleados disponibles.")
+            
+            if len(empleados) == 0:
+                raise ValueError(f"No hay empleados con el cargo '{obj.cargo_predefinido.nombre}' en el centro operativo '{obj.centro_operativo.nombre}'.")
         
             # PASO 1: Si pasa la validación, guarda el objeto PRIMERO
             super().save_model(request, obj, form, change)
             
             # PASO 2: Ahora sí crea las asignaciones (solo al crear, no al editar)
             if not change:  # Solo al crear nuevas programaciones
-                programar_turnos(
-                    obj.modelo_turno,
-                    empleados,
-                    obj.fecha_inicio,
-                    obj.fecha_fin,
-                    obj
-                )
+                from .serializers import generar_asignaciones
+                generar_asignaciones(obj)
         except ValueError as e:
             messages.error(request, str(e))
 

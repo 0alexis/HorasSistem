@@ -173,6 +173,15 @@
         font-weight: bold;
         font-size: 0.9rem;
         text-align: center;
+        cursor: pointer;
+        transition: all 0.2s ease;
+        box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+    }
+    
+    .turno-letra:hover {
+        transform: scale(1.1);
+        box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+        z-index: 10;
     }
     
     /* Colores por tipo de turno */
@@ -204,6 +213,132 @@
         background: #fce7f3;
         color: #be185d;
         border: 2px solid #ec4899;
+    }
+    
+    .turno-A {
+        background: #fef2f2;
+        color: #991b1b;
+        border: 2px solid #ef4444;
+    }
+    
+    .turno-B {
+        background: #f0f9ff;
+        color: #0c4a6e;
+        border: 2px solid #0ea5e9;
+    }
+    
+    .turno-C {
+        background: #f0fdf4;
+        color: #14532d;
+        border: 2px solid #16a34a;
+    }
+    
+    .turno-E {
+        background: #faf5ff;
+        color: #581c87;
+        border: 2px solid #a855f7;
+    }
+    
+    .turno-G {
+        background: #fff7ed;
+        color: #9a3412;
+        border: 2px solid #ea580c;
+    }
+    
+    .turno-I {
+        background: #f0f9ff;
+        color: #1e40af;
+        border: 2px solid #3b82f6;
+    }
+    
+    .turno-J {
+        background: #fefce8;
+        color: #854d0e;
+        border: 2px solid #eab308;
+    }
+    
+    .turno-K {
+        background: #fdf2f8;
+        color: #831843;
+        border: 2px solid #ec4899;
+    }
+    
+    .turno-M {
+        background: #f0fdfa;
+        color: #134e4a;
+        border: 2px solid #14b8a6;
+    }
+    
+    .turno-O {
+        background: #fef3c7;
+        color: #92400e;
+        border: 2px solid #f59e0b;
+    }
+    
+    .turno-P {
+        background: #dbeafe;
+        color: #1e40af;
+        border: 2px solid #3b82f6;
+    }
+    
+    .turno-Q {
+        background: #dcfce7;
+        color: #166534;
+        border: 2px solid #22c55e;
+    }
+    
+    .turno-R {
+        background: #e0e7ff;
+        color: #3730a3;
+        border: 2px solid #6366f1;
+    }
+    
+    .turno-S {
+        background: #fce7f3;
+        color: #be185d;
+        border: 2px solid #ec4899;
+    }
+    
+    .turno-T {
+        background: #fef2f2;
+        color: #991b1b;
+        border: 2px solid #ef4444;
+    }
+    
+    .turno-U {
+        background: #f0f9ff;
+        color: #0c4a6e;
+        border: 2px solid #0ea5e9;
+    }
+    
+    .turno-V {
+        background: #f0fdf4;
+        color: #14532d;
+        border: 2px solid #16a34a;
+    }
+    
+    .turno-W {
+        background: #faf5ff;
+        color: #581c87;
+        border: 2px solid #a855f7;
+    }
+    
+    .turno-X {
+        background: #fff7ed;
+        color: #9a3412;
+        border: 2px solid #ea580c;
+    }
+    
+    .turno-Y {
+        background: #f0f9ff;
+        color: #1e40af;
+        border: 2px solid #3b82f6;
+    }
+    
+    .turno-Z {
+        background: #fefce8;
+        color: #854d0e;
+        border: 2px solid #eab308;
     }
     
     .turno-vacio {
@@ -289,14 +424,26 @@
                 </td>
                 {% for fecha in fechas %}
                 <td class="turno-cell">
-                    {% with key=empleado.id_tercero|add:"_"|add:fecha|date:"Y-m-d" turno=matriz_turnos|default_if_none:"" %}
-                        {% if key in matriz_turnos %}
-                            <span class="turno-letra turno-{{ matriz_turnos|dict_get:key }}">
-                                {{ matriz_turnos|dict_get:key }}
-                            </span>
-                        {% else %}
-                            <span class="turno-letra turno-vacio">-</span>
-                        {% endif %}
+                    {% with fecha_str=fecha|date:"Y-m-d" %}
+                        {% with letra=matriz_empleados_fechas|dict_get:empleado.id_tercero|dict_get:fecha_str %}
+                            {% if letra and letra != "" %}
+                                <span class="turno-letra turno-{{ letra }}" 
+                                      data-letra="{{ letra }}"
+                                      data-empleado-id="{{ empleado.id_tercero }}"
+                                      data-fecha="{{ fecha_str }}"
+                                      title="Empleado: {{ empleado.nombre_tercero }} | Fecha: {{ fecha|date:'d/m/Y' }} | Turno: {{ letra }}">
+                                    {{ letra }}
+                                </span>
+                            {% else %}
+                                <span class="turno-letra turno-vacio" 
+                                      data-letra="-"
+                                      data-empleado-id="{{ empleado.id_tercero }}"
+                                      data-fecha="{{ fecha_str }}"
+                                      title="Empleado: {{ empleado.nombre_tercero }} | Fecha: {{ fecha|date:'d/m/Y' }} | Sin asignación">
+                                    -
+                                </span>
+                            {% endif %}
+                        {% endwith %}
                     {% endwith %}
                 </td>
                 {% endfor %}
@@ -311,4 +458,48 @@
         </tbody>
     </table>
 </div>
+
+<!-- Leyenda de Turnos -->
+<div style="margin-top: 2rem; background: white; border-radius: 12px; padding: 1.5rem; box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);">
+    <h3 style="margin: 0 0 1rem 0; color: #374151; font-size: 1.1rem;">Leyenda de Turnos</h3>
+    <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 0.75rem;">
+        {% for letra, info in codigos_info.items %}
+        <div style="display: flex; align-items: center; gap: 0.5rem;">
+            <span class="turno-letra turno-{{ letra }}">{{ letra }}</span>
+            <div>
+                <div style="font-size: 0.9rem; color: #374151; font-weight: 500;">{{ info.descripcion }}</div>
+                <div style="font-size: 0.8rem; color: #6b7280;">{{ info.duracion }}h | {{ info.tipo }}</div>
+            </div>
+        </div>
+        {% endfor %}
+        <div style="display: flex; align-items: center; gap: 0.5rem;">
+            <span class="turno-letra turno-vacio">-</span>
+            <div>
+                <div style="font-size: 0.9rem; color: #374151; font-weight: 500;">Sin asignación</div>
+                <div style="font-size: 0.8rem; color: #6b7280;">Sin turno asignado</div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- DEBUG INFO -->
+{% if debug %}
+<div style="margin-top: 2rem; background: #f0f0f0; border: 1px solid #ccc; padding: 1rem; font-family: monospace; font-size: 12px;">
+    <h4>DEBUG INFO:</h4>
+    <p><strong>Total empleados:</strong> {{ empleados|length }}</p>
+    <p><strong>Total fechas:</strong> {{ fechas|length }}</p>
+    <p><strong>Total asignaciones en matriz:</strong> {{ matriz_turnos|length }}</p>
+    <p><strong>Primeras 5 claves en matriz_turnos:</strong></p>
+    <ul>
+    {% for key, value in matriz_turnos.items|slice:":5" %}
+        <li>{{ key }} = {{ value }}</li>
+    {% endfor %}
+    </ul>
+    <p><strong>Codigos_info disponible:</strong> {{ codigos_info|yesno:"Sí,No" }}</p>
+    {% if codigos_info %}
+    <p><strong>Letras en codigos_info:</strong> {{ codigos_info.keys|join:", " }}</p>
+    {% endif %}
+</div>
+{% endif %}
 {% endblock %}
+

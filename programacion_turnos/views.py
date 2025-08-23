@@ -22,26 +22,21 @@ from rest_framework.permissions import IsAuthenticated
 from .serializers import EditarMallaRequestSerializer
 from .services.holiday_service import get_holidays_for_range
 from .forms import ProgramacionHorarioForm  
+from usuarios.models import CodigoTurno
 
 class ProgramacionHorarioViewSet(viewsets.ModelViewSet):
     queryset = ProgramacionHorario.objects.all()
     serializer_class = ProgramacionHorarioSerializer
 
     def perform_create(self, serializer):
-        #clase que crea y realiza la programacion de turno
         print("Entrando a perform_create de ProgramacionHorarioViewSet")
         programacion = serializer.save()
         print(f"Programacion creada: {programacion}")
+        
+        # Generar asignaciones usando la función del serializer
+        from .serializers import generar_asignaciones
         generar_asignaciones(programacion)
         print("Fin de perform_create")
-        empleados = list(Tercero.objects.filter(centro_operativo=programacion.centro_operativo))
-        programar_turnos(
-            programacion.modelo_turno,
-            empleados,
-            programacion.fecha_inicio,
-            programacion.fecha_fin,
-            programacion
-        )
 
     @action(detail=True, methods=['post'], url_path='extender')
     def extender(self, request, pk=None):
@@ -283,7 +278,12 @@ def malla_turnos(request, programacion_id):
     empleados = Tercero.objects.filter(
         asignacionturno__programacion=programacion
     ).distinct().select_related('cargo_predefinido').order_by('nombre_tercero')
-    
+                                                     # Por apellido:
+                                                     #.order_by('apellido_tercero')
+                                                     # Por nombre completo (apellido + nombre):
+                                                     #.order_by('apellido_tercero', 'nombre_tercero')
+                                                     # Por documento:
+                                                      #.order_by('documento')
     # Fechas
     fecha_inicio = programacion.fecha_inicio
     fecha_fin = programacion.fecha_fin
@@ -298,28 +298,80 @@ def malla_turnos(request, programacion_id):
         programacion=programacion
     ).select_related('tercero')
     
-    # Crear matriz - CORREGIR: usar 'dia' en lugar de 'fecha'
+    # Crear matriz de turnos organizada por empleado y fecha
     matriz_turnos = {}
-    for asignacion in asignaciones:
-        key = f"{asignacion.tercero.id_tercero}_{asignacion.dia.strftime('%Y-%m-%d')}"  # ← 'dia' no 'fecha'
-        matriz_turnos[key] = asignacion.letra_turno 
+    matriz_empleados_fechas = {}  # Nueva estructura más fácil de usar
     
+    for asignacion in asignaciones:
+        key = f"{asignacion.tercero.id_tercero}_{asignacion.dia.strftime('%Y-%m-%d')}"
+        matriz_turnos[key] = asignacion.letra_turno
+        
+        # Crear estructura organizada por empleado y fecha
+        if asignacion.tercero.id_tercero not in matriz_empleados_fechas:
+            matriz_empleados_fechas[asignacion.tercero.id_tercero] = {}
+        matriz_empleados_fechas[asignacion.tercero.id_tercero][asignacion.dia.strftime('%Y-%m-%d')] = asignacion.letra_turno 
+
+    # PASO 6: Obtener información de códigos de turno desde usuarios_codigoturno
+    
+    letras_utilizadas = set(matriz_turnos.values())
+    codigos_info = {}
+    
+    # Obtener todos los códigos de turno activos de una vez
+    codigos_turno = CodigoTurno.objects.filter(estado_codigo=1).values(
+        'letra_turno', 'descripcion_novedad', 'duracion_total', 'tipo', 'segmentos_horas'
+    )
+    
+    # Crear diccionario para búsqueda rápida
+    codigos_dict = {codigo['letra_turno']: codigo for codigo in codigos_turno}
+    
+    for letra in letras_utilizadas:
+        if letra and letra.strip():  # Filtrar valores vacíos
+            codigo = codigos_dict.get(letra)
+            if codigo:
+                codigos_info[letra] = {
+                    'descripcion': codigo['descripcion_novedad'] or f'Turno {letra}',
+                    'duracion': float(codigo['duracion_total']) if codigo['duracion_total'] else 0,
+                    'tipo': codigo['tipo'],
+                    'segmentos': codigo['segmentos_horas']
+                }
+            else:
+                codigos_info[letra] = {
+                    'descripcion': f'Turno {letra}',
+                    'duracion': 8,
+                    'tipo': 'N',
+                    'segmentos': []
+                }   
+    # PASO 7: Calcular estadísticas
+    estadisticas_por_letra = {}
+    for letra in matriz_turnos.values():
+        if letra:
+            estadisticas_por_letra[letra] = estadisticas_por_letra.get(letra, 0) + 1
     # Debug temporal
     print("=== DEBUG ASIGNACIONES ===")
     print(f"Total asignaciones: {asignaciones.count()}")
+    print(f"Matriz de turnos creada con {len(matriz_turnos)} elementos")
+    print(f"Claves en matriz_turnos: {list(matriz_turnos.keys())[:5]}")  # Mostrar primeras 5 claves
     for asig in asignaciones[:3]:
         print(f"Tercero: {asig.tercero.nombre_tercero}, Día: {asig.dia}, Letra: {asig.letra_turno}")
+        key = f"{asig.tercero.id_tercero}_{asig.dia.strftime('%Y-%m-%d')}"
+        print(f"  Clave generada: {key}")
+        print(f"  En matriz: {matriz_turnos.get(key, 'NO ENCONTRADO')}")
     print("=== FIN DEBUG ===")
     
+    # PASO 8: Preparar context
     context = {
         'programacion': programacion,
         'empleados': empleados,
         'fechas': fechas,
         'matriz_turnos': matriz_turnos,
+        'matriz_empleados_fechas': matriz_empleados_fechas,  # Nueva estructura
+        'codigos_info': codigos_info,
+        'estadisticas_por_letra': estadisticas_por_letra,
         'total_empleados': empleados.count(),
         'total_dias': len(fechas),
         'total_turnos': asignaciones.count(),
-        'title': f'Malla de Turnos - {programacion.centro_operativo.nombre}'
+        'title': f'Malla de Turnos - {programacion.centro_operativo.nombre}',
+        'debug': True  # Activar debug temporalmente
     }
     
     return render(request, 'malla/malla_turno.html', context)
@@ -417,14 +469,22 @@ class HolidayJsView(TemplateView):
                 for codigo in codigos_utilizados:
                     if codigo and codigo.strip():  # Filtrar valores vacíos
                         try:
-                            codigo_obj = CodigoTurno.objects.get(letra_turno=codigo, estado_codigo=1)
-                            codigos_info.append({
-                                'codigo': codigo_obj.letra_turno,
-                                'descripcion': codigo_obj.descripcion_novedad,
-                                'horas': float(codigo_obj.duracion_total) if codigo_obj.duracion_total else 0,
-                                'tipo': codigo_obj.tipo
-                            })
-                        except CodigoTurno.DoesNotExist:
+                            codigo_obj = CodigoTurno.objects.filter(letra_turno=codigo, estado_codigo=1).first()
+                            if codigo_obj:
+                                codigos_info.append({
+                                    'codigo': codigo_obj.letra_turno,
+                                    'descripcion': codigo_obj.descripcion_novedad,
+                                    'horas': float(codigo_obj.duracion_total) if codigo_obj.duracion_total else 0,
+                                    'tipo': codigo_obj.tipo
+                                })
+                            else:
+                                codigos_info.append({
+                                    'codigo': codigo,
+                                    'descripcion': f'Turno {codigo}',
+                                    'horas': 8,
+                                    'tipo': 'N'
+                                })
+                        except Exception as e:
                             codigos_info.append({
                                 'codigo': codigo,
                                 'descripcion': f'Turno {codigo}',
@@ -486,17 +546,103 @@ def programaciones_por_centro_view(request, centro_id):
 
 #### CREAR NUEVA PROGRAMACIÓN ####
 def crear_programacion_view(request, centro_id=None):
+    """
+    Vista para crear nuevas programaciones de turnos.
+    
+    Esta vista:
+    1. Valida el formulario
+    2. Crea la programación
+    3. Genera automáticamente las asignaciones de turnos
+    4. Solo considera terceros del centro operativo seleccionado con el cargo específico
+    """
     if request.method == 'POST':
         form = ProgramacionHorarioForm(request.POST)
         if form.is_valid():
-            programacion = form.save()
-            # AGREGAR ESTA LÍNEA PARA GENERAR ASIGNACIONES
-            from .serializers import generar_asignaciones
-            generar_asignaciones(programacion)
-            messages.success(request, f'Programación creada exitosamente para {programacion.centro_operativo.nombre}')
-            return redirect('programaciones_por_centro', centro_id=programacion.centro_operativo.id_centro)
+            try:
+                # PASO 1: Crear la programación
+                programacion = form.save(commit=False)
+                
+                # Asignar usuario si no se especifica
+                if not programacion.creado_por:
+                    programacion.creado_por = request.user
+                
+                # Guardar la programación
+                programacion.save()
+                print(f"✅ Programación creada exitosamente: {programacion}")
+                
+                # PASO 2: Validar que existan terceros para programar
+                from usuarios.models import Tercero
+                
+                # Verificar que hay terceros en el centro con el cargo seleccionado
+                terceros_disponibles = Tercero.objects.filter(
+                    centro_operativo=programacion.centro_operativo,
+                    cargo_predefinido=programacion.cargo_predefinido,
+                    estado_tercero=1
+                ).count()
+                
+                if terceros_disponibles == 0:
+                    # Eliminar la programación si no hay terceros válidos
+                    programacion.delete()
+                    messages.error(
+                        request, 
+                        f'No hay empleados con el cargo "{programacion.cargo_predefinido.nombre}" '
+                        f'en el centro operativo "{programacion.centro_operativo.nombre}". '
+                        'Verifique que los empleados estén asignados al centro y tengan el cargo correcto.'
+                    )
+                    return redirect('programaciones_por_centro', centro_id=centro_id)
+                
+                print(f"✅ Encontrados {terceros_disponibles} terceros válidos para programar")
+                
+                # PASO 3: Generar asignaciones de turnos
+                from .serializers import generar_asignaciones
+                print("🔄 Iniciando generación de asignaciones...")
+                generar_asignaciones(programacion)
+                print("✅ Asignaciones generadas correctamente")
+                
+                # PASO 4: Verificar que se crearon las asignaciones
+                from .models import AsignacionTurno
+                total_asignaciones = AsignacionTurno.objects.filter(programacion=programacion).count()
+                
+                if total_asignaciones > 0:
+                    messages.success(
+                        request, 
+                        f'Programación creada exitosamente para {programacion.centro_operativo.nombre}. '
+                        f'Se generaron {total_asignaciones} asignaciones de turnos.'
+                    )
+                else:
+                    messages.warning(
+                        request, 
+                        f'Programación creada pero no se generaron asignaciones. '
+                        f'Verifique la configuración del modelo de turno.'
+                    )
+                
+                return redirect('programaciones_por_centro', centro_id=programacion.centro_operativo.id_centro)
+                
+            except Exception as e:
+                print(f"❌ Error al generar asignaciones: {e}")
+                import traceback
+                traceback.print_exc()
+                
+                # Si hay error, eliminar la programación creada
+                if 'programacion' in locals() and programacion:
+                    programacion.delete()
+                    print("⚠️ Programación eliminada debido al error")
+                
+                messages.error(
+                    request, 
+                    f'Error al crear la programación: {str(e)}. '
+                    'Verifique que todos los datos estén correctos.'
+                )
+                return redirect('programaciones_por_centro', centro_id=centro_id)
         else:
+            print(f"❌ Formulario inválido: {form.errors}")
             messages.error(request, 'Error en el formulario. Revise los datos ingresados.')
+            
+            # Mostrar errores específicos
+            for field, errors in form.errors.items():
+                field_name = form.fields[field].label if field in form.fields else field
+                for error in errors:
+                    messages.error(request, f'{field_name}: {error}')
     else:
         # Pre-seleccionar el centro operativo si viene desde un centro específico
         initial_data = {}
