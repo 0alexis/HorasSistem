@@ -419,8 +419,9 @@
             {% for empleado in empleados %}
             <tr>
                 <td class="empleado-cell">
-                    <div class="empleado-nombre">{{ empleado.nombre_tercero }}</div>
-                    <div class="empleado-cargo">{{ empleado.cargo_predefinido.nombre|default:"Sin cargo" }}</div>
+                     <div class="empleado-nombre">{{ empleado.nombre_tercero }}</div>
+                     <div class="empleado-cedula">Cédula: {{ empleado.documento|default:"-" }}</div>
+                     <div class="empleado-cargo">{{ empleado.cargo_predefinido.nombre|default:"Sin cargo" }}</div>
                 </td>
                 {% for fecha in fechas %}
                 <td class="turno-cell">

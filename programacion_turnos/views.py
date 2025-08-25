@@ -277,13 +277,15 @@ def malla_turnos(request, programacion_id):
     
     empleados = Tercero.objects.filter(
         asignacionturno__programacion=programacion
-    ).distinct().select_related('cargo_predefinido').order_by('nombre_tercero')
+    ).distinct().select_related('cargo_predefinido')
+    #order_by('apellido_tercero')
                                                      # Por apellido:
                                                      #.order_by('apellido_tercero')
                                                      # Por nombre completo (apellido + nombre):
                                                      #.order_by('apellido_tercero', 'nombre_tercero')
                                                      # Por documento:
                                                       #.order_by('documento')
+                                                      #.order_by('id_tercero')
     # Fechas
     fecha_inicio = programacion.fecha_inicio
     fecha_fin = programacion.fecha_fin

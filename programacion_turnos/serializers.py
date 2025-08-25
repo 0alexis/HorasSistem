@@ -79,8 +79,9 @@ def generar_asignaciones(programacion):
             centro_operativo=programacion.centro_operativo,  # Centro seleccionado
             cargo_predefinido=programacion.cargo_predefinido,  # Cargo seleccionado
             estado_tercero=1  # Solo activos
-        ).select_related('cargo_predefinido')
-        
+        ).select_related('cargo_predefinido').order_by('apellido_tercero')
+  ###MOMENTO DE REALIZAR LAS ASIGNACIONES SE REALIZA FILTRO DE NOMBRE####
+
         print(f"\n=== ANÁLISIS DE TERCEROS ===")
         print(f"Centro operativo seleccionado: {programacion.centro_operativo.nombre}")
         print(f"Cargo seleccionado: {programacion.cargo_predefinido.nombre}")
@@ -103,7 +104,7 @@ def generar_asignaciones(programacion):
                 centro_operativo=programacion.centro_operativo,
                 cargo_predefinido=programacion.cargo_predefinido
             ).count()
-            
+                                                                        
             terceros_activos = Tercero.objects.filter(
                 centro_operativo=programacion.centro_operativo,
                 estado_tercero=1
