@@ -92,8 +92,8 @@ class CentroOperativoAdmin(admin.ModelAdmin):
 
 @admin.register(CargoPredefinido)
 class CargoPredefinidoAdmin(admin.ModelAdmin):
-    list_display = ('nombre', 'descripcion', 'nivel', 'area', 'activo', 'estado_cargo')
-    list_filter = ('nivel', 'area', 'activo', 'estado_cargo')
+    list_display = ('nombre', 'descripcion', 'activo', 'estado_cargo', 'salario')
+    list_filter = ( 'activo', 'estado_cargo')
     search_fields = ('nombre', 'descripcion')
 
     #def get_queryset(self, request):

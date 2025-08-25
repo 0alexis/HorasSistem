@@ -8,7 +8,7 @@ from django.shortcuts import render, redirect
 from django.contrib import messages
 from django.http import JsonResponse
 import json
-from .models import Usuario, Tercero, CodigoTurno
+from .models import CentroDeCosto, Usuario, Tercero, CodigoTurno
 
 class TimeInputSimple(forms.TimeInput):
     """Widget simple para formato 24 horas"""
@@ -185,19 +185,30 @@ class CustomUserAdmin(UserAdmin):
 
 @admin.register(Tercero)
 class TerceroAdmin(admin.ModelAdmin):
-    list_display = ('nombre_tercero', 'apellido_tercero', 'documento', 'cargo_predefinido', 'centro_operativo', 'estado_tercero')
-    list_filter = ('estado_tercero', 'cargo_predefinido', 'centro_operativo')
+    list_display = (
+        'nombre_tercero', 'apellido_tercero', 'documento',
+        'centro_de_costo', 'unidad_negocio', 'centro_operativo', 'proyecto', 'estado_tercero'
+    )
+    list_filter = ('centro_de_costo', 'unidad_negocio', 'centro_operativo', 'proyecto', 'estado_tercero')
     search_fields = ('nombre_tercero', 'apellido_tercero', 'documento')
-    raw_id_fields = ('cargo_predefinido', 'centro_operativo')
+    raw_id_fields = ('cargo_predefinido', 'centro_operativo', 'unidad_negocio', 'proyecto', 'centro_de_costo')
 
     fieldsets = (
         (None, {
-            'fields': ('nombre_tercero', 'apellido_tercero', 'documento', 'correo_tercero', 'cargo_predefinido', 'centro_operativo', 'estado_tercero')
+            'fields': (
+                'nombre_tercero', 'apellido_tercero', 'documento', 'correo_tercero',
+                'cargo_predefinido', 'centro_de_costo', 'unidad_negocio', 'centro_operativo', 'proyecto', 'estado_tercero'
+            )
         }),
     )
 
     def get_queryset(self, request):
         return Tercero.all_objects.all()
+
+@admin.register(CentroDeCosto)
+class CentroDeCostoAdmin(admin.ModelAdmin):
+    list_display = ('codigo', 'nombre')
+    search_fields = ('codigo', 'nombre')
 
 @admin.register(CodigoTurno)
 class CodigoTurnoAdmin(admin.ModelAdmin):

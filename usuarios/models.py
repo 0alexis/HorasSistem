@@ -107,7 +107,28 @@ class Tercero(models.Model):
         null=True,
         verbose_name='Centro Operativo'
     )
-    
+   
+    unidad_negocio = models.ForeignKey(
+        'empresas.UnidadNegocio',
+        on_delete=models.PROTECT,
+        related_name='terceros',
+        null=True,
+        verbose_name='Unidad de Negocio'
+    )
+    centro_de_costo = models.ForeignKey(
+        'CentroDeCosto',
+        on_delete=models.PROTECT,
+        related_name='terceros',
+        null=True,
+        verbose_name='Centro de Costo'
+    )
+    proyecto = models.ForeignKey(
+        'empresas.Proyecto',
+        on_delete=models.PROTECT,
+        related_name='terceros',
+        null=True,
+        verbose_name='Proyecto'
+    )
     Estado_Activo = 1
     Estado_Inactivo = 0
     estado_tercero = models.IntegerField(default=Estado_Activo)
@@ -396,3 +417,17 @@ def crear_usuario_desde_tercero(tercero, username, password, grupo_nombre):
     usuario.save()
     usuario.groups.add(grupo)
     return usuario
+
+class CentroDeCosto(models.Model):
+    """
+    Tabla para centros de costo.
+    """
+    codigo = models.CharField(max_length=20, unique=True)
+    nombre = models.CharField(max_length=100)
+
+    class Meta:
+        verbose_name = 'Centro de Costo'
+        verbose_name_plural = 'Centros de Costo'
+
+    def __str__(self):
+        return f"{self.codigo} - {self.nombre}"

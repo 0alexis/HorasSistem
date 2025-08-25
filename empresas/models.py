@@ -166,38 +166,24 @@ class CentroOperativo(models.Model):
 
 # Modelo para CargoPredefinido
 class CargoPredefinido(models.Model):
-    NIVEL_CARGO = [
-        ('ALTO', 'Nivel Alto'),
-        ('MEDIO', 'Nivel Medio'),
-        ('OPERATIVO', 'Nivel Operativo'),
-    ]
-
-    AREA = [
-        ('ADMINISTRATIVA', 'Área Administrativa'),
-        ('OPERATIVA', 'Área Operativa'),
-        ('COMERCIAL', 'Área Comercial'),
-        ('TECNICA', 'Área Técnica'),
-        ('OTROS', 'Otras Áreas'),
-    ]
 
     id_cargo_predefinido = models.AutoField(primary_key=True)  # Del diagrama (ajustado)
     nombre = models.CharField(max_length=100, unique=True)
     descripcion = models.TextField(help_text="Descripción general de las funciones del cargo")
-    nivel = models.CharField(max_length=20, choices=NIVEL_CARGO, default='OPERATIVO', help_text="Nivel jerárquico del cargo")
-    area = models.CharField(max_length=20, choices=AREA, default='OTROS', help_text="Área funcional del cargo")
+    salario = models.DecimalField(max_digits=12, decimal_places=2, help_text="Salario base para el cargo")  # <-- Nuevo campo
     activo = models.BooleanField(default=True)
     creado_en = models.DateTimeField(auto_now_add=True)
     actualizado_en = models.DateTimeField(auto_now=True)
     estado_cargo = models.IntegerField(default=1)  # Del diagrama
 
     def __str__(self):
-        return f"{self.nombre} - {self.get_nivel_display()} ({self.get_area_display()})"
+        return f"{self.nombre} - ${self.salario}"
 
     class Meta:
         verbose_name = 'Cargo Predefinido'
         verbose_name_plural = 'Cargos Predefinidos'
-        ordering = ['area', 'nivel', 'nombre']
-        unique_together = ['nombre', 'nivel']
+        ordering = ['nombre']
+        unique_together = ['nombre', 'salario']
 
 # Manager personalizado para soft delete de Cargo
 class ActivoCargoManager(models.Manager):
