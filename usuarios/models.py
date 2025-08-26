@@ -158,241 +158,46 @@ class CodigoTurno(models.Model):
         ('D', 'Descanso'),
         ('F', 'Festivo'),
         ('FO', 'Festivo Ordinario'),
-        ('ND', 'No Devengado'), #ND se usa para las novedades, como dias de medicina y cosas especiales
+        ('ND', 'No Devengado'),
         ('E', 'Especial'),
     ]
-    
-    SEGMENTO_TIPOS = [
-        ('NORMAL', 'Normal'),
-        ('FESTIVO', 'Festivo'),
-        ('NOCTURNO', 'Nocturno'),
-        ('DOMINGO', 'Domingo'),
-        ('EXTRA', 'Extra'),
-        ('COMPENSATORIO', 'Compensatorio'),
-    ]
-    
-    # Duración esperada por tipo de turno (min, max) en horas
-    DURACIONES_ESPERADAS = {
-        'N': (8, 8),      # Normal: exactamente 8 horas
-        'F': (6, 10),     # Festivo: entre 6 y 10 horas
-        'FO': (6, 10),    # Festivo Ordinario: entre 6 y 10 horas
-        'E': (4, 12),     # Especial: entre 4 y 12 horas
-        'D': (0, 0),      # Descanso: 0 horas
-        'ND': (0, 0),     # No Devengado: 0 horas
-    }
 
     id_codigo_turnos = models.AutoField(primary_key=True)
     letra_turno = models.CharField(max_length=10)
-    tipo = models.CharField(
-        max_length=2, 
-        choices=TIPO_CHOICES, 
-        default='N'
-    )
-    
-    # Campos legacy para compatibilidad (se mantienen por ahora)
+    tipo = models.CharField(max_length=2, choices=TIPO_CHOICES, default='N')
     hora_inicio = models.TimeField(null=True, blank=True)
     hora_final = models.TimeField(null=True, blank=True)
-    
-    # Nuevo sistema de segmentos
-    segmentos_horas = models.JSONField(default=list, blank=True)
-    
-    # Campo para descripción de novedad (para No Devengado)
-    descripcion_novedad = models.CharField(max_length=200, null=True, blank=True)
-    
-    # Campo para duración total (se autoguarda)
     duracion_total = models.DecimalField(
-        max_digits=4, 
-        decimal_places=1, 
-        null=True, 
+        max_digits=4,
+        decimal_places=1,
+        null=True,
         blank=True,
         verbose_name='Duración Total (horas)',
         help_text='Duración total del turno en horas (se calcula automáticamente)'
     )
-    
+    descripcion_novedad = models.CharField(max_length=200, null=True, blank=True)
     estado_codigo = models.IntegerField(default=1)
 
     class Meta:
         verbose_name = 'Código de Turno'
         verbose_name_plural = 'Códigos de Turnos'
 
-    def clean(self):
-        """Validaciones del modelo"""
-        from django.core.exceptions import ValidationError
-        
-        # Validar según el tipo de turno
-        if self.tipo == 'D':  # Descanso
-            self.hora_inicio = None
-            self.hora_final = None
-            self.segmentos_horas = []
-            self.duracion_total = 0
-            
-        elif self.tipo == 'ND':  # No Devengado
-            self.hora_inicio = None
-            self.hora_final = None
-            self.segmentos_horas = []
-            self.duracion_total = 0
-            if not self.descripcion_novedad:
-                raise ValidationError({
-                    'descripcion_novedad': 'Los turnos No Devengado requieren una descripción'
-                })
-                
-        elif self.tipo == 'N':  # Normal
-            # Validar que tenga exactamente 1 segmento
-            if not self.segmentos_horas or len(self.segmentos_horas) != 1:
-                raise ValidationError({
-                    'segmentos_horas': 'Los turnos normales deben tener exactamente 1 segmento'
-                })
-            # Validar que el segmento sea de tipo NORMAL
-            if self.segmentos_horas and self.segmentos_horas[0].get('tipo') != 'NORMAL':
-                raise ValidationError({
-                    'segmentos_horas': 'Los turnos normales solo pueden tener segmentos de tipo NORMAL'
-                })
-                
-        else:  # Festivo, Especial, etc.
-            # Validar segmentos
-            self.validar_segmentos()
-        
-        # Calcular y validar duración esperada
-        self.calcular_duracion_total()
-        self.validar_duracion_esperada()
-    
     def save(self, *args, **kwargs):
-        """Autoguardar la duración total antes de guardar"""
-        # Calcular duración total
-        self.calcular_duracion_total()
-        super().save(*args, **kwargs)
-    
-    def calcular_duracion_total(self):
-        """Calcular y guardar la duración total del turno"""
-        if self.tipo in ['D', 'ND']:
-            self.duracion_total = 0
-        else:
-            duracion = self.get_duracion_total()
-            self.duracion_total = duracion
-    
-    def validar_segmentos(self):
-        """Validar que los segmentos sean lógicamente continuos"""
-        from django.core.exceptions import ValidationError
-        
-        if not self.segmentos_horas:
-            raise ValidationError({
-                'segmentos_horas': 'Los turnos con horarios deben tener al menos 1 segmento'
-            })
-        
-        if len(self.segmentos_horas) > 8:
-            raise ValidationError({
-                'segmentos_horas': 'No se pueden tener más de 8 segmentos por turno'
-            })
-        
-        # Validar que los segmentos estén ordenados cronológicamente
-        segmentos_ordenados = sorted(self.segmentos_horas, key=lambda x: x.get('inicio', ''))
-        
-        if segmentos_ordenados != self.segmentos_horas:
-            raise ValidationError({
-                'segmentos_horas': 'Los segmentos deben estar ordenados cronológicamente'
-            })
-        
-        # Validar continuidad (sin gaps)
-        for i in range(len(self.segmentos_horas) - 1):
-            segmento_actual = self.segmentos_horas[i]
-            segmento_siguiente = self.segmentos_horas[i + 1]
-            
-            if segmento_actual.get('fin') != segmento_siguiente.get('inicio'):
-                raise ValidationError({
-                    'segmentos_horas': f'Gap detectado entre {segmento_actual.get("fin")} y {segmento_siguiente.get("inicio")}'
-                })
-        
-        # Validar que no haya traslapes
-        for i in range(len(self.segmentos_horas)):
-            for j in range(i + 1, len(self.segmentos_horas)):
-                seg1 = self.segmentos_horas[i]
-                seg2 = self.segmentos_horas[j]
-                
-                # Verificar si hay traslape
-                if (seg1.get('inicio') < seg2.get('fin') and 
-                    seg1.get('fin') > seg2.get('inicio')):
-                    raise ValidationError({
-                        'segmentos_horas': f'Traslape detectado entre segmentos {i+1} y {j+1}'
-                    })
-    
-    def validar_duracion_esperada(self):
-        """Validar que la duración total cumpla con lo esperado para el tipo"""
-        from django.core.exceptions import ValidationError
-        
-        if self.tipo not in self.DURACIONES_ESPERADAS:
-            return
-        
-        duracion_min, duracion_max = self.DURACIONES_ESPERADAS[self.tipo]
-        duracion_actual = self.get_duracion_total()
-        
-        if duracion_actual < duracion_min or duracion_actual > duracion_max:
-            if duracion_min == duracion_max:
-                raise ValidationError({
-                    'segmentos_horas': f'Los turnos de tipo {self.get_tipo_display()} deben tener exactamente {duracion_min} horas. Duración actual: {duracion_actual:.1f} horas'
-                })
-            else:
-                raise ValidationError({
-                    'segmentos_horas': f'Los turnos de tipo {self.get_tipo_display()} deben tener entre {duracion_min} y {duracion_max} horas. Duración actual: {duracion_actual:.1f} horas'
-                })
-    
-    def get_horario_total(self):
-        """Obtener el horario total del turno basado en los segmentos"""
-        if not self.segmentos_horas:
-            return None, None
-        
-        primer_segmento = self.segmentos_horas[0]
-        ultimo_segmento = self.segmentos_horas[-1]
-        
-        return primer_segmento.get('inicio'), ultimo_segmento.get('fin')
-    
-    def get_duracion_total(self):
-        """Calcular la duración total del turno en horas"""
-        if not self.segmentos_horas:
-            return 0
-        
-        from datetime import datetime, timedelta
-        
-        duracion_total = timedelta()
-        
-        for segmento in self.segmentos_horas:
-            inicio = datetime.strptime(segmento.get('inicio'), '%H:%M').time()
-            fin = datetime.strptime(segmento.get('fin'), '%H:%M').time()
-            
-            # Convertir a datetime para calcular diferencia
-            inicio_dt = datetime.combine(datetime.today(), inicio)
-            fin_dt = datetime.combine(datetime.today(), fin)
-            
-            # Si el fin es menor que el inicio, significa que cruza medianoche
+        # Calcular duración total automáticamente
+        if self.hora_inicio and self.hora_final and self.tipo not in ['D', 'ND']:
+            from datetime import datetime, timedelta
+            inicio_dt = datetime.combine(datetime.today(), self.hora_inicio)
+            fin_dt = datetime.combine(datetime.today(), self.hora_final)
             if fin_dt < inicio_dt:
                 fin_dt += timedelta(days=1)
-            
-            duracion_total += fin_dt - inicio_dt
-        
-        return duracion_total.total_seconds() / 3600  # Convertir a horas
-    
-    def get_duracion_esperada_info(self):
-        """Obtener información sobre la duración esperada para este tipo"""
-        if self.tipo not in self.DURACIONES_ESPERADAS:
-            return "Sin restricción de duración"
-        
-        duracion_min, duracion_max = self.DURACIONES_ESPERADAS[self.tipo]
-        
-        if duracion_min == duracion_max:
-            return f"Exactamente {duracion_min} horas"
-        else:
-            return f"Entre {duracion_min} y {duracion_max} horas"
-    
+            duracion = (fin_dt - inicio_dt).total_seconds() / 3600
+            self.duracion_total = round(duracion, 1)
+        elif self.tipo in ['D', 'ND']:
+            self.duracion_total = 0
+        super().save(*args, **kwargs)
+
     def __str__(self):
-        if self.tipo == 'D':
-            return f"{self.letra_turno} (Descanso)"
-        elif self.tipo == 'ND':
-            return f"{self.letra_turno} (No Devengado: {self.descripcion_novedad})"
-        elif self.segmentos_horas:
-            inicio, fin = self.get_horario_total()
-            duracion = self.get_duracion_total()
-            return f"{self.letra_turno} ({inicio}-{fin}, {duracion:.1f}h, {len(self.segmentos_horas)} segmentos)"
-        else:
-            return f"{self.letra_turno} ({self.hora_inicio}-{self.hora_final})"
+        return f"{self.letra_turno} ({self.get_tipo_display()})"
 
 def crear_usuario_desde_tercero(tercero, username, password, grupo_nombre):
     """

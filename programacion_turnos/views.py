@@ -23,11 +23,19 @@ from .serializers import EditarMallaRequestSerializer
 from .services.holiday_service import get_holidays_for_range
 from .forms import ProgramacionHorarioForm  
 from usuarios.models import CodigoTurno
+from .serializers import EditarLetraTurnoSerializer
 
 class ProgramacionHorarioViewSet(viewsets.ModelViewSet):
     queryset = ProgramacionHorario.objects.all()
     serializer_class = ProgramacionHorarioSerializer
 
+class AsignacionTurnoViewSet(viewsets.ModelViewSet):
+    queryset = AsignacionTurno.objects.all()
+    serializer_class = AsignacionTurnoSerializer
+    
+class HolidayJsView(TemplateView):
+    content_type = 'application/javascript'
+    template_name = 'js/holidays.js'      
     def perform_create(self, serializer):
         print("Entrando a perform_create de ProgramacionHorarioViewSet")
         programacion = serializer.save()
@@ -147,9 +155,7 @@ class ProgramacionHorarioViewSet(viewsets.ModelViewSet):
             status=status.HTTP_200_OK
         )
 
-class AsignacionTurnoViewSet(viewsets.ModelViewSet):
-    queryset = AsignacionTurno.objects.all()
-    serializer_class = AsignacionTurnoSerializer
+
 
 @api_view(['POST'])
 @permission_classes([IsAuthenticated])
@@ -319,7 +325,7 @@ def malla_turnos(request, programacion_id):
     
     # Obtener todos los códigos de turno activos de una vez
     codigos_turno = CodigoTurno.objects.filter(estado_codigo=1).values(
-        'letra_turno', 'descripcion_novedad', 'duracion_total', 'tipo', 'segmentos_horas'
+        'letra_turno', 'descripcion_novedad', 'duracion_total', 'tipo'
     )
     
     # Crear diccionario para búsqueda rápida
@@ -332,21 +338,23 @@ def malla_turnos(request, programacion_id):
                 codigos_info[letra] = {
                     'descripcion': codigo['descripcion_novedad'] or f'Turno {letra}',
                     'duracion': float(codigo['duracion_total']) if codigo['duracion_total'] else 0,
-                    'tipo': codigo['tipo'],
-                    'segmentos': codigo['segmentos_horas']
+                    'tipo': codigo['tipo']
                 }
             else:
                 codigos_info[letra] = {
                     'descripcion': f'Turno {letra}',
                     'duracion': 8,
-                    'tipo': 'N',
-                    'segmentos': []
-                }   
+                    'tipo': 'N'
+                }
     # PASO 7: Calcular estadísticas
     estadisticas_por_letra = {}
     for letra in matriz_turnos.values():
         if letra:
             estadisticas_por_letra[letra] = estadisticas_por_letra.get(letra, 0) + 1
+    
+    # PASO 8: Obtener letras válidas para el JavaScript
+    letras_validas = list(CodigoTurno.objects.filter(estado_codigo=1).values_list('letra_turno', flat=True))
+    
     # Debug temporal
     print("=== DEBUG ASIGNACIONES ===")
     print(f"Total asignaciones: {asignaciones.count()}")
@@ -359,7 +367,7 @@ def malla_turnos(request, programacion_id):
         print(f"  En matriz: {matriz_turnos.get(key, 'NO ENCONTRADO')}")
     print("=== FIN DEBUG ===")
     
-    # PASO 8: Preparar context
+    # PASO 9: Preparar context
     context = {
         'programacion': programacion,
         'empleados': empleados,
@@ -372,10 +380,38 @@ def malla_turnos(request, programacion_id):
         'total_dias': len(fechas),
         'total_turnos': asignaciones.count(),
         'title': f'Malla de Turnos - {programacion.centro_operativo.nombre}',
+        'letras_validas': letras_validas,  # Agregar letras válidas
         'debug': True  # Activar debug temporalmente
     }
     
     return render(request, 'malla/malla_turno.html', context)
+
+@api_view(['POST'])
+@permission_classes([IsAuthenticated])
+def editar_letra_turno_api(request):
+    """
+    API para editar una letra de turno individual
+    """
+    try:
+        serializer = EditarLetraTurnoSerializer(data=request.data)
+        if not serializer.is_valid():
+            return Response({'error': serializer.errors}, status=status.HTTP_400_BAD_REQUEST)
+        
+        asignacion = AsignacionTurno.objects.get(pk=serializer.validated_data['id'])
+        letra_anterior = asignacion.letra_turno
+        asignacion.letra_turno = serializer.validated_data['letra_turno']
+        asignacion.save()
+        
+        return Response({
+            'success': True,
+            'mensaje': f'Letra cambiada de {letra_anterior} a {asignacion.letra_turno}',
+            'nueva_letra': asignacion.letra_turno
+        }, status=status.HTTP_200_OK)
+        
+    except AsignacionTurno.DoesNotExist:
+        return Response({'error': 'Asignación no encontrada'}, status=status.HTTP_404_NOT_FOUND)
+    except Exception as e:
+        return Response({'error': str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
 
 @api_view(['GET'])
 def test_bitacora(request):
@@ -406,9 +442,7 @@ def test_bitacora(request):
             'error': 'Error al crear bitácora'
         }, status=500)
 
-class HolidayJsView(TemplateView):
-    content_type = 'application/javascript'
-    template_name = 'js/holidays.js'  
+
     
     def get_context_data(self, **kwargs):
     
@@ -506,16 +540,17 @@ class HolidayJsView(TemplateView):
 
 
 ############DASHBOARD PRINCIPAL - NIVEL 1: LISTA DE CENTROS OPERATIVOS #############
+from empresas.models import Proyecto, CentroOperativo
+
 def dashboard_view(request):
-    # Obtenemos solo los centros operativos que tienen al menos una programación.
-    centros = CentroOperativo.objects.filter(
-        programacionhorario__isnull=False
-    ).distinct().order_by('nombre')
+    centros_operativos = CentroOperativo.objects.filter(
+    programacionhorario__isnull=False
+).distinct().order_by('nombre')
 
     context = {
-        'centros_operativos': centros,
-        'title': 'Seleccionar Centro Operativo'
-    }
+    'centros_operativos': centros_operativos,
+    'title': 'Seleccionar Centro Operativo'
+}
     return render(request, 'programacion_turnos/dashboard.html', context)
 
 ############ NUEVA VISTA - NIVEL 2: PROGRAMACIONES POR CENTRO #############
@@ -658,3 +693,50 @@ def crear_programacion_view(request, centro_id=None):
     }
     return render(request, 'programacion_turnos/crear_programacion.html', context)
 
+
+########CONFIGURACION PARA LAS ASIGNACION TURNOS################
+
+from django.shortcuts import render, get_object_or_404, redirect
+from .models import AsignacionTurno, LetraTurno
+
+def asignacion_turno_edit_view(request, llave):
+    empleado_id, fecha = llave.split('_')
+    asignacion = get_object_or_404(AsignacionTurno, tercero_id=empleado_id, dia=fecha)
+    letras_validas = LetraTurno.objects.all().order_by('valor')
+
+    if request.method == 'POST':
+        nueva_letra = request.POST.get('letra_turno')
+        if nueva_letra and nueva_letra.isalpha():
+            asignacion.letra_turno = nueva_letra
+            asignacion.save()
+            # Usar el centro operativo de la programación asociada
+            centro_id = getattr(asignacion.programacion.centro_operativo, 'id_centro', None)
+            programacion_id = getattr(asignacion.programacion, 'id', None)
+            if centro_id and programacion_id:
+                # Redirigir directamente a la malla de la programación
+                return redirect('malla_turnos', programacion_id)
+            elif centro_id:
+                return redirect('programaciones_por_centro', centro_id)
+            else:
+                return redirect('welcome')
+        else:
+            error = "Letra de turno inválida."
+    else:
+        error = None
+
+    context = {
+        'asignacion': asignacion,
+        'letras_validas': letras_validas,
+        'error': error,
+    }
+    return render(request, 'programacion_turnos/asignacion_turno_edit.html', context)
+
+def asignacion_turno_modulo(request):
+    empleado_id = request.GET.get('empleado')
+    fecha = request.GET.get('fecha')
+    # Aquí puedes buscar la asignación y pasarla al template, o solo mostrar el formulario
+    context = {
+        'empleado_id': empleado_id,
+        'fecha': fecha,
+    }
+    return render(request, 'programacion_turnos/asignacion_turno_modulo.html', context)

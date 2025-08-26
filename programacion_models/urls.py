@@ -1,12 +1,11 @@
-from django.urls import path, include
-from rest_framework.routers import DefaultRouter
-from .views import ModeloTurnoViewSet
+from django.urls import path
+from . import views
 
 app_name = 'programacion_models'
 
-router = DefaultRouter()
-router.register(r'modeloturno', ModeloTurnoViewSet, basename='modeloturno')
-
 urlpatterns = [
-    path('', include(router.urls)),
+    path('modeloturno/nuevo/', views.modeloturno_create, name='modeloturno_create'),
+    path('modeloturno/<int:pk>/editar/', views.modeloturno_update, name='modeloturno_update'),
+    path('modeloturno/', views.modeloturno_list, name='modeloturno_list'),  # Si tienes una vista de listado
+    path('modeloturno/<int:pk>/', views.modeloturno_detail, name='modeloturno_detail'),
 ]

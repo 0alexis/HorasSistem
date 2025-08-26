@@ -1,0 +1,107 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <title>Detalle de Modelo de Turno</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <style>
+        .matriz-table {
+            border-collapse: separate;
+            border-spacing: 6px;
+            margin-top: 1rem;
+        }
+        .matriz-table td {
+            width: 48px;
+            height: 48px;
+            text-align: center;
+            font-size: 1.1rem;
+            border: 2px solid #e5e7eb;
+            border-radius: 8px;
+            background: #fff;
+        }
+        .card-main {
+            border-radius: 16px;
+            box-shadow: 0 4px 16px rgba(185,28,28,0.08);
+            border: none;
+            margin-top: 2rem;
+        }
+        .card-header {
+            background: linear-gradient(135deg, #B91C1C, #991B1B);
+            color: white;
+            font-weight: 600;
+            border-radius: 16px 16px 0 0;
+            text-align: center;
+            position: relative;
+            padding-top: 2.5rem;
+        }
+        .logo-regency-detail {
+            height: 72px;
+            background: white;
+            border-radius: 12px;
+            padding: 8px 16px;
+            box-shadow: 0 2px 8px rgba(185,28,28,0.08);
+            position: absolute;
+            left: 50%;
+            top: -36px;
+            transform: translateX(-50%);
+        }
+        @media (max-width: 600px) {
+            .logo-regency-detail { height: 48px; padding: 4px 8px; top: -24px; }
+            .card-header { padding-top: 1.5rem; }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="card card-main mx-auto" style="max-width: 700px;">
+            <div class="card-header">
+                <img src="{% static 'img/logo_regency.png' %}" alt="Regency Logo" class="logo-regency-detail mb-2">
+                <h4 class="mb-0 mt-2">
+                    <i class="bi bi-eye me-2"></i>
+                    Detalle de Modelo de Turno
+                </h4>
+            </div>
+            <div class="card-body">
+                <dl class="row mb-4">
+                    <dt class="col-sm-4">Nombre:</dt>
+                    <dd class="col-sm-8">{{ turno.nombre }}</dd>
+                    <dt class="col-sm-4">Descripción:</dt>
+                    <dd class="col-sm-8">{{ turno.descripcion|default:"-" }}</dd>
+                    <dt class="col-sm-4">Unidad de Negocio:</dt>
+                    <dd class="col-sm-8">{{ turno.unidad_negocio }}</dd>
+                    <dt class="col-sm-4">Tipo:</dt>
+                    <dd class="col-sm-8">{{ turno.get_tipo_display }}</dd>
+                    <dt class="col-sm-4">Creado:</dt>
+                    <dd class="col-sm-8">{{ turno.creado_en|date:"d/m/Y H:i" }}</dd>
+                </dl>
+                <h5 class="mt-4 mb-2">Matriz de Letras</h5>
+                {% if turno.letras.exists %}
+                    {% regroup turno.letras.all|dictsort:"fila" by fila as filas %}
+                    <table class="matriz-table">
+                        <tbody>
+                        {% for fila in filas %}
+                            <tr>
+                                {% for letra in fila.list|dictsort:"columna" %}
+                                    <td>{{ letra.valor|default:"" }}</td>
+                                {% endfor %}
+                            </tr>
+                        {% endfor %}
+                        </tbody>
+                    </table>
+                {% else %}
+                    <div class="alert alert-warning">No hay matriz de letras registrada para este modelo.</div>
+                {% endif %}
+                <div class="mt-4 d-flex gap-2">
+                    <a href="{% url 'programacion_models:modeloturno_list' %}" class="btn btn-outline-secondary">
+                        <i class="bi bi-arrow-left"></i> Volver al listado
+                    </a>
+                    <a href="{% url 'programacion_models:modeloturno_update' turno.pk %}" class="btn btn-warning">
+                        <i class="bi bi-pencil-square"></i> Editar
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+</body>
+</html>

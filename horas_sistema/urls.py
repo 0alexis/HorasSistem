@@ -7,6 +7,8 @@ from django.shortcuts import redirect
 from rest_framework import permissions
 from drf_yasg.views import get_schema_view
 from drf_yasg import openapi
+
+from programacion_turnos.views import asignacion_turno_edit_view
 from . import views
 
 schema_view = get_schema_view(
@@ -48,14 +50,33 @@ urlpatterns = [
     
     # Cuando estén listas, descomenta estas:
     # path('turnos/', include('turnos.urls')),      # CRUD completo de turnos
+
+
+
     # path('terceros/', include('terceros.urls')),  # CRUD completo de terceros
-    
+    path('usuarios/', include('usuarios.urls', namespace='usuarios')),
+   
+
+
+
+    path('asignacionturno/<str:llave>/change/', asignacion_turno_edit_view, name='asignacion_turno_edit'),
+
+
+
      # ========== DASHBOARD PROGRAMACIONES ==========
     path('programacion_turnos/', include('programacion_turnos.urls')),
 
+
+
+
+
+
+
+
+
     # ========== APIs ESPECÍFICAS (OTRAS APLICACIONES) ==========
     # Solo para aplicaciones que no tienen CRUD web o son específicamente APIs
-    path('api/usuarios/', include('usuarios.urls')),
+  
     path('api/modelos/', include('programacion_models.urls')),
     path('api/', include('programacion_turnos.urls')),
     

@@ -150,7 +150,7 @@ class CentroOperativo(models.Model):
         verbose_name='Proyectos'
     )
     promesa_valor = models.IntegerField(
-        verbose_name='Promesa de Valor (Pv)',
+        verbose_name='PV (Cantidad de Casetas)',
         null=True,
         blank=True,
         help_text='Valor informativo de promesa de valor para el centro operativo.'
@@ -177,7 +177,7 @@ class CargoPredefinido(models.Model):
     estado_cargo = models.IntegerField(default=1)  # Del diagrama
 
     def __str__(self):
-        return f"{self.nombre} - ${self.salario}"
+        return f"{self.nombre} "
 
     class Meta:
         verbose_name = 'Cargo Predefinido'

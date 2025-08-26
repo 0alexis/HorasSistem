@@ -238,6 +238,39 @@ def generar_asignaciones(programacion):
         traceback.print_exc()
         raise
 
+
+class EditarLetraTurnoSerializer(serializers.Serializer):
+    id = serializers.IntegerField()
+    letra_turno = serializers.CharField(max_length=2)
+
+    def validate_id(self, value):
+        if not AsignacionTurno.objects.filter(pk=value).exists():
+            raise serializers.ValidationError("La asignación de turno no existe.")
+        return value
+
+    def validate_letra_turno(self, value):
+        # Solo letras permitidas en la tabla LetraTurno
+        if not LetraTurno.objects.filter(codigo_letra=value).exists():
+            raise serializers.ValidationError("La letra de turno no es válida.")
+        # Solo letras, sin números ni caracteres especiales
+        if not value.isalpha():
+            raise serializers.ValidationError("Solo se permiten letras para el turno.")
+        return value
+
+    def update(self, instance, validated_data):
+        instance.letra_turno = validated_data['letra_turno']
+        instance.save()
+        return instance
+
+    def save(self):
+        id = self.validated_data['id']
+        letra_turno = self.validated_data['letra_turno']
+        asignacion = AsignacionTurno.objects.get(pk=id)
+        self.update(asignacion, {'letra_turno': letra_turno})
+        return asignacion
+    
+
+
 class CambioMallaSerializer(serializers.Serializer):
     tercero_id = serializers.IntegerField()
     fecha = serializers.DateField()

@@ -1,0 +1,30 @@
+{% extends "admin/base_site.html" %}
+{% block content %}
+<h2>Editar Asignación de Turno</h2>
+<form method="post">
+    {% csrf_token %}
+    <div>
+        <label>Empleado:</label>
+        <strong>{{ asignacion.tercero.nombre_tercero }}</strong>
+    </div>
+    <div>
+        <label>Fecha:</label>
+        <strong>{{ asignacion.dia }}</strong>
+    </div>
+    <div>
+        <label>Letra de Turno:</label>
+        <select name="letra_turno">
+            {% for letra in letras_validas %}
+                <option value="{{ letra.valor }}" {% if letra.valor == asignacion.letra_turno %}selected{% endif %}>
+                    {{ letra.valor }}
+                </option>
+            {% endfor %}
+        </select>
+    </div>
+    {% if error %}
+        <div style="color:red;">{{ error }}</div>
+    {% endif %}
+    <button type="submit">Guardar</button>
+    <a href="{% url 'programaciones_por_centro' asignacion.programacion.centro_operativo.id_centro %}">Cancelar</a>
+    </form>
+{% endblock %}

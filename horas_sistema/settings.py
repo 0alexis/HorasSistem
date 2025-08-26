@@ -271,7 +271,7 @@ ADMIN_INDEX_TITLE = "Panel de Control Ejecutivo"
 
 # Configuración de archivos estáticos personalizados
 STATICFILES_DIRS = [
-    BASE_DIR / 'static_custom',
+    BASE_DIR / 'static',
 ]
 
 STATIC_URL = '/static/'

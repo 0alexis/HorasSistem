@@ -1,9 +1,6 @@
 {% extends "admin/base_site.html" %}
 {% load i18n static %}
-
-
 {% load malla_extras %}
-
 
 {% block extrastyle %}
 {{ block.super }}
@@ -176,12 +173,22 @@
         cursor: pointer;
         transition: all 0.2s ease;
         box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+        user-select: none;
     }
     
     .turno-letra:hover {
         transform: scale(1.1);
         box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
         z-index: 10;
+    }
+    
+    .turno-letra.editable {
+        cursor: pointer;
+        border: 2px solid transparent;
+    }
+    
+    .turno-letra.editable:hover {
+        border-color: var(--regency-red);
     }
     
     /* Colores por tipo de turno */
@@ -355,6 +362,54 @@
         background-color: #f8fafc;
     }
     
+    /* Estilos para el editor de turnos */
+    .turno-editor {
+        display: flex;
+        flex-direction: column;
+        gap: 0.5rem;
+        align-items: center;
+    }
+    
+    .turno-select {
+        padding: 0.5rem;
+        border: 1px solid #d1d5db;
+        border-radius: 4px;
+        font-size: 0.9rem;
+        min-width: 60px;
+    }
+    
+    .turno-buttons {
+        display: flex;
+        gap: 0.25rem;
+    }
+    
+    .btn-turno {
+        padding: 0.25rem 0.5rem;
+        border: none;
+        border-radius: 4px;
+        font-size: 0.8rem;
+        cursor: pointer;
+        transition: all 0.2s ease;
+    }
+    
+    .btn-guardar {
+        background: #22c55e;
+        color: white;
+    }
+    
+    .btn-guardar:hover {
+        background: #16a34a;
+    }
+    
+    .btn-cancelar {
+        background: #ef4444;
+        color: white;
+    }
+    
+    .btn-cancelar:hover {
+        background: #dc2626;
+    }
+    
     /* Responsivo */
     @media (max-width: 768px) {
         .programacion-stats {
@@ -419,32 +474,23 @@
             {% for empleado in empleados %}
             <tr>
                 <td class="empleado-cell">
-                     <div class="empleado-nombre">{{ empleado.nombre_tercero }}</div>
-                     <div class="empleado-apellido">{{ empleado.apellido_tercero }}</div>
-                     <div class="empleado-cedula">Cédula: {{ empleado.documento|default:"-" }}</div>
-                     <div class="empleado-cargo">{{ empleado.cargo_predefinido.nombre|default:"Sin cargo" }}</div>
+                    <div class="empleado-nombre">{{ empleado.nombre_tercero }}</div>
+                    <div class="empleado-apellido">{{ empleado.apellido_tercero }}</div>
+                    <div class="empleado-cedula">Cédula: {{ empleado.documento|default:"-" }}</div>
+                    <div class="empleado-cargo">{{ empleado.cargo_predefinido.nombre|default:"Sin cargo" }}</div>
                 </td>
                 {% for fecha in fechas %}
                 <td class="turno-cell">
                     {% with fecha_str=fecha|date:"Y-m-d" %}
                         {% with letra=matriz_empleados_fechas|dict_get:empleado.id_tercero|dict_get:fecha_str %}
-                            {% if letra and letra != "" %}
-                                <span class="turno-letra turno-{{ letra }}" 
-                                      data-letra="{{ letra }}"
-                                      data-empleado-id="{{ empleado.id_tercero }}"
-                                      data-fecha="{{ fecha_str }}"
-                                      title="Empleado: {{ empleado.nombre_tercero }} | Fecha: {{ fecha|date:'d/m/Y' }} | Turno: {{ letra }}">
-                                    {{ letra }}
-                                </span>
-                            {% else %}
-                                <span class="turno-letra turno-vacio" 
-                                      data-letra="-"
-                                      data-empleado-id="{{ empleado.id_tercero }}"
-                                      data-fecha="{{ fecha_str }}"
-                                      title="Empleado: {{ empleado.nombre_tercero }} | Fecha: {{ fecha|date:'d/m/Y' }} | Sin asignación">
-                                    -
-                                </span>
-                            {% endif %}
+                            <span class="turno-letra turno-{{ letra|default:'vacio' }} editable"
+                                  data-letra="{{ letra|default:'-' }}"
+                                  data-empleado-id="{{ empleado.id_tercero }}"
+                                  data-fecha="{{ fecha_str }}"
+                                  title="Doble clic para ir al módulo de asignación de turno"
+                                  ondblclick="redirigirEdicion(this)">
+                                {{ letra|default:'-' }}
+                            </span>
                         {% endwith %}
                     {% endwith %}
                 </td>
@@ -484,6 +530,14 @@
     </div>
 </div>
 
+<!-- Instrucción de uso -->
+<div style="margin-top: 1rem; background: #f0f9ff; border: 1px solid #0ea5e9; border-radius: 8px; padding: 1rem;">
+    <h4 style="margin: 0 0 0.5rem 0; color: #0c4a6e; font-size: 1rem;">💡 Instrucción:</h4>
+    <ul style="margin: 0; padding-left: 1.5rem; color: #0c4a6e; font-size: 0.9rem;">
+        <li><strong>Doble clic</strong> en cualquier letra de turno para ir al módulo de asignación de turno</li>
+    </ul>
+</div>
+
 <!-- DEBUG INFO -->
 {% if debug %}
 <div style="margin-top: 2rem; background: #f0f0f0; border: 1px solid #ccc; padding: 1rem; font-family: monospace; font-size: 12px;">
@@ -491,6 +545,7 @@
     <p><strong>Total empleados:</strong> {{ empleados|length }}</p>
     <p><strong>Total fechas:</strong> {{ fechas|length }}</p>
     <p><strong>Total asignaciones en matriz:</strong> {{ matriz_turnos|length }}</p>
+    <p><strong>Letras válidas disponibles:</strong> {{ letras_validas|join:", " }}</p>
     <p><strong>Primeras 5 claves en matriz_turnos:</strong></p>
     <ul>
     {% for key, value in matriz_turnos.items|slice:":5" %}
@@ -503,5 +558,12 @@
     {% endif %}
 </div>
 {% endif %}
+
+<!-- Pasar datos al JavaScript -->
+<script>
+window.letrasValidas = [{% for letra in letras_validas %}'{{ letra }}'{% if not forloop.last %},{% endif %}{% endfor %}];
+window.programacionId = {{ programacion.id }};
+</script>
+<script src="{% static 'malla/js/malla_turno.js' %}"></script>
 {% endblock %}
 
