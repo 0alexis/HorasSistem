@@ -107,15 +107,7 @@
     }
     
     /* Selectores ultra específicos */
-    #id_centro_operativo,
-    #id_modelo_turno,
-    #id_cargo_predefinido,
-    #id_creado_por {
-        color: #000000 !important;
-        
-        font-weight: 500 !important;
-        -webkit-text-fill-color: #000000 !important;
-    }
+
     
     /* Resetear cualquier herencia */
     * select {
@@ -238,6 +230,19 @@
     {% csrf_token %}
     
     <div class="form-container">
+        <!-- Nombre -->
+                 <div class="field-group">
+            <label for="{{ form.nombre.id_for_label }}">Nombre de la Programación *</label>
+            {{ form.nombre }}
+            {% if form.nombre.errors %}
+                <ul class="error-list">
+                    {% for error in form.nombre.errors %}
+                        <li>{{ error }}</li>
+                    {% endfor %}
+                </ul>
+            {% endif %}
+        </div>
+
         <!-- Centro Operativo -->
         <div class="field-group">
             <label for="{{ form.centro_operativo.id_for_label }}">Centro Operativo *</label>
@@ -308,17 +313,7 @@
         </div>
         
         <!-- Usuario Responsable -->
-        <div class="field-group">
-            <label for="{{ form.creado_por.id_for_label }}">Creado por</label>
-            {{ form.creado_por }}
-            {% if form.creado_por.errors %}
-                <ul class="error-list">
-                    {% for error in form.creado_por.errors %}
-                        <li>{{ error }}</li>
-                    {% endfor %}
-                </ul>
-            {% endif %}
-        </div>
+
         
         <!-- Estado Activo -->
         <div class="field-group">

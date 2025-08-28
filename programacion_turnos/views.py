@@ -24,6 +24,8 @@ from .services.holiday_service import get_holidays_for_range
 from .forms import ProgramacionHorarioForm  
 from usuarios.models import CodigoTurno
 from .serializers import EditarLetraTurnoSerializer
+from django.shortcuts import render, get_object_or_404, redirect
+from .models import AsignacionTurno, LetraTurno
 
 class ProgramacionHorarioViewSet(viewsets.ModelViewSet):
     queryset = ProgramacionHorario.objects.all()
@@ -284,16 +286,25 @@ def malla_turnos(request, programacion_id):
     empleados = Tercero.objects.filter(
         asignacionturno__programacion=programacion
     ).distinct().select_related('cargo_predefinido').order_by('apellido_tercero')
-                                                     # Por apellido:
-                                                     #.order_by('apellido_tercero')
-                                                     # Por nombre completo (apellido + nombre):
-                                                     #.order_by('apellido_tercero', 'nombre_tercero')
-                                                     # Por documento:
-                                                    #.order_by('documento')
-                                                      #.order_by('id_tercero')
-     #fechas 
-    fecha_inicio = programacion.fecha_inicio
-    fecha_fin = programacion.fecha_fin     
+                                                             #IMPORTANTE
+                                                             #ESTE ES EL FILTRO QUE REALIZA 
+                                                             #PARA OBTENER LOS EMPLEADOS DE UNA PROGRAMACIÓN
+                                                             #Y LUEGO A ESE ORDEN REALIZA LAS ASIGNACIONES
+
+    # NUEVO: Obtener fechas del GET o usar las de la programación
+    fecha_inicio_str = request.GET.get('fecha_inicio')
+    fecha_fin_str = request.GET.get('fecha_fin')
+
+    if fecha_inicio_str:
+        fecha_inicio = datetime.strptime(fecha_inicio_str, '%Y-%m-%d').date()
+    else:
+        fecha_inicio = programacion.fecha_inicio
+
+    if fecha_fin_str:
+        fecha_fin = datetime.strptime(fecha_fin_str, '%Y-%m-%d').date()
+    else:
+        fecha_fin = programacion.fecha_fin
+
     fechas = []
     fecha_actual = fecha_inicio
     while fecha_actual <= fecha_fin:
@@ -698,13 +709,26 @@ def crear_programacion_view(request, centro_id=None):
 
 ########CONFIGURACION PARA LAS ASIGNACION TURNOS################
 
-from django.shortcuts import render, get_object_or_404, redirect
-from .models import AsignacionTurno, LetraTurno
-
 def asignacion_turno_edit_view(request, llave):
     empleado_id, fecha = llave.split('_')
     asignacion = get_object_or_404(AsignacionTurno, tercero_id=empleado_id, dia=fecha)
     
+# Vista: asignacion_turno_edit_view
+
+# NOTA ESPECIAL:
+# Aquí se puede añadir validación personalizada al cambiar la letra de turno.
+# Ejemplo de validaciones futuras:
+# - Solo permitir ciertas letras según reglas de negocio.
+# - No permitir cambios si ya existe una asignación especial.
+# - Validar que la letra no se repita en el mismo día para el empleado.
+# - Mostrar mensajes de error personalizados.
+
+# Implementar en el bloque:
+# if nueva_letra and nueva_letra.isalpha():
+#     # Validaciones futuras aquí
+#     asignacion.letra_turno = nueva_letra
+#     asignacion.save()
+
     # Obtener letras únicas
     letras_unicas = CodigoTurno.objects.filter(estado_codigo=1).values_list('letra_turno', flat=True).distinct()
     codigos_turno = CodigoTurno.objects.filter(letra_turno__in=letras_unicas, estado_codigo=1).order_by('letra_turno')

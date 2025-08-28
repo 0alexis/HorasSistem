@@ -177,6 +177,7 @@
     <table>
         <thead>
             <tr>
+                <th>Nombre de la Programación</th>
                 <th>Modelo de Turno</th>
                 <th>Fecha Inicio</th>
                 <th>Fecha Fin</th>
@@ -187,6 +188,7 @@
         <tbody>
             {% for prog in programaciones %}
             <tr>
+                <td><strong>{{ prog.nombre }}</strong></td>
                 <td><strong>{{ prog.modelo_turno.nombre }}</strong></td>
                 <td>{{ prog.fecha_inicio|date:"d/m/Y" }}</td>
                 <td>{{ prog.fecha_fin|date:"d/m/Y" }}</td>

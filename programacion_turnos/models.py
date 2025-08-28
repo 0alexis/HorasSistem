@@ -13,6 +13,7 @@ class ActivoProgramacionManager(models.Manager):
 
 class ProgramacionHorario(models.Model):
     # terceros = models.ManyToManyField('usuarios.Tercero', related_name='programaciones')
+    nombre = models.CharField(max_length=100, verbose_name="Nombre de la programación")
     centro_operativo = models.ForeignKey('empresas.CentroOperativo', on_delete=models.CASCADE)
     modelo_turno = models.ForeignKey('programacion_models.ModeloTurno', on_delete=models.PROTECT)
     cargo_predefinido = models.ForeignKey('empresas.CargoPredefinido', on_delete=models.PROTECT)

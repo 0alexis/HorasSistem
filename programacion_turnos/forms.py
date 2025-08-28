@@ -7,8 +7,12 @@ import re
 class ProgramacionHorarioForm(forms.ModelForm):
     class Meta:
         model = ProgramacionHorario
-        fields = ['centro_operativo', 'modelo_turno', 'cargo_predefinido', 'fecha_inicio', 'fecha_fin', 'creado_por', 'activo']
+        fields = ['nombre', 'centro_operativo', 'modelo_turno', 'cargo_predefinido', 'fecha_inicio', 'fecha_fin',  'activo']
         widgets = {
+            'nombre': forms.TextInput(attrs={
+                'class': 'form-control',
+                'id': 'id_nombre'
+            }),
             'centro_operativo': forms.Select(attrs={
                 'class': 'form-control',
                 'id': 'id_centro_operativo'
@@ -31,10 +35,6 @@ class ProgramacionHorarioForm(forms.ModelForm):
                 'class': 'form-control',
                 'id': 'id_fecha_fin'
             }),
-            'creado_por': forms.Select(attrs={
-                'class': 'form-control',
-                'id': 'id_creado_por'
-            }),
             'activo': forms.CheckboxInput(attrs={
                 'class': 'form-check-input',
                 'id': 'id_activo'
@@ -46,10 +46,9 @@ class ProgramacionHorarioForm(forms.ModelForm):
         # Personalizar las opciones de los campos
         self.fields['centro_operativo'].queryset = CentroOperativo.objects.filter(activo=True)
         self.fields['cargo_predefinido'].queryset = CargoPredefinido.objects.filter(activo=True)
-        self.fields['creado_por'].queryset = Usuario.objects.filter(is_active=True)
         
         # Hacer algunos campos opcionales para mejor UX
-        self.fields['creado_por'].required = False
+       
         self.fields['activo'].initial = True
 
     def validar_hora_24h(self, hora):
