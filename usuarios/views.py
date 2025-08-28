@@ -222,6 +222,8 @@ def codigoturno_create(request):
     })
 def codigoturno_update(request, pk):
     codigo = get_object_or_404(CodigoTurno, pk=pk)
+    hours = [f"{h:02d}" for h in range(24)]
+    minutes = ["00", "30"]
     if request.method == 'POST':
         form = CodigoTurnoForm(request.POST, instance=codigo)
         if form.is_valid():
@@ -229,8 +231,12 @@ def codigoturno_update(request, pk):
             return redirect('usuarios:codigoturno_list')
     else:
         form = CodigoTurnoForm(instance=codigo)
-    return render(request, 'codigoturno/codigoturno_form.html', {'form': form, 'codigo': codigo})
-
+    return render(request, 'codigoturno/codigoturno_form.html', {
+        'form': form,
+        'codigo': codigo,
+        'hours': hours,
+        'minutes': minutes,
+    })
 def codigoturno_detail(request, pk):
     codigo = get_object_or_404(CodigoTurno, pk=pk)
     return render(request, 'codigoturno/codigoturno_detail.html', {'codigo': codigo})

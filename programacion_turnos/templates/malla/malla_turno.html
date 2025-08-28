@@ -559,11 +559,7 @@
 </div>
 {% endif %}
 
-<!-- Pasar datos al JavaScript -->
-<script>
-window.letrasValidas = [{% for letra in letras_validas %}'{{ letra }}'{% if not forloop.last %},{% endif %}{% endfor %}];
-window.programacionId = {{ programacion.id }};
-</script>
+
 <script src="{% static 'malla/js/malla_turno.js' %}"></script>
 {% endblock %}
 

@@ -15,8 +15,8 @@
         <label>Letra de Turno:</label>
         <select name="letra_turno">
             {% for letra in letras_validas %}
-                <option value="{{ letra.valor }}" {% if letra.valor == asignacion.letra_turno %}selected{% endif %}>
-                    {{ letra.valor }}
+                <option value="{{ letra.letra_turno }}" {% if letra.letra_turno == asignacion.letra_turno %}selected{% endif %}>
+                    {{ letra.letra_turno }}
                 </option>
             {% endfor %}
         </select>

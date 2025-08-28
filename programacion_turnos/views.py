@@ -368,6 +368,7 @@ def malla_turnos(request, programacion_id):
     print("=== FIN DEBUG ===")
     
     # PASO 9: Preparar context
+    horas = "00,01,02,03,04,05,06,07,08,09,10,11,12,13,14,15,16,17,18,19,20,21,22,23".split(',')
     context = {
         'programacion': programacion,
         'empleados': empleados,
@@ -381,6 +382,7 @@ def malla_turnos(request, programacion_id):
         'total_turnos': asignaciones.count(),
         'title': f'Malla de Turnos - {programacion.centro_operativo.nombre}',
         'letras_validas': letras_validas,  # Agregar letras válidas
+        'horas': horas,
         'debug': True  # Activar debug temporalmente
     }
     
@@ -702,18 +704,19 @@ from .models import AsignacionTurno, LetraTurno
 def asignacion_turno_edit_view(request, llave):
     empleado_id, fecha = llave.split('_')
     asignacion = get_object_or_404(AsignacionTurno, tercero_id=empleado_id, dia=fecha)
-    letras_validas = LetraTurno.objects.all().order_by('valor')
-
+    
+    # Obtener letras únicas
+    letras_unicas = CodigoTurno.objects.filter(estado_codigo=1).values_list('letra_turno', flat=True).distinct()
+    codigos_turno = CodigoTurno.objects.filter(letra_turno__in=letras_unicas, estado_codigo=1).order_by('letra_turno')
+    
     if request.method == 'POST':
         nueva_letra = request.POST.get('letra_turno')
         if nueva_letra and nueva_letra.isalpha():
             asignacion.letra_turno = nueva_letra
             asignacion.save()
-            # Usar el centro operativo de la programación asociada
             centro_id = getattr(asignacion.programacion.centro_operativo, 'id_centro', None)
             programacion_id = getattr(asignacion.programacion, 'id', None)
             if centro_id and programacion_id:
-                # Redirigir directamente a la malla de la programación
                 return redirect('malla_turnos', programacion_id)
             elif centro_id:
                 return redirect('programaciones_por_centro', centro_id)
@@ -726,7 +729,7 @@ def asignacion_turno_edit_view(request, llave):
 
     context = {
         'asignacion': asignacion,
-        'letras_validas': letras_validas,
+        'letras_validas': codigos_turno,
         'error': error,
     }
     return render(request, 'programacion_turnos/asignacion_turno_edit.html', context)
