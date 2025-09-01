@@ -270,12 +270,12 @@ ADMIN_SITE_TITLE = "REGENCY Panel de Control"
 ADMIN_INDEX_TITLE = "Panel de Control Ejecutivo"
 
 # Configuración de archivos estáticos personalizados
-STATICFILES_DIRS = [
-    BASE_DIR / 'static',
-]
-
 STATIC_URL = '/static/'
 STATIC_ROOT = BASE_DIR / 'staticfiles'
+
+STATICFILES_DIRS = [
+   BASE_DIR / 'static',
+]
 
 # Configuración de LOGIN/LOGOUT
 LOGIN_URL = '/admin/login/'

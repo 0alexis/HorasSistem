@@ -1,0 +1,332 @@
+/* ========== PALETA DE COLORES REGENCY ========== */
+:root {
+    --regency-red: #871F1B;
+    --regency-red-dark: #6b191b;
+    --regency-red-light: #a13832;
+    --regency-gray: #5C5D5D;
+    --regency-gray-light: #f8f9fa;
+    --regency-gray-medium: #e5e7eb;
+    --white: #ffffff;
+    --text-dark: #374151;
+    --shadow: rgba(135, 31, 27, 0.15);
+    /* Nuevos colores para el sidebar moderno */
+    --sidebar-bg: #2c3e50;
+    --sidebar-header-bg: #4a90e2;
+    --sidebar-item-bg: #34495e;
+    --sidebar-text: #ecf0f1;
+    --sidebar-text-secondary: #bdc3c7;
+    --sidebar-hover: #3d566e;
+}
+
+/* ========== SIDEBAR MODERNO - ESTILO MINIMALISTA ========== */
+.sidebar {
+    width: 280px;
+    background: var(--sidebar-bg);
+    color: var(--sidebar-text);
+    padding: 0;
+    box-shadow: none;
+    position: fixed;
+    left: 0;
+    top: 0;
+    height: 100vh;
+    transition: all 0.3s ease;
+    z-index: 1000;
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    overflow-y: auto;
+    border-right: 1px solid #3d566e;
+}
+
+.sidebar.collapsed {
+    width: 60px;
+}
+
+/* ========== HEADER AZUL COMO EN LA IMAGEN ========== */
+.sidebar-header {
+    background: var(--sidebar-header-bg);
+    padding: 20px;
+    border-bottom: none;
+    position: relative;
+    text-align: left;
+    color: white;
+}
+
+.sidebar-header h3 {
+    margin: 0;
+    font-size: 1.1rem;
+    font-weight: 600;
+    color: white;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    transition: all 0.3s ease;
+}
+
+.sidebar-icon {
+    font-size: 1.2em;
+}
+
+/* ========== TOGGLE BUTTON ========== */
+.sidebar-toggle {
+    position: absolute;
+    top: 25px;
+    right: 15px;
+    background: var(--regency-red);
+    width: 28px;
+    height: 28px;
+    border-radius: 4px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    z-index: 1001;
+    border: none;
+}
+
+.sidebar-toggle:hover {
+    background: var(--regency-red-dark);
+}
+
+.toggle-icon {
+    font-size: 12px;
+    color: white;
+    font-weight: bold;
+}
+
+/* ========== NAVIGATION MENU - ESTILO LIMPIO ========== */
+.nav-menu {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+    padding-top: 0;
+}
+
+.nav-item {
+    margin-bottom: 0;
+    position: relative;
+    border-bottom: 1px solid #3d566e;
+}
+
+.nav-item:last-child {
+    border-bottom: none;
+}
+
+/* ========== LINKS DE NAVEGACIÓN - ESTILO MINIMALISTA ========== */
+.nav-link {
+    display: flex;
+    align-items: center;
+    padding: 18px 20px;
+    color: var(--sidebar-text-secondary);
+    text-decoration: none;
+    transition: all 0.2s ease;
+    position: relative;
+    gap: 15px;
+    border: none;
+    font-weight: 500;
+    font-size: 0.9rem;
+}
+
+.nav-link:hover {
+    background: var(--sidebar-hover);
+    color: var(--sidebar-text);
+}
+
+.nav-link.active {
+    background: var(--sidebar-hover);
+    color: var(--regency-red);
+    font-weight: 600;
+}
+
+/* Flecha derecha para elementos con submenú */
+.has-submenu .nav-link::after {
+    content: '›';
+    margin-left: auto;
+    font-size: 1.2rem;
+    color: var(--sidebar-text-secondary);
+    transition: all 0.3s ease;
+}
+
+.has-submenu .nav-link:hover::after {
+    color: var(--sidebar-text);
+}
+
+/* ========== ICONOS Y TEXTO ========== */
+.nav-icon {
+    font-size: 1.1rem;
+    min-width: 20px;
+    text-align: center;
+    flex-shrink: 0;
+}
+
+.nav-text {
+    font-size: 0.9rem;
+    white-space: nowrap;
+    transition: all 0.3s ease;
+}
+
+/* ========== ESTADO COLAPSADO ========== */
+.sidebar.collapsed .sidebar-text,
+.sidebar.collapsed .nav-text {
+    opacity: 0;
+    width: 0;
+    overflow: hidden;
+}
+
+.sidebar.collapsed .submenu-arrow,
+.sidebar.collapsed .has-submenu .nav-link::after {
+    display: none;
+}
+
+.sidebar.collapsed .submenu {
+    display: none !important;
+}
+
+.sidebar.collapsed .nav-link {
+    justify-content: center;
+    padding: 18px 10px;
+}
+
+.sidebar.collapsed .nav-icon {
+    font-size: 1.3rem;
+}
+
+.sidebar.collapsed .sidebar-header h3 {
+    justify-content: center;
+}
+
+/* ========== SUBMENÚS ========== */
+.submenu {
+    background: #1a252f;
+    display: none;
+    overflow: hidden;
+    padding: 0;
+    margin: 0;
+}
+
+.submenu li {
+    list-style: none;
+    border-bottom: 1px solid #2c3e50;
+}
+
+.submenu li:last-child {
+    border-bottom: none;
+}
+
+.submenu-link {
+    display: flex;
+    align-items: center;
+    padding: 14px 20px 14px 50px;
+    color: #95a5a6;
+    text-decoration: none;
+    font-size: 0.85rem;
+    transition: all 0.2s ease;
+    gap: 10px;
+    position: relative;
+}
+
+.submenu-link:hover {
+    background: #2c3e50;
+    color: var(--regency-red);
+}
+
+.submenu-icon {
+    font-size: 0.9rem;
+    min-width: 16px;
+    opacity: 0.7;
+}
+
+/* Ocultar flecha original del submenu */
+.submenu-arrow {
+    display: none;
+}
+
+/* ========== TOOLTIP PARA SIDEBAR COLLAPSED ========== */
+.sidebar.collapsed .nav-link {
+    position: relative;
+}
+
+.sidebar.collapsed .nav-link:hover::after {
+    content: attr(data-tooltip);
+    position: absolute;
+    left: 70px;
+    top: 50%;
+    transform: translateY(-50%);
+    background: var(--sidebar-item-bg);
+    color: white;
+    padding: 8px 12px;
+    border-radius: 4px;
+    font-size: 0.8rem;
+    white-space: nowrap;
+    z-index: 1000;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.3);
+}
+
+.sidebar.collapsed .nav-link:hover::before {
+    content: '';
+    position: absolute;
+    left: 60px;
+    top: 50%;
+    transform: translateY(-50%);
+    border-right: 8px solid var(--sidebar-item-bg);
+    border-top: 6px solid transparent;
+    border-bottom: 6px solid transparent;
+    z-index: 1000;
+}
+
+/* ========== MAIN CONTENT ADJUSTMENT ========== */
+.main-content {
+    margin-left: 280px;
+    transition: margin-left 0.3s ease;
+    padding: 20px;
+    background: var(--regency-gray-light);
+    min-height: 100vh;
+}
+
+.sidebar.collapsed + .main-content {
+    margin-left: 60px;
+}
+
+/* ========== RESPONSIVE ========== */
+@media (max-width: 768px) {
+    .sidebar {
+        transform: translateX(-100%);
+        z-index: 9999;
+    }
+    
+    .sidebar.mobile-open {
+        transform: translateX(0);
+    }
+    
+    .main-content {
+        margin-left: 0;
+    }
+    
+    .sidebar.collapsed + .main-content {
+        margin-left: 0;
+    }
+}
+
+/* ========== SCROLL PERSONALIZADO ========== */
+.sidebar::-webkit-scrollbar {
+    width: 3px;
+}
+
+.sidebar::-webkit-scrollbar-track {
+    background: var(--sidebar-bg);
+}
+
+.sidebar::-webkit-scrollbar-thumb {
+    background: var(--sidebar-hover);
+    border-radius: 2px;
+}
+
+.sidebar::-webkit-scrollbar-thumb:hover {
+    background: var(--regency-red);
+}
+
+/* ========== REMOVER ANIMACIONES DE ENTRADA ========== */
+.nav-item {
+    animation: none;
+    opacity: 1;
+    transform: none;
+}
