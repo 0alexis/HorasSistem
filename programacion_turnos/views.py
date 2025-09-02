@@ -788,10 +788,17 @@ def nomina_view(request, programacion_id):
 
     festivos_lista = get_holidays_for_dates(fecha_inicio, fecha_fin)
     
-    # NUEVO: Convertir a JSON manualmente
-    festivos_lista_json = json.dumps(festivos_lista)
+
     
     # 10. Preparar el contexto para el template
+
+     # 11: Convertir a JSON manualmente
+    festivos_lista_json = json.dumps(festivos_lista)
+    
+    # 12: Obtener días dominicales
+    domingos_lista = get_domingos_for_dates(fecha_inicio, fecha_fin)
+    domingos_lista_json = json.dumps(domingos_lista)
+    
     context = {
         'programacion': programacion,
         'fechas': fechas,
@@ -802,7 +809,8 @@ def nomina_view(request, programacion_id):
         'codigos_turno_usados': codigos_turno_usados,  # Para la leyenda
         'festivos': festivos_lista,  # para identificar dias festivos en nomina
         'total_horas_por_empleado': total_horas_por_empleado,
-        'festivos_lista_json': festivos_lista_json,  # NUEVO
+        'festivos_lista_json': festivos_lista_json, 
+        'domingos_lista_json': domingos_lista_json,  
     }
     return render(request, 'programacion_turnos/nomina.html', context)
 
@@ -832,3 +840,25 @@ def get_holidays_for_dates(fecha_inicio, fecha_fin, pais='CO'):
             festivos_en_rango.append(fecha_festivo.strftime('%Y-%m-%d'))
     
     return festivos_en_rango
+
+def get_domingos_for_dates(fecha_inicio, fecha_fin):
+    """
+    Función para obtener domingos en un rango de fechas.
+    
+    Args:
+        fecha_inicio (date): Fecha de inicio del rango
+        fecha_fin (date): Fecha de fin del rango
+    
+    Returns:
+        list: Lista de fechas dominicales en formato 'YYYY-MM-DD'
+    """
+    domingos_lista = []
+    fecha_actual = fecha_inicio
+    
+    while fecha_actual <= fecha_fin:
+        # 6 = Domingo (weekday: 0=Lunes, 6=Domingo)
+        if fecha_actual.weekday() == 6:
+            domingos_lista.append(fecha_actual.strftime('%Y-%m-%d'))
+        fecha_actual += timedelta(days=1)
+    
+    return domingos_lista

@@ -402,19 +402,22 @@
 </div>
 
 
+
+
 <script>
     const festivos = {{ festivos_lista_json|safe }};
+    const domingos = {{ domingos_lista_json|safe }};  // NUEVO
     
     function esFestivo(fechaStr) {
         return festivos && festivos.includes(fechaStr);
     }
     
     function esDomingo(fechaStr) {
-        const fecha = new Date(fechaStr + 'T00:00:00');
-        return fecha.getDay() === 0; // 0 = Domingo
+        return domingos && domingos.includes(fechaStr);  // Usar la lista del backend
     }
     
     console.log('Festivos cargados:', festivos.length);
+    console.log('Domingos cargados:', domingos.length);  // NUEVO
 </script>
 <script src="{% static 'malla/js/holidays.js' %}"></script>
 

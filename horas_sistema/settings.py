@@ -271,11 +271,10 @@ ADMIN_INDEX_TITLE = "Panel de Control Ejecutivo"
 
 # Configuración de archivos estáticos personalizados
 STATIC_URL = '/static/'
-STATIC_ROOT = BASE_DIR / 'staticfiles'
 
-STATICFILES_DIRS = [
-   BASE_DIR / 'static',
-]
+# Solo definir donde están todos los archivos finales
+STATIC_ROOT = BASE_DIR / "static"
+
 
 # Configuración de LOGIN/LOGOUT
 LOGIN_URL = '/admin/login/'
