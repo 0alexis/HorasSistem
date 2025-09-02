@@ -215,10 +215,22 @@ DATETIME_INPUT_FORMATS = [
 # Static files (CSS, JavaScript, Images)
 # https://docs.djangoproject.com/en/5.0/howto/static-files/
 
-STATIC_URL = 'static/'
-STATIC_ROOT = BASE_DIR / 'static'
+STATIC_URL = '/static/'
+STATIC_ROOT = BASE_DIR / 'staticfiles'  # Para collectstatic
+
+# Durante desarrollo, Django buscará archivos aquí también
+STATICFILES_DIRS = [
+    BASE_DIR / 'static',  # Tu carpeta con archivos personalizados
+]
+
 MEDIA_ROOT = BASE_DIR / 'media'
 MEDIA_URL = '/media/'
+
+# Configuración de LOGIN/LOGOUT
+LOGIN_URL = '/admin/login/'
+LOGOUT_URL = '/admin/logout/'
+LOGIN_REDIRECT_URL = '/welcome/'
+LOGOUT_REDIRECT_URL = '/admin/login/'
 
 # Default primary key field type
 # https://docs.djangoproject.com/en/5.0/ref/settings/#default-auto-field
@@ -268,18 +280,3 @@ SIMPLE_JWT = {
 ADMIN_SITE_HEADER = "REGENCY SERVICES - Sistema de Gestión de Turnos"
 ADMIN_SITE_TITLE = "REGENCY Panel de Control"
 ADMIN_INDEX_TITLE = "Panel de Control Ejecutivo"
-
-# Configuración de archivos estáticos personalizados
-STATIC_URL = '/static/'
-
-# Solo definir donde están todos los archivos finales
-STATIC_ROOT = BASE_DIR / "static"
-
-
-# Configuración de LOGIN/LOGOUT
-LOGIN_URL = '/admin/login/'
-LOGOUT_URL = '/admin/logout/'
-# Redirección después del login
-LOGIN_REDIRECT_URL = '/welcome/'
-LOGOUT_REDIRECT_URL = '/admin/login/'
-
