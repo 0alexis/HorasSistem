@@ -4,122 +4,183 @@
 
 {% block extrastyle %}
 <style>
-    :root {
-        --regency-red: #B91C1C;
-        --regency-red-dark: #991B1B;
-        --regency-red-light: #DC2626;
-    }
-    
     .main-header {
-        background: linear-gradient(135deg, var(--regency-red) 0%, var(--regency-red-dark) 100%);
+        background: linear-gradient(135deg, #B91C1C 0%, #991B1B 100%);
         color: white;
         padding: 2rem;
         margin: -20px -20px 2rem -20px;
         border-radius: 0 0 12px 12px;
-        box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
     }
     
     .main-header h1 {
-        margin: 0;
         font-size: 2rem;
-        font-weight: 300;
+        margin: 0 0 0.5rem 0;
+        font-weight: 700;
     }
     
-    .main-header .subtitle {
-        margin-top: 0.5rem;
-        opacity: 0.9;
+    .subtitle {
         font-size: 1.1rem;
+        opacity: 0.9;
+        margin: 0;
     }
     
     .proyecto-titulo {
-        font-size: 1.3rem;
+        font-size: 1.4rem;
         color: #B91C1C;
-        margin-top: 2rem;
-        margin-bottom: 0.5rem;
-        font-weight: bold;
+        margin: 2rem 0 1rem 0;
+        padding: 0.8rem 1rem;
+        background: linear-gradient(90deg, #f9fafb 0%, #f3f4f6 100%);
+        border-left: 4px solid #B91C1C;
+        border-radius: 0 8px 8px 0;
+        font-weight: 600;
     }
+    
     .centros-grid {
-        display: flex;
-        flex-wrap: wrap;
+        display: grid;
+        grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
         gap: 1.5rem;
         margin-bottom: 2rem;
     }
+    
     .centro-card {
-        background: #fff;
-        border-radius: 8px;
-        box-shadow: 0 2px 8px rgba(0,0,0,0.07);
-        padding: 1.2rem 1.5rem;
-        min-width: 220px;
-        max-width: 320px;
-        flex: 1 1 220px;
-        display: flex;
-        flex-direction: column;
-        justify-content: space-between;
+        background: white;
+        border: 1px solid #e5e7eb;
+        border-radius: 12px;
+        padding: 1.5rem;
+        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+        transition: all 0.2s ease;
     }
+    
+    .centro-card:hover {
+        box-shadow: 0 4px 16px rgba(185, 28, 28, 0.12);
+        transform: translateY(-2px);
+    }
+    
     .centro-nombre {
-        font-size: 1.1rem;
+        font-size: 1.2rem;
         font-weight: 600;
         color: #991B1B;
-        margin-bottom: 0.2rem;
+        margin-bottom: 0.5rem;
     }
+    
     .centro-info {
-        font-size: 0.95rem;
-        color: #6b7280;
-        margin-bottom: 0.7rem;
+        margin-bottom: 1rem;
     }
+    
     .centro-actions {
-        margin-top: 0.7rem;
         display: flex;
         gap: 0.5rem;
+        flex-wrap: wrap;
     }
+    
     .btn-regency {
         background: #B91C1C;
-        color: #fff;
+        color: white;
         border: none;
+        border-radius: 6px;
+        padding: 0.7rem 1.2rem;
+        font-size: 0.95rem;
+        font-weight: 500;
+        cursor: pointer;
+        text-decoration: none;
+        transition: all 0.2s;
+        display: inline-block;
+    }
+    
+    .btn-regency:hover {
+        background: #991B1B;
+        color: white;
+        text-decoration: none;
+    }
+    
+    .btn-regency-outline {
+        background: transparent;
+        color: #B91C1C;
+        border: 2px solid #B91C1C;
         border-radius: 6px;
         padding: 0.5rem 1rem;
         font-size: 0.95rem;
         font-weight: 500;
         cursor: pointer;
         text-decoration: none;
-        transition: background 0.2s;
+        transition: all 0.2s;
+        display: inline-block;
     }
-    .btn-regency:hover {
-        background: #991B1B;
-        color: #fff;
+    
+    .btn-regency-outline:hover {
+        background: #B91C1C;
+        color: white;
+        text-decoration: none;
     }
+    
     .empty-state {
         text-align: center;
+        padding: 3rem;
         color: #6b7280;
-        margin: 2rem 0;
+    }
+    
+    .empty-state i {
+        font-size: 4rem;
+        margin-bottom: 1rem;
+        opacity: 0.5;
+    }
+
+    /* Breadcrumb personalizado */
+    .breadcrumb {
+        background: transparent;
+        padding: 0;
+        margin-bottom: 1rem;
+    }
+    
+    .breadcrumb-item a {
+        color: #B91C1C;
+        text-decoration: none;
+    }
+    
+    .breadcrumb-item a:hover {
+        color: #991B1B;
+        text-decoration: underline;
     }
 </style>
 {% endblock %}
 
 {% block content %}
+<!-- Breadcrumb -->
+<nav aria-label="breadcrumb">
+    <ol class="breadcrumb">
+        <li class="breadcrumb-item">
+            <a href="{% url 'welcome' %}">🏠 Inicio</a>
+        </li>
+        <li class="breadcrumb-item active" aria-current="page">Proyectos</li>
+    </ol>
+</nav>
+
 <div class="main-header">
     <h1>Centro de Control - Regency Services</h1>
-    <div class="subtitle">Seleccione un Centro Operativo para gestionar sus programaciones de turnos</div>
+    <div class="subtitle">Seleccione un Proyecto para gestionar sus centros operativos y programaciones</div>
 </div>
 
 <div class="centros-grid">
-    {% for centro in centros_operativos %}
+    {% for proyecto in proyectos %}
         <div class="centro-card">
-            <div class="centro-nombre">{{ centro.nombre }}</div>
+            <div class="centro-nombre">📁 {{ proyecto.nombre }}</div>
             <div class="centro-info">
-                <small style="color: #6b7280;">{{ centro.ciudad }}</small>
+                <small style="color: #6b7280;">
+                    🏢 {{ proyecto.centros_operativos.count }} centro{% if proyecto.centros_operativos.count != 1 %}s{% endif %} operativo{% if proyecto.centros_operativos.count != 1 %}s{% endif %}
+                </small>
             </div>
             <div class="centro-actions">
-                <a href="{% url 'programaciones_por_centro' centro.id_centro %}" class="btn-regency">
-                    Ver Programaciones
+                <a href="{% url 'centros_por_proyecto' proyecto.id_proyecto %}" class="btn-regency">
+                    📋 Ver Centros Operativos
                 </a>
+
             </div>
         </div>
     {% empty %}
         <div class="empty-state">
-            <i class="fas fa-building"></i>
-            <h3>No hay centros operativos disponibles</h3>
-            <p>No se encontraron centros operativos con programaciones activas.</p>
+            <i class="fas fa-folder"></i>
+            <h3>No hay proyectos disponibles</h3>
+            <p>No se encontraron proyectos con centros operativos asignados.</p>
         </div>
     {% endfor %}
 </div>

@@ -1,0 +1,421 @@
+{% extends "admin/base_site.html" %}
+{% load i18n static %}
+{% load malla_extras %}
+
+{% block extrastyle %}
+<style>
+    :root {
+        --regency-red: #B91C1C;
+        --regency-red-dark: #991B1B;
+        --regency-red-light: #DC2626;
+    }
+
+    body {
+        font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        background: #f8fafc;
+        margin: 0;
+        line-height: 1.6;
+    }
+
+    /* Header principal */
+    .main-header {
+        background: linear-gradient(135deg, var(--regency-red) 0%, var(--regency-red-dark) 100%);
+        color: white;
+        padding: 2rem;
+        margin: -20px -20px 2rem -20px;
+        border-radius: 0 0 12px 12px;
+        box-shadow: 0 4px 12px rgba(185, 28, 28, 0.2);
+    }
+
+    .main-header h1 {
+        font-size: 2rem;
+        margin: 0 0 0.5rem 0;
+        font-weight: 700;
+    }
+
+    .subtitle {
+        font-size: 1.1rem;
+        opacity: 0.9;
+        margin: 0;
+    }
+
+    /* Información de la programación */
+    .programacion-info {
+        background: white;
+        border-radius: 12px;
+        padding: 1.5rem;
+        margin-bottom: 2rem;
+        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+        border-left: 4px solid var(--regency-red);
+    }
+
+    .info-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+        gap: 1rem;
+    }
+
+    .info-item {
+        display: flex;
+        flex-direction: column;
+    }
+
+    .info-label {
+        font-size: 0.85rem;
+        color: #6b7280;
+        font-weight: 500;
+        margin-bottom: 0.25rem;
+    }
+
+    .info-value {
+        font-size: 1rem;
+        color: #1f2937;
+        font-weight: 600;
+    }
+
+    /* Tabla de nómina */
+    .nomina-container {
+        background: white;
+        border-radius: 12px;
+        overflow: hidden;
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+    }
+
+    .table-header {
+        background: linear-gradient(135deg, #f8fafc 0%, #e2e8f0 100%);
+        padding: 1rem;
+        border-bottom: 2px solid #e5e7eb;
+    }
+
+    .table-title {
+        font-size: 1.2rem;
+        font-weight: 700;
+        color: var(--regency-red);
+        margin: 0;
+    }
+
+    .nomina-table {
+        width: 100%;
+        border-collapse: collapse;
+        font-size: 0.9rem;
+    }
+
+    .nomina-table th {
+        background: #f8fafc;
+        color: #374151;
+        font-weight: 600;
+        padding: 0.75rem 0.5rem;
+        text-align: center;
+        border-bottom: 2px solid #e5e7eb;
+        position: sticky;
+        top: 0;
+        z-index: 10;
+    }
+
+    .nomina-table th.empleado-header {
+        text-align: left;
+        min-width: 200px;
+        max-width: 250px;
+    }
+
+    .nomina-table th.fecha-header {
+        min-width: 60px;
+        font-size: 0.75rem;
+    }
+
+    .nomina-table td {
+        padding: 0.5rem;
+        border-bottom: 1px solid #f3f4f6;
+        vertical-align: middle;
+    }
+
+    .empleado-cell {
+        background: #fafafa;
+        border-right: 2px solid #e5e7eb;
+        position: sticky;
+        left: 0;
+        z-index: 5;
+    }
+
+    .empleado-nombre {
+        font-weight: 600;
+        color: #1f2937;
+        font-size: 0.9rem;
+        margin-bottom: 0.25rem;
+    }
+
+    .empleado-info {
+        font-size: 0.75rem;
+        color: #6b7280;
+    }
+
+    .turno-cell {
+        text-align: center;
+        min-width: 60px;
+    }
+
+    .turno-letra {
+        display: inline-block;
+        width: 24px;
+        height: 24px;
+        border-radius: 50%;
+        font-weight: bold;
+        font-size: 0.85rem;
+        line-height: 24px;
+        text-align: center;
+        color: rgb(0, 0, 0);
+        border: 2px solid transparent;
+    }
+        .festivo {
+            background: #fde68a !important; /* Amarillo claro para festivos */
+            border: 2px solid #f59e0b !important;
+            font-weight: bold;
+        }
+        
+        .domingo {
+            background: #e0e7ff !important; /* Azul claro para domingos */
+            border: 2px solid #6366f1 !important;
+            font-weight: bold;
+        }
+        
+        /* Si un día es festivo Y domingo, el festivo tiene prioridad */
+        .festivo.domingo {
+            background: #fde68a !important;
+            border: 2px solid #f59e0b !important;
+        }
+
+    /* Colores para diferentes turnos */
+    .turno-A { background: #3b82f6; }
+    .turno-B { background: #10b981; }
+    .turno-C { background: #f59e0b; }
+    .turno-D { background: #ef4444; }
+    .turno-E { background: #8b5cf6; }
+    .turno-F { background: #06b6d4; }
+    .turno-G { background: #84cc16; }
+    .turno-H { background: #f97316; }
+    .turno-I { background: #ec4899; }
+    .turno-J { background: #6366f1; }
+
+    .turno-vacio {
+        color: #093576;
+        font-size: 0.75rem;
+    }
+
+    /* Resumen de horas */
+    .resumen-horas {
+        background: #f8fafc;
+        border-top: 2px solid #e5e7eb;
+        padding: 1rem;
+    }
+
+    .resumen-title {
+        font-size: 1rem;
+        font-weight: 600;
+        color: var(--regency-red);
+        margin-bottom: 0.5rem;
+    }
+
+    /* Responsive */
+    @media (max-width: 768px) {
+        .nomina-table {
+            font-size: 0.8rem;
+        }
+
+        .empleado-cell {
+            min-width: 150px;
+        }
+
+        .turno-letra {
+            width: 20px;
+            height: 20px;
+            line-height: 20px;
+            font-size: 0.7rem;
+        }
+    }
+
+    /* Scroll horizontal */
+    .table-wrapper {
+        overflow-x: auto;
+        max-width: 100%;
+    }
+
+    /* Colores dinámicos para turnos basados en la base de datos */
+    {% for codigo in codigos_turno %}
+        .turno-{{ codigo.letra }} { 
+            background: {{ codigo.color|default:"#6b7280" }}; 
+            {% if codigo.color %}
+                border-color: {{ codigo.color }};
+            {% endif %}
+        }
+    {% endfor %}
+
+    /* Estilos de respaldo para turnos no definidos */
+    .turno-letra:not([class*="turno-"]) {
+        background: #6b7280;
+        border-color: #6b7280;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="main-header">
+    <h1>📊 Nómina - Programación de Turnos</h1>
+    <div class="subtitle">Conversión de turnos a horas trabajadas</div>
+</div>
+
+<!-- Información de la programación -->
+<div class="programacion-info">
+    <div class="info-grid">
+        <div class="info-item">
+            <span class="info-label">🏢 Centro Operativo</span>
+            <span class="info-value">{{ programacion.centro_operativo.nombre }}</span>
+        </div>
+
+        <div class="info-item">
+            <span class="info-label">👥 Total Empleados</span>
+            <span class="info-value">{{ empleados|length }}</span>
+        </div>
+<!-- Filtro de rango de fechas -->
+<form method="get" style="display: flex; align-items: center; gap: 1rem; margin-bottom: 1.5rem; background: #f8fafc; padding: 0.5rem 1rem; border-radius: 8px;">
+    <label for="fecha_inicio" style="font-weight: 500;">Desde:</label>
+    <input type="date" name="fecha_inicio" id="fecha_inicio" value="{{ request.GET.fecha_inicio|default:programacion.fecha_inicio|date:'Y-m-d' }}" style="padding: 0.2rem 0.5rem;">
+    <label for="fecha_fin" style="font-weight: 500;">Hasta:</label>
+    <input type="date" name="fecha_fin" id="fecha_fin" value="{{ request.GET.fecha_fin|default:programacion.fecha_fin|date:'Y-m-d' }}" style="padding: 0.2rem 0.5rem;">
+    <button type="submit" style="background: #0ea5e9; color: white; border: none; border-radius: 4px; padding: 0.3rem 0.8rem; font-weight: 500;">Filtrar</button>
+</form>
+
+    </div>
+</div>
+
+<!-- Tabla de nómina -->
+<div class="nomina-container">
+    <div class="table-header">
+        <h3 class="table-title">Detalle de Turnos por Empleado</h3>
+    </div>
+    
+    <div class="table-wrapper">
+        <table class="nomina-table">
+            <thead>
+                <tr>
+                    <th class="empleado-header">👤 Empleado</th>
+                    {% for fecha in fechas %}
+                        <th class="fecha-header">
+                            {{ fecha|date:"d" }}<br>
+                            <small>{{ fecha|date:"D" }}</small>
+                        </th>
+                    {% endfor %}
+                    <th style="background: #fee2e2; color: var(--regency-red);">📊 Total Horas</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for empleado in empleados %}
+                <tr>
+                    <td class="empleado-cell">
+                        <div class="empleado-nombre">{{ empleado.nombre_tercero }}</div>
+                        <div class="empleado-apellido">{{ empleado.apellido_tercero }}</div>
+                        <div class="empleado-cedula">Cédula: {{ empleado.documento|default:"-" }}</div>
+                        <div class="empleado-cargo">{{ empleado.cargo_predefinido.nombre|default:"Sin cargo" }}</div>
+                </td>
+                    {% for fecha in fechas %}
+                        {% with fecha_str=fecha|date:"Y-m-d" %}
+                            {% with turno_letra=matriz_empleados_fechas|dict_get:empleado.id_tercero|dict_get:fecha_str %}
+                                <td class="turno-cell" data-fecha="{{ fecha|date:'Y-m-d' }}">
+                                    {% if turno_letra and turno_letra != '-' %}
+                                        <span class="turno-letra turno-{{ turno_letra }}">{{ turno_letra }}</span>
+                                    {% else %}
+                                        <span class="turno-vacio">-</span>
+                                    {% endif %}
+                                </td>
+                            {% endwith %}
+                        {% endwith %}
+                    {% endfor %}
+                    <td style="background: #fee2e2; text-align: center; font-weight: bold; color: var(--regency-red);">
+                        <span id="total-horas-{{ empleado.id_tercero }}">
+                            {{ total_horas_por_empleado|dict_get:empleado.id_tercero }} hrs
+                        </span>
+                    </td>
+                </tr>
+                {% empty %}
+                <tr>
+                    <td colspan="{{ fechas|length|add:2 }}" style="text-align: center; padding: 2rem; color: #6b7280;">
+                        No hay empleados asignados a esta programación.
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+    
+    <!-- Resumen de horas (próxima fase) -->
+    <div class="resumen-horas">
+        <div class="resumen-title">📋 Próxima fase: Conversión a horas</div>
+        <p style="color: #6b7280; margin: 0;">
+            En la siguiente iteración implementaremos el cálculo automático de horas basado en los códigos de turno.
+        </p>
+    </div>
+</div>
+
+
+
+<!-- Leyenda de códigos de turno usados en la programación -->
+<div style="background: white; border-radius: 12px; padding: 1.5rem; margin-bottom: 1rem; box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);">
+    <h3 style="color: var(--regency-red); margin: 0 0 1rem 0; font-size: 1.1rem;">🎯 Códigos de Turno</h3>
+    <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 0.75rem;">
+        {% for codigo in codigos_turno_usados %}
+            <div style="display: flex; align-items: center; gap: 0.5rem; padding: 0.5rem; background: #f8fafc; border-radius: 6px;">
+                <span class="turno-letra turno-{{ codigo.letra_turno }}" style="width: 24px; height: 24px; line-height: 24px; font-size: 0.85rem;">
+                    {{ codigo.letra_turno }}
+                </span>
+                <div style="flex: 1;">
+                    <div style="font-weight: 600; font-size: 0.95rem; color: #1f2937;">
+                        {{ codigo.nombre|default:codigo.letra_turno }}
+                    </div>
+                    {% if codigo.descripcion_novedad %}
+                        <div style="font-size: 0.8rem; color: #6b7280;">
+                            {{ codigo.descripcion_novedad|truncatechars:40 }}
+                        </div>
+                    {% endif %}
+                    <div style="font-size: 0.8rem; color: #991B1B; margin-top: 2px;">
+                        <strong>Horas:</strong> {{ codigo.duracion_total|default:"0" }}
+                    </div>
+                </div>
+            </div>
+        {% endfor %}
+    </div>
+</div>
+
+<!-- Botón de regreso -->
+<div style="margin-top: 2rem;">
+
+    <a href="{% url 'malla_turnos' programacion.id %}" class="btn" style="
+        background: var(--regency-red);
+        color: white;
+        padding: 0.75rem 1.5rem;
+        border-radius: 8px;
+        text-decoration: none;
+        font-weight: 600;
+        display: inline-block;
+        transition: all 0.2s;
+    ">
+        ← Volver a la Malla
+    </a>
+</div>
+
+
+<script>
+    const festivos = {{ festivos_lista_json|safe }};
+    
+    function esFestivo(fechaStr) {
+        return festivos && festivos.includes(fechaStr);
+    }
+    
+    function esDomingo(fechaStr) {
+        const fecha = new Date(fechaStr + 'T00:00:00');
+        return fecha.getDay() === 0; // 0 = Domingo
+    }
+    
+    console.log('Festivos cargados:', festivos.length);
+</script>
+<script src="{% static 'malla/js/holidays.js' %}"></script>
+
+{% endblock %}

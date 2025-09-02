@@ -456,8 +456,9 @@
     <span style="color: #6b7280;">| Malla de Turnos</span>
 </div>
 
-<!-- Filtro pequeño de rango de fechas -->
-<div style="display: flex; align-items: center; gap: 1rem; margin-bottom: 1rem; background: #f8fafc; padding: 0.5rem 1rem; border-radius: 8px;">
+<!-- Filtro pequeño de rango de fechas + Botón de Nómina -->
+<div style="display: flex; align-items: center; justify-content: space-between; gap: 1rem; margin-bottom: 1rem; background: #f8fafc; padding: 0.5rem 1rem; border-radius: 8px;">
+    <!-- Filtro de fechas (lado izquierdo) -->
     <form id="filtro-fechas-malla" method="get" style="display: flex; align-items: center; gap: 0.5rem; margin: 0;">
         <label style="font-weight: 500;">Desde:</label>
         <input type="date" name="fecha_inicio" id="fecha_inicio" value="{{ fecha_inicio|date:'Y-m-d' }}" style="padding: 0.2rem 0.5rem;">
@@ -465,6 +466,51 @@
         <input type="date" name="fecha_fin" id="fecha_fin" value="{{ fecha_fin|date:'Y-m-d' }}" style="padding: 0.2rem 0.5rem;">
         <button type="submit" style="background: #0ea5e9; color: white; border: none; border-radius: 4px; padding: 0.3rem 0.8rem; font-weight: 500;">Filtrar</button>
     </form>
+    
+
+    <!-- Botón de Nómina (lado derecho) -->
+<div style="display: flex; gap: 0.5rem;">
+    {% if programacion and programacion.id %}
+        <a href="{% url 'nomina_view' programacion.id %}"
+           style="background: linear-gradient(135deg, var(--regency-red) 0%, var(--regency-red-dark) 100%);
+                  color: white;
+                  border: none;
+                  border-radius: 6px;
+                  padding: 0.5rem 1rem;
+                  font-weight: 600;
+                  text-decoration: none;
+                  display: inline-flex;
+                  align-items: center;
+                  gap: 0.5rem;
+                  font-size: 0.9rem;
+                  transition: all 0.2s ease;
+                  box-shadow: 0 2px 4px rgba(185, 28, 28, 0.2);">
+            📊 Ver Nómina
+        </a>
+    {% endif %}
+        
+        <!-- Botón adicional: Exportar (para futuro) -->
+        <button type="button" 
+                style="
+                    background: transparent;
+                    color: var(--regency-red);
+                    border: 2px solid var(--regency-red);
+                    border-radius: 6px;
+                    padding: 0.4rem 0.8rem;
+                    font-weight: 600;
+                    cursor: pointer;
+                    display: inline-flex;
+                    align-items: center;
+                    gap: 0.5rem;
+                    font-size: 0.9rem;
+                    transition: all 0.2s ease;
+                "
+                onmouseover="this.style.background='var(--regency-red)'; this.style.color='white';"
+                onmouseout="this.style.background='transparent'; this.style.color='var(--regency-red)';"
+                onclick="alert('Funcionalidad de exportar próximamente')">
+            📤 Exportar
+        </button>
+    </div>
 </div>
 
 <div class="malla-container">
@@ -514,6 +560,42 @@
                 </td>
             </tr>
             {% endfor %}
+
+            <!-- NUEVA FILA DE RESUMEN DIARIO -->
+            <tr style="border-top: 3px solid var(--regency-red); background: linear-gradient(135deg, #f8fafc 0%, #e2e8f0 100%);">
+                <td class="empleado-cell" style="background: linear-gradient(135deg, #f8fafc 0%, #e2e8f0 100%); font-weight: bold; color: var(--regency-red);">
+                    <div class="empleado-nombre" style="font-size: 1rem;">📊 RESUMEN DIARIO</div>
+                    <div class="empleado-cargo" style="color: #6b7280;">Conteo de turnos por día</div>
+                </td>
+                {% for fecha in fechas %}
+                <td class="turno-cell" style="background: #f8fafc; padding: 0.5rem;">
+                    {% with fecha_str=fecha|date:"Y-m-d" %}
+                        <div style="display: flex; flex-direction: column; gap: 2px; font-size: 0.75rem; line-height: 1.2;">
+                            {% for letra, info in codigos_info.items %}
+                                {% with count=conteos_diarios|dict_get:fecha_str|dict_get:letra|default:0 %}
+                                    {% if count > 0 %}
+                                        <div style="display: flex; align-items: center; gap: 3px; justify-content: center;">
+                                            <span class="turno-letra" style="width: 16px; height: 16px; line-height: 16px; font-size: 0.7rem; border-width: 1px;" 
+                                                  class="turno-{{ letra }}">{{ letra }}</span>
+                                            <span style="font-weight: 600; color: #374151;">{{ count }}</span>
+                                        </div>
+                                    {% endif %}
+                                {% endwith %}
+                            {% endfor %}
+                            
+                            <!-- Mostrar total del día -->
+                            {% with total_dia=conteos_diarios|dict_get:fecha_str|dict_get:'total'|default:0 %}
+                                {% if total_dia > 0 %}
+                                    <div style="border-top: 1px solid #d1d5db; padding-top: 2px; margin-top: 2px; font-weight: bold; color: var(--regency-red); font-size: 0.7rem;">
+                                        Total: {{ total_dia }}
+                                    </div>
+                                {% endif %}
+                            {% endwith %}
+                        </div>
+                    {% endwith %}
+                </td>
+                {% endfor %}
+            </tr>
         </tbody>
     </table>
 </div>

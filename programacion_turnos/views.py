@@ -4,8 +4,10 @@ from django.http import HttpResponse
 from datetime import datetime, timedelta
 from django.utils import timezone
 from django.contrib import messages
+import json
 
 # Create your views here.
+import holidays
 from rest_framework import viewsets
 from .models import ProgramacionHorario, AsignacionTurno, LetraTurno
 from .serializers import ProgramacionHorarioSerializer, AsignacionTurnoSerializer
@@ -22,7 +24,7 @@ from rest_framework.permissions import IsAuthenticated
 from .serializers import EditarMallaRequestSerializer
 from .services.holiday_service import get_holidays_for_range
 from .forms import ProgramacionHorarioForm  
-from usuarios.models import CodigoTurno
+
 from .serializers import EditarLetraTurnoSerializer
 from django.shortcuts import render, get_object_or_404, redirect
 from .models import AsignacionTurno, LetraTurno
@@ -378,6 +380,24 @@ def malla_turnos(request, programacion_id):
         print(f"  En matriz: {matriz_turnos.get(key, 'NO ENCONTRADO')}")
     print("=== FIN DEBUG ===")
     
+    # NUEVO: Calcular conteos diarios
+    conteos_diarios = {}
+    for fecha in fechas:
+        fecha_str = fecha.strftime('%Y-%m-%d')
+        conteos_diarios[fecha_str] = {}
+        
+        # Contar cada letra de turno para esta fecha
+        for empleado in empleados:
+            letra = matriz_empleados_fechas.get(empleado.id_tercero, {}).get(fecha_str, '-')
+            if letra and letra != '-':
+                if letra not in conteos_diarios[fecha_str]:
+                    conteos_diarios[fecha_str][letra] = 0
+                conteos_diarios[fecha_str][letra] += 1
+        
+        # Calcular total del día
+        total_dia = sum(conteos_diarios[fecha_str].values())
+        conteos_diarios[fecha_str]['total'] = total_dia
+    
     # PASO 9: Preparar context
     horas = "00,01,02,03,04,05,06,07,08,09,10,11,12,13,14,15,16,17,18,19,20,21,22,23".split(',')
     context = {
@@ -394,6 +414,7 @@ def malla_turnos(request, programacion_id):
         'title': f'Malla de Turnos - {programacion.centro_operativo.nombre}',
         'letras_validas': letras_validas,  # Agregar letras válidas
         'horas': horas,
+        'conteos_diarios': conteos_diarios,
         'debug': True  # Activar debug temporalmente
     }
     
@@ -457,77 +478,6 @@ def test_bitacora(request):
 
 
     
-    def get_context_data(self, **kwargs):
-        context = super().get_context_data(**kwargs)
-    
-        # Parámetros de programación
-        programacion_id = self.request.GET.get('programacion_id')
-    
-        # Rango de fechas
-        start_date = self.request.GET.get('start_date')
-        end_date = self.request.GET.get('end_date')
-        if start_date:
-            start_date = datetime.strptime(start_date, '%Y-%m-%d').date()
-        else:
-            start_date = datetime.now().date()
-        if end_date:
-            end_date = datetime.strptime(end_date, '%Y-%m-%d').date()
-        else:
-            end_date = start_date + timedelta(days=60)
-    
-        # Festivos y nombres
-        holiday_dict = get_holidays_for_range(start_date, end_date)
-        dias_festivos_str = [d.strftime('%Y-%m-%d') for d in holiday_dict.keys()]
-        holiday_info = {d.strftime('%Y-%m-%d'): name for d, name in holiday_dict.items()}
-    
-        context['dias_festivos'] = dias_festivos_str
-        context['holiday_info'] = holiday_info
-    
-        # Códigos de turno activos
-        codigos_turno = CodigoTurno.objects.filter(estado_codigo=1).order_by('letra_turno')
-        codigos_info = [
-            {
-                'codigo': codigo.letra_turno,
-                'descripcion': codigo.descripcion_novedad or f'Turno {codigo.letra_turno}',
-                'horas': float(codigo.duracion_total) if codigo.duracion_total else 0,
-                'tipo': codigo.tipo
-            }
-            for codigo in codigos_turno
-        ]
-    
-        # Si hay programación, filtra los códigos usados en esa programación
-        if programacion_id:
-            try:
-                codigos_utilizados = AsignacionTurno.objects.filter(
-                    programacion_id=programacion_id
-                ).values_list('letra_turno', flat=True).distinct()
-                codigos_info = []
-                for codigo in codigos_utilizados:
-                    if codigo and codigo.strip():
-                        codigo_obj = CodigoTurno.objects.filter(letra_turno=codigo, estado_codigo=1).first()
-                        if codigo_obj:
-                            codigos_info.append({
-                                'codigo': codigo_obj.letra_turno,
-                                'descripcion': codigo_obj.descripcion_novedad,
-                                'horas': float(codigo_obj.duracion_total) if codigo_obj.duracion_total else 0,
-                                'tipo': codigo_obj.tipo
-                            })
-                        else:
-                            codigos_info.append({
-                                'codigo': codigo,
-                                'descripcion': f'Turno {codigo}',
-                                'horas': 8,
-                                'tipo': 'N'
-                            })
-                context['codigos_turno'] = codigos_info
-            except Exception as e:
-                print(f"Error obteniendo códigos de programación {programacion_id}: {e}")
-                context['codigos_turno'] = []
-        else:
-            context['codigos_turno'] = codigos_info
-    
-        return context
-    
 ############DASHBOARD PRINCIPAL PARA DAR INICIO A LAS PROGRAMACIONES DESDE AQUI NACERA TODDO #############
 
 
@@ -535,15 +485,28 @@ def test_bitacora(request):
 from empresas.models import Proyecto, CentroOperativo
 
 def dashboard_view(request):
-    centros_operativos = CentroOperativo.objects.filter(
-    programacionhorario__isnull=False
-).distinct().order_by('nombre')
+    from empresas.models import Proyecto
+    
+    # Obtener solo proyectos que tienen centros operativos asignados
+    proyectos = Proyecto.objects.filter(
+        centros_operativos__isnull=False,
+        activo=True
+    ).distinct().order_by('nombre')
+    
+    return render(request, 'programacion_turnos/dashboard.html', {
+        'proyectos': proyectos
+    })
 
-    context = {
-    'centros_operativos': centros_operativos,
-    'title': 'Seleccionar Centro Operativo'
-}
-    return render(request, 'programacion_turnos/dashboard.html', context)
+def centros_por_proyecto_view(request, proyecto_id):
+    
+    
+    proyecto = get_object_or_404(Proyecto, id_proyecto=proyecto_id, activo=True)
+    centros = proyecto.centros_operativos.filter(activo=True).order_by('nombre')
+    
+    return render(request, 'programacion_turnos/centros_por_proyecto.html', {
+        'proyecto': proyecto,
+        'centros': centros
+    })
 
 ############ NUEVA VISTA - NIVEL 2: PROGRAMACIONES POR CENTRO #############
 def programaciones_por_centro_view(request, centro_id):
@@ -746,3 +709,126 @@ def asignacion_turno_modulo(request):
         'fecha': fecha,
     }
     return render(request, 'programacion_turnos/asignacion_turno_modulo.html', context)
+def nomina_view(request, programacion_id):
+    from datetime import datetime, timedelta
+
+    # 1. Obtener la programación
+    programacion = get_object_or_404(ProgramacionHorario, id=programacion_id)
+
+    # 2. Filtro de fechas (GET o rango de la programación)
+    fecha_inicio = request.GET.get('fecha_inicio')
+    fecha_fin = request.GET.get('fecha_fin')
+    if fecha_inicio:
+        fecha_inicio = datetime.strptime(fecha_inicio, "%Y-%m-%d").date()
+    else:
+        fecha_inicio = programacion.fecha_inicio
+    if fecha_fin:
+        fecha_fin = datetime.strptime(fecha_fin, "%Y-%m-%d").date()
+    else:
+        fecha_fin = programacion.fecha_fin
+
+    # 3. Generar lista de fechas en el rango seleccionado
+    fechas = []
+    fecha_actual = fecha_inicio
+    while fecha_actual <= fecha_fin:
+        fechas.append(fecha_actual)
+        fecha_actual += timedelta(days=1)
+
+    # 4. Obtener empleados asignados a la programación
+    empleados = Tercero.objects.filter(
+        asignacionturno__programacion=programacion
+    ).distinct().order_by('apellido_tercero')
+
+    # 5. Obtener todos los códigos de turno
+    codigos_turno = CodigoTurno.objects.all().order_by('letra_turno')
+    codigos_info = {
+        codigo.letra_turno: {
+            'letra': codigo.letra_turno,
+            'nombre': getattr(codigo, 'nombre', ''),
+            'descripcion': getattr(codigo, 'descripcion_novedad', ''),
+            'color': getattr(codigo, 'color', None),
+            'horas': getattr(codigo, 'duracion_total', 0),
+        }
+        for codigo in codigos_turno
+    }
+
+    # 6. Obtener asignaciones de turnos en el rango
+    asignaciones = AsignacionTurno.objects.filter(
+        programacion=programacion
+    ).select_related('tercero')
+
+    # 7. Construir matriz de turnos por empleado y fecha
+    matriz_empleados_fechas = {}
+    for asignacion in asignaciones:
+        empleado_id = asignacion.tercero.id_tercero
+        fecha_str = asignacion.dia.strftime('%Y-%m-%d')
+        if empleado_id not in matriz_empleados_fechas:
+            matriz_empleados_fechas[empleado_id] = {}
+        matriz_empleados_fechas[empleado_id][fecha_str] = asignacion.letra_turno if asignacion.letra_turno else '-'
+
+    # 8. Calcular total de horas por empleado
+    total_horas_por_empleado = {}
+    for empleado in empleados:
+        total_horas = 0
+        for fecha in fechas:
+            fecha_str = fecha.strftime('%Y-%m-%d')
+            turno_letra = matriz_empleados_fechas.get(empleado.id_tercero, {}).get(fecha_str)
+            if turno_letra and turno_letra != '-':
+                horas = codigos_info.get(turno_letra, {}).get('horas', 0)
+                total_horas += horas
+        total_horas_por_empleado[empleado.id_tercero] = total_horas
+
+    # 9. Obtener solo los códigos usados en la programación actual
+    turnos_usados = set()
+    for fechas_dict in matriz_empleados_fechas.values():
+        for letra in fechas_dict.values():
+            if letra and letra != '-':
+                turnos_usados.add(letra)
+    codigos_turno_usados = [codigo for codigo in codigos_turno if codigo.letra_turno in turnos_usados]
+
+    festivos_lista = get_holidays_for_dates(fecha_inicio, fecha_fin)
+    
+    # NUEVO: Convertir a JSON manualmente
+    festivos_lista_json = json.dumps(festivos_lista)
+    
+    # 10. Preparar el contexto para el template
+    context = {
+        'programacion': programacion,
+        'fechas': fechas,
+        'empleados': empleados,
+        'matriz_empleados_fechas': matriz_empleados_fechas,
+        'codigos_info': codigos_info,
+        'codigos_turno': codigos_turno,
+        'codigos_turno_usados': codigos_turno_usados,  # Para la leyenda
+        'festivos': festivos_lista,  # para identificar dias festivos en nomina
+        'total_horas_por_empleado': total_horas_por_empleado,
+        'festivos_lista_json': festivos_lista_json,  # NUEVO
+    }
+    return render(request, 'programacion_turnos/nomina.html', context)
+
+
+def get_holidays_for_dates(fecha_inicio, fecha_fin, pais='CO'):
+    """
+    Función reutilizable para obtener días festivos en un rango de fechas.
+    
+    Args:
+        fecha_inicio (date): Fecha de inicio del rango
+        fecha_fin (date): Fecha de fin del rango  
+        pais (str): Código del país (por defecto Colombia 'CO')
+    
+    Returns:
+        list: Lista de fechas festivas en formato 'YYYY-MM-DD'
+    """
+    festivos = holidays.CountryHoliday(pais)
+    
+    # Agregar todos los años en el rango
+    for year in range(fecha_inicio.year, fecha_fin.year + 1):
+        festivos.update(holidays.CountryHoliday(pais, years=year))
+    
+    # Filtrar solo las fechas en el rango y convertir a strings
+    festivos_en_rango = []
+    for fecha_festivo in festivos.keys():
+        if fecha_inicio <= fecha_festivo <= fecha_fin:
+            festivos_en_rango.append(fecha_festivo.strftime('%Y-%m-%d'))
+    
+    return festivos_en_rango
