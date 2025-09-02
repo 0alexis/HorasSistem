@@ -30,5 +30,5 @@ Thumbs.db
 logs/
 backups/
 media/
-
-!static/.gitkeep
+staticfiles/
+!staticfiles/.gitkeep
