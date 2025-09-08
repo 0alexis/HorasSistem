@@ -3,144 +3,122 @@
 
 <html lang="{{ LANGUAGE_CODE|default:"en-us" }}" {% if LANGUAGE_BIDI %}dir="rtl"{% endif %}>
 <head>
-<title>{% block title %}{% endblock %}</title>
-<link rel="stylesheet" type="text/css" href="{% static "admin/css/base.css" %}">
-{% block extrahead %}{% endblock %}
-{% block extrastyle %}
-<!-- AGREGAR ESTILOS PERSONALIZADOS AQUÍ -->
-<style>
-    /* Colores REGENCY para el header */
-    #header {
-        background: linear-gradient(135deg, #b91c1c, #710c0c) !important;
-        border-bottom: 3px solid #991b1b !important;
-        box-shadow: 0 2px 10px rgba(185, 28, 28, 0.2) !important;
-    }
-
-    #branding h1 {
-        color: white !important;
-        font-weight: 300 !important;
-        font-size: 1.8em !important;
-        text-shadow: 0 1px 3px rgba(0,0,0,0.3) !important;
-    }
-
-    #user-tools {
-        color: white !important;
-        padding-right: 20px !important;
-    }
-
-    #user-tools p {
-        color: #fef2f2 !important;
-        font-weight: 500 !important;
-    }
-
-    #user-tools a {
-        color: #fee2e2 !important;
-        text-decoration: none !important;
-    }
-
-    #user-tools a:hover {
-        color: white !important;
-        background: rgba(255,255,255,0.1) !important;
-        padding: 3px 8px !important;
-        border-radius: 4px !important;
-    }
-
-    /* Breadcrumbs con colores suaves */
-    .breadcrumbs {
-        background: #fef2f2 !important;
-        border-bottom: 1px solid #fee2e2 !important;
-    }
-
-    .breadcrumbs a {
-        color: #b91c1c !important;
-    }
-</style>
-{% endblock %}
-<!--[if lte IE 7]><link rel="stylesheet" type="text/css" media="screen" href="{% static "admin/css/ie.css" %}" /><![endif]-->
-
-{% if LANGUAGE_BIDI %}<link rel="stylesheet" type="text/css" href="{% static "admin/css/rtl.css" %}">{% endif %}
-<meta name="robots" content="NONE,NOARCHIVE">
+    <title>{% block title %}REGENCY SERVICES - Sistema de Gestión de Turnos{% endblock %}</title>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="robots" content="NONE,NOARCHIVE">
+    
+    <!-- CSS Principales -->
+    <link rel="stylesheet" type="text/css" href="{% static 'admin/css/base.css' %}">
+    
+    {% block extrahead %}{% endblock %}
+    {% block extrastyle %}{% endblock %}
+    
+    {% if LANGUAGE_BIDI %}
+        <link rel="stylesheet" type="text/css" href="{% static 'admin/css/rtl.css' %}">
+    {% endif %}
 </head>
 
-<body class="{% if is_popup %}popup {% endif %}{% block bodyclass %}{% endblock %}" data-admin-utc-offset="{% now "Z" %}">
-
-<!-- Container -->
-<div id="container">
-
-    {% if not is_popup %}
-    <!-- Header -->
-    <div id="header">
-        <div id="branding">
-        {% block branding %}
-            <img src="{% static 'img/logo_regency.png' %}" alt="REGENCY" style="height: 35px; vertical-align: middle; margin-right: 15px;" onerror="this.style.display='none'">
-            <h1 id="site-name">REGENCY SERVICES - Sistema de Gestión de  Turnos</h1>
-        {% endblock %}
-        </div>
-        {% if user.is_active and user.is_staff %}
-        <div id="user-tools">
-            {% block userlinks %}
-                {% if user.has_usable_password %}
-                {% block welcome-msg %}
-                    <p id="welcome-msg">
-                        Bienvenido al Sistema de Gestión de Turnos, {{ user.get_full_name|default:user.username }}.
-                    </p>
-                {% endblock %}
+<body class="regency-admin">
+    
+    <!-- Header Corporativo Regency -->
+    <header class="regency-header-admin">
+        <div class="header-container">
+            <!-- Branding corporativo -->
+            <div class="header-brand">
+                <div class="regency-logo-admin">
+                    <!-- Usa el logo real -->
+                    <img src="{% static 'img/logo_regency.png' %}" alt="Logo Regency" class="regency-logo-img">
+                </div>
+                <div class="brand-info">
+                    <h1 class="brand-title">REGENCY</h1>
+                    <p class="brand-subtitle">Sistema de Gestión de Turnos</p>
+                </div>
+            </div>
+            
+            <!-- Usuario y acciones -->
+            <div class="header-actions">
+                {% if user.is_authenticated %}
+                    <div class="user-info-card">
+                        <span class="user-name">{{ user.get_full_name|default:user.username }}</span>
+                        <span class="user-role">
+                            {{ user.groups.first.name|default:"Usuario" }}
+                        </span>
+                    </div>
+                    <a href="{% url 'admin:logout' %}" class="logout-button">
+                        <span class="logout-icon">🚪</span>
+                        Cerrar sesión
+                    </a>
                 {% endif %}
-                {% block user-menu %}
-                {% if has_permission %}
-                <ul class="usertools">
-                    {% if site_url %}
-                    <li>
-                        <a href="{{ site_url }}">{% trans 'Ver sitio' %}</a>
-                    </li>
-                    {% endif %}
-                    <li>
-                        <a href="{% url 'admin:password_change' %}">{% trans 'Cambiar contraseña' %}</a>
-                    </li>
-                    <li>
-                        <a href="{% url 'logout' %}">{% trans 'Cerrar sesión' %}</a>
-                    </li>
-                </ul>
-                {% endif %}
-                {% endblock %}
-            {% endblock %}
+            </div>
         </div>
-        {% endif %}
-        {% block nav-global %}{% endblock %}
-    </div>
-    <!-- END Header -->
+    </header>
+
+    <!-- Navegación Breadcrumb -->
     {% block breadcrumbs %}
-    <div class="breadcrumbs">
-    <a href="{% url 'admin:index' %}">{% trans 'Inicio' %}</a>
-    {% if title %} &rsaquo; {{ title }}{% endif %}
-    </div>
-    {% endblock %}
+    {% if title %}
+    <nav class="regency-breadcrumb">
+        <div class="breadcrumb-container">
+            <a href="{% url 'admin:index' %}" class="breadcrumb-link">
+                <span class="breadcrumb-icon">🏠</span>
+                Inicio
+            </a>
+            <span class="breadcrumb-separator">〉</span>
+            <span class="breadcrumb-current">{{ title }}</span>
+        </div>
+    </nav>
     {% endif %}
+    {% endblock %}
 
-    <!-- Content -->
-    <div id="content"{% if LANGUAGE_BIDI %} dir="rtl"{% endif %}>
-        {% block messages %}
-        {% if messages %}
-        <ul class="messagelist">{% for message in messages %}
-          <li{% if message.tags %} class="{{ message.tags }}"{% endif %}>{{ message|capfirst }}</li>{% endfor %}</ul>
-        {% endif %}
-        {% endblock messages %}
-        <!-- Content Header -->
-        <div id="content-header">
-            {% block content_title %}{% if title %}<h1>{{ title }}</h1>{% endif %}{% endblock %}
-            {% block content_subtitle %}{% endblock %}
-        </div>
-        <!-- END Content Header -->
-        <div id="content-main">
-            {% block content %}{% endblock %}
-        </div>
-        <br class="clear">
-    </div>
-    <!-- END Content -->
+    <!-- Contenido Principal -->
+    <main class="regency-main-content">
+        <div class="content-container">
+            
+            <!-- Mensajes del Sistema -->
+            {% block messages %}
+            {% if messages %}
+            <div class="regency-messages">
+                {% for message in messages %}
+                <div class="message-item message-{{ message.tags }}">
+                    <span class="message-icon">
+                        {% if message.tags == 'success' %}✅
+                        {% elif message.tags == 'error' %}❌
+                        {% elif message.tags == 'warning' %}⚠️
+                        {% else %}ℹ️{% endif %}
+                    </span>
+                    <span class="message-text">{{ message|capfirst }}</span>
+                    <button class="message-close" onclick="this.parentElement.remove()">×</button>
+                </div>
+                {% endfor %}
+            </div>
+            {% endif %}
+            {% endblock %}
 
-    <div id="footer">{% block footer %}{% endblock %}</div>
-</div>
-<!-- END Container -->
+            <!-- Título de la Página -->
+            {% block page_title %}
+            {% if title %}
+            <div class="page-header">
+                <h1 class="page-title">{{ title }}</h1>
+                {% block page_actions %}{% endblock %}
+            </div>
+            {% endif %}
+            {% endblock %}
+
+            <!-- Contenido de la Página -->
+            <div class="page-content">
+                {% block content %}{% endblock %}
+            </div>
+        </div>
+    </main>
+
+    <!-- Footer Corporativo -->
+    <footer class="regency-footer">
+        <div class="footer-container">
+            <p class="footer-text">
+                © 2025 REGENCY SERVICES DE COLOMBIA S.A.S - Sistema de Gestión de Turnos v1.0
+            </p>
+        </div>
+    </footer>
 
 </body>
 </html>

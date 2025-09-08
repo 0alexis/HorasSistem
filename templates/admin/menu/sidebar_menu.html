@@ -1,194 +1,232 @@
 {% load i18n static %}
-
-<nav class="sidebar" id="sidebar">
-    <!-- Toggle Button -->
+{% load static %}
+<nav class="sidebar regency-sidebar" id="sidebar">
+    <!-- Toggle Button Mejorado -->
     <div class="sidebar-toggle" onclick="toggleSidebar()">
         <span class="toggle-icon">☰</span>
     </div>
     
     <div class="sidebar-header">
-        <h3>
-            <span class="sidebar-icon">🏠</span>
-            <span class="sidebar-text">HORASSISTEM</span>
-        </h3>
+ 
     </div>
     
-    <ul class="nav-menu">
-        <li class="nav-item">
-            <a href="/welcome/" class="nav-link {% if request.resolver_match.url_name == 'welcome' %}active{% endif %}" data-tooltip="Inicio">
-                <span class="nav-icon">🏠</span>
-                <span class="nav-text">Inicio</span>
-            </a>
-        </li>
-        
-        <!-- Gestión de Empresas, Proyectos - Desplegable -->
-        <li class="nav-item has-submenu">
-            <a href="#" class="nav-link" onclick="toggleSubmenu(this)" data-tooltip="Empresas">
-                <span class="nav-icon">🏢</span>
-                <span class="nav-text">Empresas</span>
-            </a>
-            <ul class="submenu">
-                <li>
-                    <a href="{% url 'empresas:empresas_list' %}" class="submenu-link">
-                        <span class="submenu-icon">📋</span>
-                        Lista de Empresas
-                    </a>
-                </li>
-                <li>
-                    <a href="{% url 'empresas:empresa_create' %}" class="submenu-link">
-                        <span class="submenu-icon">➕</span>
-                        Nueva Empresa
-                    </a>
-                </li>
-            </ul>
-        </li>
+    <!-- Contenedor del menú que se puede ocultar -->
+    <div class="sidebar-content" id="sidebarContent">
+        <ul class="nav-menu">
+            <li class="nav-item">
+                <a href="/welcome/" class="nav-link {% if request.resolver_match.url_name == 'welcome' %}active{% endif %}" data-tooltip="Inicio">
+                    <span class="nav-icon"></span>
+                    <span class="nav-text">Inicio</span>
+                </a>
+            </li>
             
-        <!-- Gestión de Usuarios - Desplegable -->
-        <li class="nav-item has-submenu">
-            <a href="#" class="nav-link" onclick="toggleSubmenu(this)" data-tooltip="Usuarios">
-               
-                <span class="nav-text">Configuración Usuarios</span>
-            </a>
-            <ul class="submenu">
-                <li>
-                    <a href="{% url 'usuarios:tercero_list' %}" class="submenu-link">
-                        <span class="submenu-icon">📋</span>
-                        Lista de Usuarios
-                    </a>
-                </li>
-                <li>
-                    <a href="{% url 'usuarios:tercero_create' %}" class="submenu-link">
-                        <span class="submenu-icon">➕</span>
-                        Crear Usuario
-                    </a>
-                </li>
-                 
-
-            </ul>
-        </li>
-     <!-- Gestión de Centro de costo - Desplegable -->
-
-        <li class="nav-item has-submenu">
-            <a href="#" class="nav-link" onclick="toggleSubmenu(this)">
-                <span class="nav-icon">🏢</span>
-                <span class="nav-text">Configuración Centro de Costo</span>
-            </a>
-            <ul class="submenu">
-                <li>
-                    <a href="{% url 'usuarios:centrodecosto_list' %}" class="submenu-link">
-                        <span class="submenu-icon">📋</span>
-                        Lista de Centros de Costo
-                    </a>
-                </li>
-                <li>
-                    <a href="{% url 'usuarios:centrodecosto_create' %}" class="submenu-link">
-                        <span class="submenu-icon">➕</span>
-                        Nuevo Centro de Costo
-                    </a>
-                </li>
-            </ul>
-        </li>
-        <!-- Gestión de Turnos - Desplegable -->
-        <li class="nav-item has-submenu">
-            <a href="#" class="nav-link" onclick="toggleSubmenu(this)" data-tooltip="Turnos">
-                <span class="nav-text">Configuración Turnos</span>
-            </a>
-            <ul class="submenu">
-                <li>
-                    <a href="{% url 'programacion_models:modeloturno_list' %}" class="submenu-link">
-                        <span class="submenu-icon">📋</span>
-                        Modelos de Turno
-                    </a>
-                </li>
+            <!-- Gestión de Empresas, Proyectos - Desplegable -->
+            <li class="nav-item has-submenu">
+                <a href="#" class="nav-link" onclick="toggleSubmenu(this)" data-tooltip="Empresas">
+                    <span class="nav-icon">🏢</span>
+                    <span class="nav-text">Empresas</span>
+                </a>
+                <ul class="submenu">
+                    <li>
+                        <a href="{% url 'empresas:empresas_list' %}" class="submenu-link">
+                            <span class="submenu-icon">📋</span>
+                            Lista de Empresas
+                        </a>
+                    </li>
+                    <li>
+                        <a href="{% url 'empresas:empresa_create' %}" class="submenu-link">
+                            <span class="submenu-icon">➕</span>
+                            Nueva Empresa
+                        </a>
+                    </li>
+                </ul>
+            </li>
                 
-                       
-        <li>
-            <a href="{% url 'usuarios:codigoturno_list' %}" class="submenu-link">
-                <span class="submenu-icon">📋</span>
-                Lista de Códigos de Turno
-            </a>
-        </li>
-        <li>
-            <a href="{% url 'usuarios:codigoturno_create' %}" class="submenu-link">
-                <span class="submenu-icon">➕</span>
-                Nuevo Código de Turno
-            </a>
-        </li>
-    
-                
-                <li>
-                    <a href="{% url 'programacion_dashboard' %}" class="submenu-link">
-                        <span class="submenu-icon">📅</span>
-                        Programaciones
-                    </a>
-                </li>
-                <li>
-                    <a href="/admin/turnos/asignacion/" class="submenu-link">
-                        <span class="submenu-icon">📌</span>
-                        Asignaciones
-                    </a>
-                </li>
-            </ul>
-        </li>
-         <!-- Gestión de grupos de permisos - Desplegable -->
-        <li class="nav-item has-submenu">
-            <a href="#" class="nav-link" onclick="toggleSubmenu(this)" data-tooltip="Grupos de Permisos">
-                <span class="nav-text">Grupos de Permisos</span>
-            </a>
-            <ul class="submenu">
-                <li>
-                    <a href="{% url 'usuarios:group_list' %}" class="submenu-link">
-                        <span class="submenu-icon">📋</span>
-                        Lista de Grupos
-                    </a>
-                </li>
-                <li>
-                    <a href="{% url 'usuarios:group_create' %}" class="submenu-link">
-                        <span class="submenu-icon">➕</span>
-                        Crear Grupo
-                    </a>
-                </li>
-            </ul>
-        </li>
+            <!-- Gestión de Usuarios - Desplegable -->
+            <li class="nav-item has-submenu">
+                <a href="#" class="nav-link" onclick="toggleSubmenu(this)" data-tooltip="Usuarios">
+                   
+                    <span class="nav-text">Configuración Usuarios</span>
+                </a>
+                <ul class="submenu">
+                    <li>
+                        <a href="{% url 'usuarios:tercero_list' %}" class="submenu-link">
+                            <span class="submenu-icon">📋</span>
+                            Lista de Usuarios
+                        </a>
+                    </li>
+                    <li>
+                        <a href="{% url 'usuarios:tercero_create' %}" class="submenu-link">
+                            <span class="submenu-icon">➕</span>
+                            Crear Usuario
+                        </a>
+                    </li>
+                     
 
-        <li class="nav-item">
-            <a href="/admin/" class="nav-link" data-tooltip="Panel Admin">
-                <span class="nav-icon">⚙️</span>
-                <span class="nav-text">Panel Admin</span>
-            </a>
-        </li>
+                </ul>
+            </li>
+         <!-- Gestión de Centro de costo - Desplegable -->
+
+            <li class="nav-item has-submenu">
+                <a href="#" class="nav-link" onclick="toggleSubmenu(this)">
+                    <span class="nav-icon">🏢</span>
+                    <span class="nav-text">Configuración Centro de Costo</span>
+                </a>
+                <ul class="submenu">
+                    <li>
+                        <a href="{% url 'usuarios:centrodecosto_list' %}" class="submenu-link">
+                            <span class="submenu-icon">📋</span>
+                            Lista de Centros de Costo
+                        </a>
+                    </li>
+                    <li>
+                        <a href="{% url 'usuarios:centrodecosto_create' %}" class="submenu-link">
+                            <span class="submenu-icon">➕</span>
+                            Nuevo Centro de Costo
+                        </a>
+                    </li>
+                </ul>
+            </li>
+            <!-- Gestión de Turnos - Desplegable -->
+            <li class="nav-item has-submenu">
+                <a href="#" class="nav-link" onclick="toggleSubmenu(this)" data-tooltip="Turnos">
+                    <span class="nav-text">Configuración Turnos</span>
+                </a>
+                <ul class="submenu">
+                    <li>
+                        <a href="{% url 'programacion_models:modeloturno_list' %}" class="submenu-link">
+                            <span class="submenu-icon">📋</span>
+                            Modelos de Turno
+                        </a>
+                    </li>
+                    
+                           
+            <li>
+                <a href="{% url 'usuarios:codigoturno_list' %}" class="submenu-link">
+                    <span class="submenu-icon">📋</span>
+                    Lista de Códigos de Turno
+                </a>
+            </li>
+            <li>
+                <a href="{% url 'usuarios:codigoturno_create' %}" class="submenu-link">
+                    <span class="submenu-icon">➕</span>
+                    Nuevo Código de Turno
+                </a>
+            </li>
         
-        <li class="nav-item">
-            <a href="#" class="nav-link" data-tooltip="Reportes">
-                <span class="nav-icon">📊</span>
-                <span class="nav-text">Reportes</span>
-            </a>
-        </li>
-        
-        <li class="nav-item">
-            <a href="#" class="nav-link" data-tooltip="Configuración">
-                <span class="nav-icon">⚙️</span>
-                <span class="nav-text">Configuración</span>
-            </a>
-        </li>
-    </ul>
+                    
+                    <li>
+                        <a href="{% url 'programacion_dashboard' %}" class="submenu-link">
+                            <span class="submenu-icon">📅</span>
+                            Programaciones
+                        </a>
+                    </li>
+                    <li>
+                        <a href="/admin/turnos/asignacion/" class="submenu-link">
+                            <span class="submenu-icon">📌</span>
+                            Asignaciones
+                        </a>
+                    </li>
+                </ul>
+            </li>
+             <!-- Gestión de grupos de permisos - Desplegable -->
+            <li class="nav-item has-submenu">
+                <a href="#" class="nav-link" onclick="toggleSubmenu(this)" data-tooltip="Grupos de Permisos">
+                    <span class="nav-text">Grupos de Permisos</span>
+                </a>
+                <ul class="submenu">
+                    <li>
+                        <a href="{% url 'usuarios:group_list' %}" class="submenu-link">
+                            <span class="submenu-icon">📋</span>
+                            Lista de Grupos
+                        </a>
+                    </li>
+                    <li>
+                        <a href="{% url 'usuarios:group_create' %}" class="submenu-link">
+                            <span class="submenu-icon">➕</span>
+                            Crear Grupo
+                        </a>
+                    </li>
+                </ul>
+            </li>
+
+            <li class="nav-item">
+                <a href="/admin/" class="nav-link" data-tooltip="Panel Admin">
+                    <span class="nav-icon">⚙️</span>
+                    <span class="nav-text">Panel Admin</span>
+                </a>
+            </li>
+            
+            <li class="nav-item">
+                <a href="#" class="nav-link" data-tooltip="Reportes">
+                    <span class="nav-icon">📊</span>
+                    <span class="nav-text">Reportes</span>
+                </a>
+            </li>
+            
+            <li class="nav-item">
+                <a href="#" class="nav-link" data-tooltip="Configuración">
+                    <span class="nav-icon">⚙️</span>
+                    <span class="nav-text">Configuración</span>
+                </a>
+            </li>
+        </ul>
+    </div>
 </nav>
 
 <script>
 function toggleSidebar() {
     const sidebar = document.getElementById('sidebar');
+    const sidebarContent = document.getElementById('sidebarContent');
+    const toggleIcon = document.querySelector('.toggle-icon');
+    
+    // Toggle el estado colapsado
     sidebar.classList.toggle('collapsed');
     
-    // Cerrar todos los submenús al colapsar
+    // Buscar el contenido principal
+const mainContent = document.querySelector('.regency-main-content') || 
+                   document.querySelector('.main-content') || 
+                   document.querySelector('.content-container') ||
+                   document.querySelector('main');
+    
     if (sidebar.classList.contains('collapsed')) {
+        // Sidebar colapsado - ajustar contenido para usar más espacio
+        sidebarContent.style.display = 'none';
+        toggleIcon.style.transform = 'rotate(90deg)';
+        
+        // Ajustar margen del contenido principal
+        if (mainContent) {
+            mainContent.style.marginLeft = '48px'; // Ancho del sidebar colapsado
+            mainContent.style.width = 'calc(100% - 48px)';
+            mainContent.style.transition = 'all 0.3s ease';
+        }
+        
+        // Cerrar todos los submenús
         document.querySelectorAll('.submenu').forEach(sm => {
             sm.style.display = 'none';
         });
+        
+    } else {
+        // Sidebar expandido - ajustar contenido al tamaño normal
+        sidebarContent.style.display = 'block';
+        toggleIcon.style.transform = 'rotate(0deg)';
+        
+        // Ajustar margen del contenido principal
+        if (mainContent) {
+            mainContent.style.marginLeft = '200px'; // Ancho del sidebar expandido
+            mainContent.style.width = 'calc(100% - 200px)';
+            mainContent.style.transition = 'all 0.3s ease';
+        }
     }
     
     // Guardar estado en localStorage
     const isCollapsed = sidebar.classList.contains('collapsed');
     localStorage.setItem('sidebarCollapsed', isCollapsed);
+    
+    // Disparar evento resize para que otros componentes se ajusten
+    setTimeout(() => {
+        window.dispatchEvent(new Event('resize'));
+    }, 300);
 }
 
 function toggleSubmenu(element) {
@@ -216,14 +254,32 @@ function toggleSubmenu(element) {
     }
 }
 
-// Restaurar estado del sidebar al cargar
-document.addEventListener('DOMContentLoaded', function() {
-    const isCollapsed = localStorage.getItem('sidebarCollapsed') === 'true';
-    if (isCollapsed) {
-        document.getElementById('sidebar').classList.add('collapsed');
+document.addEventListener('DOMContentLoaded', function () {
+  // Buscar el header corporativo (ajustar selectores si difieren)
+  var header = document.querySelector('.regency-header-admin') || document.querySelector('header') || document.querySelector('.site-header');
+  var sidebar = document.getElementById('sidebar');
+  function applyHeaderHeight() {
+    var h = header ? header.offsetHeight : 0;
+    // guarda variable CSS global
+    document.documentElement.style.setProperty('--header-height', h + 'px');
+    // aplica top y height al sidebar (fallback si CSS no usa variable)
+    if (sidebar) {
+      sidebar.style.top = h + 'px';
+      sidebar.style.height = 'calc(100vh - ' + h + 'px)';
     }
+    // ajustar main-content si existe
+    var main = document.querySelector('.main-content') || document.querySelector('.regency-main-content') || document.querySelector('.content-container');
+    if (main) {
+      main.style.marginLeft = 'var(--sidebar-width,200px)';
+      main.style.boxSizing = 'border-box';
+    }
+  }
+  // aplicar primero
+  applyHeaderHeight();
+  // reaplicar al cambiar tamaño de ventana (responsive)
+  window.addEventListener('resize', applyHeaderHeight);
 });
 </script>
 
 <!-- Incluir CSS -->
-<link rel="stylesheet" href="{% static 'css/sidebar.css' %}">
+<link rel="stylesheet" href="{% static 'admin/css/sidebar.css' %}?v=1.0">
