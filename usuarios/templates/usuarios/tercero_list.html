@@ -1,68 +1,735 @@
-{% load static %}
-<!DOCTYPE html>
-<html lang="es">
-<head>
-    <meta charset="UTF-8">
-    <title>Lista de Usuarios (Terceros)</title>
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
-    <style>
-        .logo-regency-list {
-            height: 48px;
-            background: white;
-            border-radius: 8px;
-            padding: 4px 8px;
-            box-shadow: 0 2px 8px rgba(185,28,28,0.08);
-            margin-bottom: 1rem;
+{% extends "admin/base_site.html" %}
+{% load i18n static %}
+
+{% block extrastyle %}
+{{ block.super }}
+<style>
+    /* Variables consistentes con el proyecto */
+    :root {
+        --regency-red: #871F1B;
+        --regency-red-dark: #6b191b;
+        --regency-red-light: #a13832;
+        --regency-gray: #f8f9fa;
+        --regency-gray-dark: #64748b;
+        --regency-text: #333;
+        --border-radius: 8px;
+        --shadow-sm: 0 1px 3px rgba(0, 0, 0, 0.1);
+        --shadow-md: 0 4px 6px rgba(0, 0, 0, 0.1);
+    }
+
+    /* ========== OCULTAR BREADCRUMB DJANGO ADMIN ========== */
+    .breadcrumbs,
+    div.breadcrumbs {
+        display: none !important;
+    }
+
+    /* Tipografía empresarial consistente */
+    body {
+        font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+        font-size: 14px;
+        line-height: 1.5;
+        color: var(--regency-text);
+        background: var(--regency-gray);
+    }
+
+    /* Container principal */
+    .list-container {
+        padding: 1rem 1.5rem;
+        max-width: 1400px;
+        margin: 0 auto;
+    }
+
+    /* Header de la lista */
+    .list-header {
+        background: var(--regency-red);
+        color: white;
+        padding: 1rem 1.5rem;
+        margin-bottom: 1.5rem;
+        border-radius: var(--border-radius);
+        box-shadow: var(--shadow-sm);
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        flex-wrap: wrap;
+        gap: 1rem;
+    }
+
+    .list-header h1 {
+        font-size: 1.4rem;
+        font-weight: 600;
+        margin: 0;
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+    }
+
+    .list-subtitle {
+        font-size: 0.9rem;
+        opacity: 0.9;
+        margin: 0;
+        font-weight: 400;
+    }
+
+    .header-actions {
+        display: flex;
+        gap: 0.75rem;
+    }
+
+    /* Breadcrumb personalizado */
+    .custom-breadcrumb {
+        background: white;
+        border: 1px solid #e5e7eb;
+        border-radius: var(--border-radius);
+        padding: 0.75rem 1rem;
+        margin-bottom: 1.5rem;
+        box-shadow: var(--shadow-sm);
+        font-size: 0.85rem;
+    }
+
+    .custom-breadcrumb a {
+        color: var(--regency-red);
+        text-decoration: none;
+        font-weight: 500;
+        transition: color 0.2s ease;
+    }
+
+    .custom-breadcrumb a:hover {
+        color: var(--regency-red-dark);
+        text-decoration: underline;
+    }
+
+    .breadcrumb-separator {
+        color: var(--regency-gray-dark);
+        margin: 0 0.5rem;
+    }
+
+    /* Cards */
+    .filter-card {
+        background: white;
+        border-radius: var(--border-radius);
+        box-shadow: var(--shadow-sm);
+        border: 1px solid #e5e7eb;
+        margin-bottom: 1.5rem;
+    }
+
+    .card-header-regency {
+        background: var(--regency-red);
+        color: white;
+        padding: 1rem 1.25rem;
+        font-weight: 600;
+        font-size: 1rem;
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+        border-radius: var(--border-radius) var(--border-radius) 0 0;
+    }
+
+    .card-body {
+        padding: 1.25rem;
+    }
+
+    /* Filtros */
+    .filter-form {
+        display: grid;
+        grid-template-columns: 2fr 1fr 1fr;
+        gap: 1rem;
+        align-items: end;
+    }
+
+    .form-group {
+        display: flex;
+        flex-direction: column;
+        gap: 0.4rem;
+    }
+
+    .form-label {
+        font-size: 0.85rem;
+        font-weight: 600;
+        color: var(--regency-text);
+    }
+
+    .form-input,
+    .form-select {
+        padding: 0.6rem 0.75rem;
+        border: 1px solid #d1d5db;
+        border-radius: var(--border-radius);
+        font-size: 0.9rem;
+        font-family: inherit;
+        transition: all 0.2s ease;
+        background: white;
+    }
+
+    .form-input:focus,
+    .form-select:focus {
+        outline: none;
+        border-color: var(--regency-red);
+        box-shadow: 0 0 0 2px rgba(135, 31, 27, 0.1);
+    }
+
+    .form-help {
+        font-size: 0.75rem;
+        color: var(--regency-gray-dark);
+        margin-top: 0.25rem;
+    }
+
+    /* Botones empresariales */
+    .btn-regency {
+        background: var(--regency-red);
+        color: white;
+        border: none;
+        padding: 0.6rem 1rem;
+        border-radius: var(--border-radius);
+        font-weight: 500;
+        font-size: 0.85rem;
+        cursor: pointer;
+        transition: all 0.2s ease;
+        text-decoration: none;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        gap: 0.5rem;
+        box-shadow: var(--shadow-sm);
+    }
+
+    .btn-regency:hover {
+        background: var(--regency-red-dark);
+        color: white;
+        text-decoration: none;
+        transform: translateY(-1px);
+        box-shadow: var(--shadow-md);
+    }
+
+    .btn-regency-outline {
+        background: transparent;
+        color: var(--regency-red);
+        border: 1px solid var(--regency-red);
+        padding: 0.6rem 1rem;
+        border-radius: var(--border-radius);
+        font-weight: 500;
+        font-size: 0.85rem;
+        cursor: pointer;
+        transition: all 0.2s ease;
+        text-decoration: none;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        gap: 0.5rem;
+    }
+
+    .btn-regency-outline:hover {
+        background: var(--regency-red);
+        color: white;
+        text-decoration: none;
+        transform: translateY(-1px);
+    }
+
+    .btn-secondary {
+        background: #6b7280;
+        color: white;
+        border: 1px solid #6b7280;
+        padding: 0.6rem 1rem;
+        border-radius: var(--border-radius);
+        font-weight: 500;
+        font-size: 0.85rem;
+        cursor: pointer;
+        transition: all 0.2s ease;
+        text-decoration: none;
+        display: inline-flex;
+        align-items: center;
+        gap: 0.5rem;
+    }
+
+    .btn-secondary:hover {
+        background: #4b5563;
+        border-color: #4b5563;
+        color: white;
+        text-decoration: none;
+    }
+
+    .btn-lg {
+        padding: 0.75rem 1.25rem;
+        font-size: 0.95rem;
+        font-weight: 600;
+    }
+
+    .btn-sm {
+        padding: 0.35rem 0.6rem;
+        font-size: 0.75rem;
+        border-radius: 4px;
+    }
+
+    /* Tabla de usuarios */
+    .usuarios-table-container {
+        background: white;
+        border-radius: var(--border-radius);
+        overflow: hidden;
+        box-shadow: var(--shadow-sm);
+        border: 1px solid #e5e7eb;
+    }
+
+    .usuarios-table {
+        width: 100%;
+        border-collapse: collapse;
+        font-size: 0.85rem;
+    }
+
+    .usuarios-table th {
+        background: var(--regency-red);
+        color: white;
+        font-weight: 600;
+        padding: 0.75rem 1rem;
+        text-align: left;
+        font-size: 0.8rem;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+        border-bottom: 2px solid var(--regency-red-dark);
+    }
+
+    .usuarios-table td {
+        padding: 0.75rem 1rem;
+        border-bottom: 1px solid #f3f4f6;
+        vertical-align: middle;
+        line-height: 1.4;
+    }
+
+    .usuarios-table tr:hover {
+        background-color: #f8fafc;
+    }
+
+    .usuario-documento {
+        font-family: 'SF Mono', 'Monaco', 'Inconsolata', 'Roboto Mono', monospace;
+        font-size: 0.8rem;
+        font-weight: 600;
+        color: var(--regency-text);
+        background: #f8fafc;
+        padding: 0.25rem 0.5rem;
+        border-radius: 4px;
+        border: 1px solid #e2e8f0;
+    }
+
+    .usuario-nombre {
+        font-weight: 600;
+        color: var(--regency-text);
+        font-size: 0.9rem;
+    }
+
+    .usuario-email {
+        color: var(--regency-red);
+        text-decoration: none;
+        font-size: 0.8rem;
+        transition: color 0.2s ease;
+    }
+
+    .usuario-email:hover {
+        color: var(--regency-red-dark);
+        text-decoration: underline;
+    }
+
+    .usuario-cargo {
+        background: #e0f2fe;
+        color: #0369a1;
+        padding: 0.25rem 0.6rem;
+        border-radius: 12px;
+        font-size: 0.7rem;
+        font-weight: 600;
+        text-transform: uppercase;
+        letter-spacing: 0.3px;
+        border: 1px solid #bae6fd;
+    }
+
+    .usuario-centro {
+        color: var(--regency-gray-dark);
+        font-size: 0.8rem;
+        font-weight: 500;
+    }
+
+    /* Botones de acción en tabla */
+    .action-buttons {
+        display: flex;
+        gap: 0.25rem;
+    }
+
+    .btn-action {
+        background: transparent;
+        color: var(--regency-red);
+        border: 1px solid var(--regency-red);
+        padding: 0.25rem 0.5rem;
+        border-radius: 4px;
+        font-size: 0.7rem;
+        cursor: pointer;
+        transition: all 0.2s ease;
+        text-decoration: none;
+        font-weight: 500;
+    }
+
+    .btn-action:hover {
+        background: var(--regency-red);
+        color: white;
+        text-decoration: none;
+    }
+
+    .btn-action.secondary {
+        color: #6b7280;
+        border-color: #6b7280;
+    }
+
+    .btn-action.secondary:hover {
+        background: #6b7280;
+        color: white;
+    }
+
+    /* Contador de resultados */
+    .results-info {
+        background: white;
+        border: 1px solid #e5e7eb;
+        border-radius: var(--border-radius);
+        padding: 0.75rem 1rem;
+        margin-bottom: 1rem;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        font-size: 0.85rem;
+    }
+
+    .results-count {
+        font-weight: 600;
+        color: var(--regency-text);
+    }
+
+    /* Estados vacíos */
+    .empty-state {
+        background: white;
+        border-radius: var(--border-radius);
+        padding: 3rem 2rem;
+        text-align: center;
+        box-shadow: var(--shadow-sm);
+        border: 1px solid #e5e7eb;
+    }
+
+    .empty-state-icon {
+        font-size: 3rem;
+        margin-bottom: 1rem;
+        opacity: 0.5;
+    }
+
+    .empty-state h3 {
+        font-size: 1.2rem;
+        font-weight: 600;
+        color: var(--regency-text);
+        margin-bottom: 0.5rem;
+    }
+
+    .empty-state p {
+        color: var(--regency-gray-dark);
+        margin-bottom: 1.5rem;
+        font-size: 0.9rem;
+    }
+
+    /* Alerts */
+    .alert {
+        border-radius: var(--border-radius);
+        padding: 1rem;
+        margin-bottom: 1rem;
+        border: 1px solid;
+    }
+
+    .alert-success {
+        background: #f0fdf4;
+        border-color: #bbf7d0;
+        color: #166534;
+    }
+
+    .alert-info {
+        background: #f0f9ff;
+        border-color: #bae6fd;
+        color: #0c4a6e;
+    }
+
+    .alert-warning {
+        background: #fffbeb;
+        border-color: #fed7aa;
+        color: #92400e;
+    }
+
+    .alert-error {
+        background: #fef2f2;
+        border-color: #fecaca;
+        color: #991b1b;
+    }
+
+    /* Responsive */
+    @media (max-width: 768px) {
+        .list-container {
+            padding: 0.75rem 1rem;
         }
-    </style>
-</head>
-<body>
-    <div class="container mt-4">
-        <div class="d-flex justify-content-between align-items-center mb-3">
-            <div class="d-flex align-items-center">
-                <img src="{% static 'img/logo_regency.png' %}" alt="Regency Logo" class="logo-regency-list">
-                <h2 class="ms-3 mb-0">Lista de Usuarios</h2>
-            </div>
-            <a href="/" class="btn btn-outline-secondary">
-                <i class="bi bi-house-door"></i> Volver al inicio
+
+        .list-header {
+            padding: 0.75rem 1rem;
+            flex-direction: column;
+            align-items: stretch;
+            text-align: center;
+        }
+
+        .list-header h1 {
+            font-size: 1.2rem;
+            justify-content: center;
+        }
+
+        .filter-form {
+            grid-template-columns: 1fr;
+            gap: 0.75rem;
+        }
+
+        .usuarios-table-container {
+            overflow-x: auto;
+        }
+
+        .usuarios-table {
+            min-width: 700px;
+            font-size: 0.8rem;
+        }
+
+        .usuarios-table th,
+        .usuarios-table td {
+            padding: 0.5rem 0.75rem;
+        }
+
+        .results-info {
+            flex-direction: column;
+            gap: 0.5rem;
+            align-items: stretch;
+            text-align: center;
+        }
+    }
+
+    /* Animaciones */
+    .filter-card,
+    .usuarios-table-container {
+        animation: fadeInUp 0.3s ease forwards;
+    }
+
+    @keyframes fadeInUp {
+        from {
+            opacity: 0;
+            transform: translateY(10px);
+        }
+        to {
+            opacity: 1;
+            transform: translateY(0);
+        }
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="list-container">
+    <!-- Header de la lista -->
+    <div class="list-header">
+        <div>
+            <h1>Lista de Usuarios</h1>
+            <p class="list-subtitle">Gestión  Personal REGENCY</p>
+        </div>
+        <div class="header-actions">
+            <a href="{% url 'usuarios:tercero_create' %}" class="btn-regency btn-lg">
+                ➕ Nuevo Usuario
             </a>
         </div>
-        <a href="{% url 'usuarios:tercero_create' %}" class="btn btn-primary mb-3">
-            <i class="bi bi-person-plus"></i> Nuevo Usuario
-        </a>
-        <table class="table table-bordered">
-            <thead>
-                <tr>
-                    <th>Documento</th>
-                    <th>Nombre</th>
-                    <th>Apellido</th>
-                    <th>Correo</th>
-                    <th>Cargo</th>
-                    <th>Centro Operativo</th>
-                    <th>Acciones</th>
-                </tr>
-            </thead>
-            <tbody>
-                {% for tercero in terceros %}
-                <tr>
-                    <td>{{ tercero.documento }}</td>
-                    <td>{{ tercero.nombre_tercero }}</td>
-                    <td>{{ tercero.apellido_tercero }}</td>
-                    <td>{{ tercero.correo_tercero }}</td>
-                    <td>{{ tercero.cargo_predefinido }}</td>
-                    <td>{{ tercero.centro_operativo }}</td>
-                    <td>
-                        <a href="{% url 'usuarios:tercero_detail' tercero.pk %}" class="btn btn-sm btn-info">Ver</a>
-                        <a href="{% url 'usuarios:tercero_update' tercero.pk %}" class="btn btn-sm btn-warning">Editar</a>
-                    </td>
-                </tr>
-                {% empty %}
-                <tr>
-                    <td colspan="7">No hay usuarios registrados.</td>
-                </tr>
-                {% endfor %}
-            </tbody>
-        </table>
     </div>
-</body>
-</html>
+
+
+    <!-- Mensajes -->
+    {% if messages %}
+        {% for message in messages %}
+            <div class="alert alert-{{ message.tags }}">
+                {{ message }}
+            </div>
+        {% endfor %}
+    {% endif %}
+
+    <!-- Panel de filtros -->
+    <div class="filter-card">
+        <div class="card-header-regency">
+            Búsqueda y Filtros
+        </div>
+        <div class="card-body">
+            <form method="get" id="filter-form">
+                <div class="filter-form">
+                    <div class="form-group">
+                        <label class="form-label">Buscar usuario</label>
+                        <input type="text" name="search" class="form-input" 
+                               value="{{ request.GET.search }}" 
+                               placeholder="Nombre, documento o email..." 
+                               id="search-input">
+                        <div class="form-help">
+                            💡 <strong>Busque por:</strong> nombre, apellido, documento o email
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">Cargo</label>
+                        <select name="cargo" class="form-select">
+                            <option value="">Todos los cargos</option>
+                            <!-- Aquí puedes agregar opciones dinámicas de cargos -->
+                            <option value="administrador" {% if request.GET.cargo == 'administrador' %}selected{% endif %}>👑 Administrador</option>
+                            <option value="supervisor" {% if request.GET.cargo == 'supervisor' %}selected{% endif %}>👨‍💼 Supervisor</option>
+                            <option value="operario" {% if request.GET.cargo == 'operario' %}selected{% endif %}>👷 Operario</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">Ordenar por</label>
+                        <select name="ordenar_por" class="form-select">
+                            <option value="nombre_tercero" {% if request.GET.ordenar_por == 'nombre_tercero' %}selected{% endif %}> Nombre</option>
+                            <option value="apellido_tercero" {% if request.GET.ordenar_por == 'apellido_tercero' %}selected{% endif %}> Apellido</option>
+                            <option value="documento" {% if request.GET.ordenar_por == 'documento' %}selected{% endif %}> Documento</option>
+                            <option value="-fecha_creacion" {% if request.GET.ordenar_por == '-fecha_creacion' %}selected{% endif %}> Más recientes</option>
+                        </select>
+                    </div>
+                </div>
+                
+                <div style="margin-top: 1rem; display: flex; justify-content: space-between; align-items: center;">
+                    <div style="display: flex; gap: 0.5rem;">
+                        <button type="submit" class="btn-regency">
+                            Buscar
+                        </button>
+                        {% if request.GET %}
+                            <a href="{% url 'usuarios:tercero_list' %}" class="btn-secondary">
+                                🗑️ Limpiar
+                            </a>
+                        {% endif %}
+                    </div>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Información de resultados -->
+    {% if terceros %}
+        <div class="results-info">
+            <div class="results-count">
+                📊 {{ terceros|length }} usuario{{ terceros|length|pluralize }} 
+                {% if request.GET %}encontrado{{ terceros|length|pluralize }}{% endif %}
+            </div>
+        </div>
+
+        <!-- Tabla de usuarios -->
+        <div class="usuarios-table-container">
+            <table class="usuarios-table">
+                <thead>
+                    <tr>
+                        <th> Documento</th>
+                        <th> Nombre</th>
+                        <th> Apellido</th>
+                        <th> Email</th>
+                        <th> Cargo</th>
+                        <th> Centro Operativo</th>
+                        <th> Acciones</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for tercero in terceros %}
+                    <tr>
+                        <td>
+                            <span class="usuario-documento">{{ tercero.documento }}</span>
+                        </td>
+                        <td>
+                            <div class="usuario-nombre">{{ tercero.nombre_tercero }}</div>
+                        </td>
+                        <td>
+                            <div class="usuario-nombre">{{ tercero.apellido_tercero }}</div>
+                        </td>
+                        <td>
+                            {% if tercero.correo_tercero %}
+                                <a href="mailto:{{ tercero.correo_tercero }}" class="usuario-email">
+                                    {{ tercero.correo_tercero|truncatechars:25 }}
+                                </a>
+                            {% else %}
+                                <span style="color: var(--regency-gray-dark); font-style: italic;">Sin email</span>
+                            {% endif %}
+                        </td>
+                        <td>
+                            {% if tercero.cargo_predefinido %}
+                                <span class="usuario-cargo">{{ tercero.cargo_predefinido }}</span>
+                            {% else %}
+                                <span style="color: var(--regency-gray-dark); font-style: italic;">Sin cargo</span>
+                            {% endif %}
+                        </td>
+                        <td>
+                            {% if tercero.centro_operativo %}
+                                <div class="usuario-centro">{{ tercero.centro_operativo|truncatechars:20 }}</div>
+                            {% else %}
+                                <span style="color: var(--regency-gray-dark); font-style: italic;">Sin centro</span>
+                            {% endif %}
+                        </td>
+                        <td>
+                            <div class="action-buttons">
+                                <a href="{% url 'usuarios:tercero_detail' tercero.pk %}" 
+                                   class="btn-action" title="Ver detalles">
+                                    Ver
+                                </a>
+                                <a href="{% url 'usuarios:tercero_update' tercero.pk %}" 
+                                   class="btn-action secondary" title="Editar">
+                                    Editar
+                                </a>
+                            </div>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+
+    {% else %}
+        <!-- Estado vacío -->
+        <div class="empty-state">
+            {% if request.GET %}
+                <div class="empty-state-icon">🔍</div>
+                <h3>No se encontraron usuarios</h3>
+                <p>No hay usuarios que coincidan con los criterios de búsqueda.</p>
+                <div style="display: flex; justify-content: center; gap: 0.75rem;">
+                    <a href="{% url 'usuarios:tercero_list' %}" class="btn-regency-outline">
+                        🗑️ Limpiar Filtros
+                    </a>
+                    <a href="{% url 'usuarios:tercero_create' %}" class="btn-regency">
+                        ➕ Crear Nuevo Usuario
+                    </a>
+                </div>
+            {% else %}
+                <div class="empty-state-icon">👥</div>
+                <h3>No hay usuarios registrados</h3>
+                <p>Comience creando el primer usuario en el sistema REGENCY.</p>
+                <a href="{% url 'usuarios:tercero_create' %}" class="btn-regency btn-lg">
+                    ➕ Crear Primer Usuario
+                </a>
+            {% endif %}
+        </div>
+    {% endif %}
+</div>
+
+<!-- Script para mejorar la UX -->
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        const searchInput = document.getElementById('search-input');
+        const filterForm = document.getElementById('filter-form');
+        
+        if (searchInput) {
+            // Auto-focus en el campo de búsqueda
+            searchInput.focus();
+            
+            // Envío automático con Enter
+            searchInput.addEventListener('keypress', function(e) {
+                if (e.key === 'Enter') {
+                    e.preventDefault();
+                    filterForm.submit();
+                }
+            });
+        }
+        
+        // Auto-submit para selects
+        const selects = document.querySelectorAll('.form-select');
+        selects.forEach(select => {
+            select.addEventListener('change', function() {
+                filterForm.submit();
+            });
+        });
+    });
+</script>
+{% endblock %}

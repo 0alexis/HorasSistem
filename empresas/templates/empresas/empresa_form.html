@@ -1,367 +1,675 @@
-<!DOCTYPE html>
-<html lang="es">
-<head>
-    <meta charset="UTF-8">
-    <title>{% if form.instance.pk %}Editar Empresa{% else %}Nueva Empresa{% endif %} - REGENCY</title>
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/css/bootstrap.min.css" rel="stylesheet">
-    {% load static %}
-    <style>
-        :root {
-            --color-primary: #B91C1C;
-            --color-secondary: #991B1B;
-            --color-accent: #7F1D1D;
-            --color-light: #FEF2F2;
-            --color-dark: #450A0A;
+{% extends "admin/base_site.html" %}
+{% load i18n static %}
+
+{% block extrastyle %}
+{{ block.super }}
+<style>
+    /* Variables consistentes con el proyecto */
+    :root {
+        --regency-red: #871F1B;
+        --regency-red-dark: #6b191b;
+        --regency-red-light: #a13832;
+        --regency-gray: #f8f9fa;
+        --regency-gray-dark: #64748b;
+        --regency-text: #333;
+        --border-radius: 8px;
+        --shadow-sm: 0 1px 3px rgba(0, 0, 0, 0.1);
+        --shadow-md: 0 4px 6px rgba(0, 0, 0, 0.1);
+    }
+
+    /* ========== OCULTAR BREADCRUMB DJANGO ADMIN ========== */
+    .breadcrumbs,
+    div.breadcrumbs {
+        display: none !important;
+    }
+
+    /* Tipografía consistente */
+    body {
+        font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+        font-size: 14px;
+        line-height: 1.5;
+        color: var(--regency-text);
+        background: var(--regency-gray);
+    }
+
+    /* Container principal */
+    .form-container {
+        padding: 1rem 1.5rem;
+        max-width: 1200px;
+        margin: 0 auto;
+    }
+
+    /* Header del formulario */
+    .form-header {
+        background: var(--regency-red);
+        color: white;
+        padding: 1rem 1.5rem;
+        margin-bottom: 1.5rem;
+        border-radius: var(--border-radius);
+        box-shadow: var(--shadow-sm);
+    }
+
+    .form-header h1 {
+        font-size: 1.4rem;
+        font-weight: 600;
+        margin: 0 0 0.25rem 0;
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+    }
+
+    .form-subtitle {
+        font-size: 0.9rem;
+        opacity: 0.9;
+        margin: 0;
+        font-weight: 400;
+    }
+
+    /* Breadcrumb personalizado */
+    .custom-breadcrumb {
+        background: white;
+        border: 1px solid #e5e7eb;
+        border-radius: var(--border-radius);
+        padding: 0.75rem 1rem;
+        margin-bottom: 1.5rem;
+        box-shadow: var(--shadow-sm);
+        font-size: 0.85rem;
+    }
+
+    .custom-breadcrumb a {
+        color: var(--regency-red);
+        text-decoration: none;
+        font-weight: 500;
+        transition: color 0.2s ease;
+    }
+
+    .custom-breadcrumb a:hover {
+        color: var(--regency-red-dark);
+        text-decoration: underline;
+    }
+
+    .breadcrumb-separator {
+        color: var(--regency-gray-dark);
+        margin: 0 0.5rem;
+    }
+
+    /* Layout principal */
+    .form-layout {
+        display: grid;
+        grid-template-columns: 2fr 1fr;
+        gap: 1.5rem;
+    }
+
+    /* Cards */
+    .form-card {
+        background: white;
+        border-radius: var(--border-radius);
+        overflow: hidden;
+        box-shadow: var(--shadow-sm);
+        border: 1px solid #e5e7eb;
+        margin-bottom: 1.5rem;
+    }
+
+    .card-header-regency {
+        background: var(--regency-red);
+        color: white;
+        padding: 1rem 1.25rem;
+        font-weight: 600;
+        font-size: 1rem;
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+    }
+
+    .card-header-secondary {
+        background: var(--regency-red-dark);
+        color: white;
+        padding: 1rem 1.25rem;
+        font-weight: 600;
+        font-size: 1rem;
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+    }
+
+    .card-body {
+        padding: 1.25rem;
+    }
+
+    /* Secciones del formulario */
+    .form-section {
+        border-left: 3px solid var(--regency-red);
+        padding-left: 1rem;
+        margin-bottom: 1.5rem;
+    }
+
+    .section-title {
+        font-size: 1rem;
+        font-weight: 600;
+        color: var(--regency-red);
+        margin-bottom: 1rem;
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+    }
+
+    /* Campos de formulario */
+    .form-group {
+        margin-bottom: 1rem;
+    }
+
+    .form-label {
+        font-size: 0.85rem;
+        font-weight: 600;
+        color: var(--regency-text);
+        margin-bottom: 0.4rem;
+        display: block;
+    }
+
+    .required-field::after {
+        content: " *";
+        color: var(--regency-red);
+        font-weight: 700;
+    }
+
+    .form-input {
+        width: 100%;
+        padding: 0.6rem 0.75rem;
+        border: 1px solid #d1d5db;
+        border-radius: var(--border-radius);
+        font-size: 0.9rem;
+        font-family: inherit;
+        transition: all 0.2s ease;
+        background: white;
+    }
+
+    .form-input:focus {
+        outline: none;
+        border-color: var(--regency-red);
+        box-shadow: 0 0 0 2px rgba(135, 31, 27, 0.1);
+    }
+
+    .form-textarea {
+        min-height: 80px;
+        resize: vertical;
+    }
+
+    .form-checkbox {
+        margin-right: 0.5rem;
+        accent-color: var(--regency-red);
+    }
+
+    .checkbox-label {
+        font-size: 0.9rem;
+        font-weight: 600;
+        color: var(--regency-text);
+        display: flex;
+        align-items: center;
+        cursor: pointer;
+    }
+
+    .checkbox-help {
+        font-size: 0.75rem;
+        color: var(--regency-gray-dark);
+        margin-top: 0.25rem;
+        display: block;
+    }
+
+    /* Botones */
+    .btn-regency {
+        background: var(--regency-red);
+        color: white;
+        border: none;
+        padding: 0.65rem 1.25rem;
+        border-radius: var(--border-radius);
+        font-weight: 500;
+        font-size: 0.9rem;
+        cursor: pointer;
+        transition: all 0.2s ease;
+        text-decoration: none;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        gap: 0.5rem;
+        box-shadow: var(--shadow-sm);
+    }
+
+    .btn-regency:hover {
+        background: var(--regency-red-dark);
+        color: white;
+        text-decoration: none;
+        transform: translateY(-1px);
+        box-shadow: var(--shadow-md);
+    }
+
+    .btn-regency-outline {
+        background: transparent;
+        color: var(--regency-red);
+        border: 1px solid var(--regency-red);
+        padding: 0.65rem 1.25rem;
+        border-radius: var(--border-radius);
+        font-weight: 500;
+        font-size: 0.9rem;
+        cursor: pointer;
+        transition: all 0.2s ease;
+        text-decoration: none;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        gap: 0.5rem;
+        width: 100%;
+    }
+
+    .btn-regency-outline:hover {
+        background: var(--regency-red);
+        color: white;
+        text-decoration: none;
+        transform: translateY(-1px);
+    }
+
+    .btn-secondary {
+        background: #6b7280;
+        color: white;
+        border: 1px solid #6b7280;
+        padding: 0.65rem 1.25rem;
+        border-radius: var(--border-radius);
+        font-weight: 500;
+        font-size: 0.9rem;
+        cursor: pointer;
+        transition: all 0.2s ease;
+        text-decoration: none;
+        display: inline-flex;
+        align-items: center;
+        gap: 0.5rem;
+    }
+
+    .btn-secondary:hover {
+        background: #4b5563;
+        border-color: #4b5563;
+        color: white;
+        text-decoration: none;
+    }
+
+    .btn-lg {
+        padding: 0.75rem 1.5rem;
+        font-size: 0.95rem;
+        font-weight: 600;
+    }
+
+    /* Form actions */
+    .form-actions {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        padding-top: 1rem;
+        border-top: 1px solid #e5e7eb;
+        margin-top: 1.5rem;
+    }
+
+    /* Alerts */
+    .alert-error {
+        background: #fef2f2;
+        border: 1px solid #fecaca;
+        color: #991b1b;
+        padding: 1rem;
+        border-radius: var(--border-radius);
+        margin-bottom: 1.5rem;
+    }
+
+    .alert-error h6 {
+        font-size: 0.9rem;
+        font-weight: 600;
+        margin-bottom: 0.5rem;
+    }
+
+    .alert-info {
+        background: #f0f9ff;
+        border: 1px solid #bae6fd;
+        color: #0c4a6e;
+        padding: 1rem;
+        border-radius: var(--border-radius);
+        margin-bottom: 1rem;
+        font-size: 0.85rem;
+    }
+
+    .alert-info h6 {
+        font-size: 0.85rem;
+        font-weight: 600;
+        margin-bottom: 0.5rem;
+    }
+
+    /* Panel lateral */
+    .sidebar-panel {
+        display: flex;
+        flex-direction: column;
+        gap: 1rem;
+    }
+
+    .panel-buttons {
+        display: flex;
+        flex-direction: column;
+        gap: 0.5rem;
+    }
+
+    /* Grid responsive */
+    .form-row {
+        display: grid;
+        grid-template-columns: 1fr;
+        gap: 1rem;
+    }
+
+    .form-row.two-cols {
+        grid-template-columns: 2fr 1fr;
+    }
+
+    .form-row.equal-cols {
+        grid-template-columns: 1fr 1fr;
+    }
+
+    /* Responsive */
+    @media (max-width: 768px) {
+        .form-container {
+            padding: 0.75rem 1rem;
         }
-        
-        body {
-            background-color: #F8FAFC;
+
+        .form-header {
+            padding: 0.75rem 1rem;
         }
-        
-        .header-corporativo {
-            background: linear-gradient(135deg, var(--color-primary), var(--color-secondary));
-            color: white;
-            padding: 20px;
-            border-radius: 10px;
-            margin-bottom: 30px;
-            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+
+        .form-header h1 {
+            font-size: 1.2rem;
         }
-        
-        .logo-empresa {
-            height: 60px;
-            margin-right: 20px;
-            background: white;
-            padding: 5px;
-            border-radius: 8px;
+
+        .form-layout {
+            grid-template-columns: 1fr;
+            gap: 1rem;
         }
-        
-        .btn-regency {
-            background-color: var(--color-primary);
-            border-color: var(--color-primary);
-            color: white;
-            font-weight: 500;
+
+        .form-row.two-cols,
+        .form-row.equal-cols {
+            grid-template-columns: 1fr;
         }
-        
-        .btn-regency:hover {
-            background-color: var(--color-secondary);
-            border-color: var(--color-secondary);
-            color: white;
+
+        .form-actions {
+            flex-direction: column-reverse;
+            gap: 0.75rem;
+            align-items: stretch;
         }
-        
-        .btn-regency-outline {
-            border-color: var(--color-primary);
-            color: var(--color-primary);
-            font-weight: 500;
-        }
-        
-        .btn-regency-outline:hover {
-            background-color: var(--color-primary);
-            border-color: var(--color-primary);
-            color: white;
-        }
-        
-        .form-control:focus, .form-select:focus {
-            border-color: var(--color-primary);
-            box-shadow: 0 0 0 0.2rem rgba(185, 28, 28, 0.25);
-        }
-        
-        .card-header-regency {
-            background-color: var(--color-primary);
-            color: white;
-            font-weight: 600;
-        }
-        
-        .card-header-secondary {
-            background-color: var(--color-secondary);
-            color: white;
-            font-weight: 600;
-        }
-        
-        .shadow-regency {
-            box-shadow: 0 4px 6px rgba(185, 28, 28, 0.1);
-        }
-        
-        .breadcrumb-regency {
-            background-color: white;
-            border: 1px solid #e5e7eb;
-            border-radius: 8px;
+
+        .card-body {
             padding: 1rem;
-            margin-bottom: 1.5rem;
-            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
         }
-        
-        .breadcrumb-regency a {
-            color: var(--color-primary);
-            text-decoration: none;
-            font-weight: 500;
+    }
+
+    /* Animaciones */
+    .form-card {
+        animation: fadeInUp 0.3s ease forwards;
+    }
+
+    @keyframes fadeInUp {
+        from {
+            opacity: 0;
+            transform: translateY(10px);
         }
-        
-        .breadcrumb-regency a:hover {
-            color: var(--color-secondary);
+        to {
+            opacity: 1;
+            transform: translateY(0);
         }
-        
-        .required-field::after {
-            content: " *";
-            color: var(--color-primary);
-            font-weight: bold;
-        }
-        
-        .form-section {
-            border-left: 4px solid var(--color-primary);
-            padding-left: 15px;
-            margin-bottom: 20px;
-        }
-        
-        .alert-regency {
-            background-color: var(--color-light);
-            border-color: var(--color-primary);
-            color: var(--color-dark);
-        }
-    </style>
-</head>
-<body>
-    <div class="container-fluid">
-        <div class="row">
-            <div class="col-12">
-                <!-- Header Corporativo -->
-                <div class="header-corporativo">
-                    <div class="d-flex align-items-center">
-                        <img src="{% static '/img/logo_regency.png' %}" alt="REGENCY SERVICES" class="logo-empresa">
-                        <div>
-                            <h1 class="mb-1">
-                                {% if form.instance.pk %}
-                                    ✏️ Editar Empresa
-                                {% else %}
-                                    ➕ Nueva Empresa
-                                {% endif %}
-                            </h1>
-                            <p class="mb-0 opacity-75">
-                                {% if form.instance.pk %}
-                                    Modificar información de la empresa: {{ form.instance.nombre }}
-                                {% else %}
-                                    Registrar nueva empresa en el sistema REGENCY
-                                {% endif %}
-                            </p>
-                        </div>
-                    </div>
+    }
+
+    /* Help text */
+    .form-help {
+        font-size: 0.75rem;
+        color: var(--regency-gray-dark);
+        margin-top: 0.25rem;
+    }
+
+    /* Error styles */
+    .form-input.error {
+        border-color: #ef4444;
+        box-shadow: 0 0 0 2px rgba(239, 68, 68, 0.1);
+    }
+
+    .error-message {
+        font-size: 0.75rem;
+        color: #ef4444;
+        margin-top: 0.25rem;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="form-container">
+    <!-- Header del formulario -->
+    <div class="form-header">
+        <h1>
+            {% if form.instance.pk %}
+                ✏️ Editar Empresa
+            {% else %}
+                ➕ Nueva Empresa
+            {% endif %}
+        </h1>
+        <p class="form-subtitle">
+            {% if form.instance.pk %}
+                Modificar información de la empresa: {{ form.instance.nombre }}
+            {% else %}
+                Registrar nueva empresa en el sistema REGENCY
+            {% endif %}
+        </p>
+    </div>
+
+    <!-- Breadcrumb personalizado -->
+    <div class="custom-breadcrumb">
+        <a href="{% url 'empresas:dashboard' %}">🏠 Dashboard</a>
+        <span class="breadcrumb-separator">→</span>
+        <a href="{% url 'empresas:empresas_list' %}">📋 Lista de Empresas</a>
+        <span class="breadcrumb-separator">→</span>
+        <span style="color: var(--regency-gray-dark);">
+            {% if form.instance.pk %}✏️ Editar{% else %}➕ Nueva{% endif %}
+        </span>
+    </div>
+
+    <!-- Layout principal -->
+    <div class="form-layout">
+        <!-- Formulario principal -->
+        <div class="main-form">
+            <div class="form-card">
+                <div class="card-header-regency">
+                    📝 Información de la Empresa
                 </div>
-
-                <!-- Breadcrumb -->
-                <div class="breadcrumb-regency">
-                    <a href="{% url 'empresas:dashboard' %}">🏠 Dashboard</a>
-                    <span class="text-muted mx-2">→</span>
-                    <a href="{% url 'empresas:empresas_list' %}">📋 Lista de Empresas</a>
-                    <span class="text-muted mx-2">→</span>
-                    <span class="text-muted">
-                        {% if form.instance.pk %}✏️ Editar{% else %}➕ Nueva{% endif %}
-                    </span>
-                </div>
-
-                <!-- Formulario Principal -->
-                <div class="row">
-                    <div class="col-lg-8">
-                        <div class="card shadow-regency">
-                            <div class="card-header card-header-regency">
-                                <h5 class="mb-0">📝 Información de la Empresa</h5>
-                            </div>
-                            <div class="card-body">
-                                {% if form.errors %}
-                                    <div class="alert alert-danger alert-regency" role="alert">
-                                        <h6>❌ Por favor corrija los siguientes errores:</h6>
-                                        {% for field, errors in form.errors.items %}
-                                            <ul class="mb-0">
-                                                {% for error in errors %}
-                                                    <li><strong>{{ field }}:</strong> {{ error }}</li>
-                                                {% endfor %}
-                                            </ul>
-                                        {% endfor %}
-                                    </div>
-                                {% endif %}
-
-                                <form method="post">
-                                    {% csrf_token %}
-                                    
-                                    <!-- Sección: Información Básica -->
-                                    <div class="form-section">
-                                        <h6 class="text-primary fw-bold mb-3">🏢 Información Básica</h6>
-                                        <div class="row">
-                                            <div class="col-md-8">
-                                                <div class="mb-3">
-                                                    <label for="{{ form.nombre.id_for_label }}" class="form-label required-field">
-                                                        Nombre de la Empresa
-                                                    </label>
-                                                    {{ form.nombre }}
-                                                    {% if form.nombre.help_text %}
-                                                        <div class="form-text">{{ form.nombre.help_text }}</div>
-                                                    {% endif %}
-                                                </div>
-                                            </div>
-                                            <div class="col-md-4">
-                                                <div class="mb-3">
-                                                    <label for="{{ form.nit.id_for_label }}" class="form-label required-field">
-                                                        NIT
-                                                    </label>
-                                                    {{ form.nit }}
-                                                    {% if form.nit.help_text %}
-                                                        <div class="form-text">{{ form.nit.help_text }}</div>
-                                                    {% endif %}
-                                                </div>
-                                            </div>
-                                        </div>
-                                    </div>
-
-                                    <!-- Sección: Información de Contacto -->
-                                    <div class="form-section">
-                                        <h6 class="text-primary fw-bold mb-3">📞 Información de Contacto</h6>
-                                        <div class="row">
-                                            <div class="col-md-6">
-                                                <div class="mb-3">
-                                                    <label for="{{ form.telefono.id_for_label }}" class="form-label">
-                                                        Teléfono
-                                                    </label>
-                                                    {{ form.telefono }}
-                                                </div>
-                                            </div>
-                                            <div class="col-md-6">
-                                                <div class="mb-3">
-                                                    <label for="{{ form.email.id_for_label }}" class="form-label">
-                                                        Email
-                                                    </label>
-                                                    {{ form.email }}
-                                                </div>
-                                            </div>
-                                        </div>
-                                        <div class="mb-3">
-                                            <label for="{{ form.direccion.id_for_label }}" class="form-label">
-                                                Dirección
-                                            </label>
-                                            {{ form.direccion }}
-                                        </div>
-                                    </div>
-
-                                    <!-- Sección: Estado y Configuración -->
-                                    <div class="form-section">
-                                        <h6 class="text-primary fw-bold mb-3">⚙️ Estado y Configuración</h6>
-                                        <div class="row">
-                                            <div class="col-md-6">
-                                                <div class="form-check form-switch">
-                                                    {{ form.activo }}
-                                                    <label class="form-check-label" for="{{ form.activo.id_for_label }}">
-                                                        <strong>Empresa Activa</strong>
-                                                        <small class="d-block text-muted">
-                                                            La empresa puede operar y crear proyectos
-                                                        </small>
-                                                    </label>
-                                                </div>
-                                            </div>
-                                        </div>
-                                    </div>
-
-                                    <!-- Botones de Acción -->
-                                    <div class="d-flex justify-content-between pt-3 border-top">
-                                        <a href="{% url 'empresas:empresas_list' %}" class="btn btn-outline-secondary">
-                                            ← Cancelar
-                                        </a>
-                                        <button type="submit" class="btn btn-regency btn-lg">
-                                            {% if form.instance.pk %}
-                                                💾 Actualizar Empresa
-                                            {% else %}
-                                                ➕ Crear Empresa
-                                            {% endif %}
-                                        </button>
-                                    </div>
-                                </form>
-                            </div>
-                        </div>
-                    </div>
-
-                    <!-- Panel Lateral -->
-                    <div class="col-lg-4">
-                        <!-- Ayuda e Información -->
-                        <div class="card shadow-regency mb-3">
-                            <div class="card-header card-header-secondary">
-                                <h5 class="mb-0">💡 Ayuda e Información</h5>
-                            </div>
-                            <div class="card-body">
-                                <div class="alert alert-regency">
-                                    <h6 class="fw-bold">📋 Campos Obligatorios</h6>
-                                    <ul class="mb-0">
-                                        <li>Nombre de la Empresa</li>
-                                        <li>NIT (Número de Identificación Tributaria)</li>
-                                    </ul>
-                                </div>
-                                
-                                <h6 class="fw-bold mt-3">📝 Consejos:</h6>
-                                <ul class="small">
-                                    <li>Use el nombre completo y oficial de la empresa</li>
-                                    <li>Verifique que el NIT sea correcto</li>
-                                    <li>Complete la información de contacto para mejor comunicación</li>
-                                    <li>Una empresa activa puede crear proyectos y centros operativos</li>
+                <div class="card-body">
+                    {% if form.errors %}
+                        <div class="alert-error">
+                            <h6>❌ Por favor corrija los siguientes errores:</h6>
+                            {% for field, errors in form.errors.items %}
+                                <ul style="margin-bottom: 0;">
+                                    {% for error in errors %}
+                                        <li><strong>{{ field }}:</strong> {{ error }}</li>
+                                    {% endfor %}
                                 </ul>
-                            </div>
+                            {% endfor %}
                         </div>
+                    {% endif %}
 
-                        <!-- Acciones Rápidas -->
-                        <div class="card shadow-regency">
-                            <div class="card-header card-header-regency">
-                                <h5 class="mb-0">⚡ Acciones Rápidas</h5>
+                    <form method="post">
+                        {% csrf_token %}
+                        
+                        <!-- Sección: Información Básica -->
+                        <div class="form-section">
+                            <div class="section-title">
+                                🏢 Información Básica
                             </div>
-                            <div class="card-body">
-                                <div class="d-grid gap-2">
-                                    <a href="{% url 'empresas:dashboard' %}" class="btn btn-regency-outline">
-                                        🏠 Ir al Dashboard
-                                    </a>
-                                    <a href="{% url 'empresas:empresas_list' %}" class="btn btn-regency-outline">
-                                        📋 Lista de Empresas
-                                    </a>
-                                    {% if form.instance.pk %}
-                                        <hr>
-                                        <a href="{% url 'empresas:empresa_detail' form.instance.pk %}" class="btn btn-outline-info">
-                                            👁️ Ver Detalles
-                                        </a>
+                            <div class="form-row two-cols">
+                                <div class="form-group">
+                                    <label for="{{ form.nombre.id_for_label }}" class="form-label required-field">
+                                        Nombre de la Empresa
+                                    </label>
+                                    <input type="text" name="nombre" id="{{ form.nombre.id_for_label }}" 
+                                           class="form-input" value="{{ form.nombre.value|default:'' }}" required>
+                                    {% if form.nombre.help_text %}
+                                        <div class="form-help">{{ form.nombre.help_text }}</div>
+                                    {% endif %}
+                                </div>
+                                <div class="form-group">
+                                    <label for="{{ form.nit.id_for_label }}" class="form-label required-field">
+                                        NIT
+                                    </label>
+                                    <input type="text" name="nit" id="{{ form.nit.id_for_label }}" 
+                                           class="form-input" value="{{ form.nit.value|default:'' }}" required>
+                                    {% if form.nit.help_text %}
+                                        <div class="form-help">{{ form.nit.help_text }}</div>
                                     {% endif %}
                                 </div>
                             </div>
                         </div>
+
+                        <!-- Sección: Información de Contacto -->
+                        <div class="form-section">
+                            <div class="section-title">
+                                📞 Información de Contacto
+                            </div>
+                            <div class="form-row equal-cols">
+                                <div class="form-group">
+                                    <label for="{{ form.telefono.id_for_label }}" class="form-label">
+                                        Teléfono
+                                    </label>
+                                    <input type="tel" name="telefono" id="{{ form.telefono.id_for_label }}" 
+                                           class="form-input" value="{{ form.telefono.value|default:'' }}">
+                                </div>
+                                <div class="form-group">
+                                    <label for="{{ form.email.id_for_label }}" class="form-label">
+                                        Email
+                                    </label>
+                                    <input type="email" name="email" id="{{ form.email.id_for_label }}" 
+                                           class="form-input" value="{{ form.email.value|default:'' }}">
+                                </div>
+                            </div>
+                            <div class="form-group">
+                                <label for="{{ form.direccion.id_for_label }}" class="form-label">
+                                    Dirección
+                                </label>
+                                <textarea name="direccion" id="{{ form.direccion.id_for_label }}" 
+                                         class="form-input form-textarea">{{ form.direccion.value|default:'' }}</textarea>
+                            </div>
+                        </div>
+
+                        <!-- Sección: Estado y Configuración -->
+                        <div class="form-section">
+                            <div class="section-title">
+                                ⚙️ Estado y Configuración
+                            </div>
+                            <div class="form-group">
+                                <label class="checkbox-label">
+                                    <input type="checkbox" name="activo" id="{{ form.activo.id_for_label }}" 
+                                           class="form-checkbox" {% if form.activo.value %}checked{% endif %}>
+                                    <span>
+                                        <strong>Empresa Activa</strong>
+                                        <span class="checkbox-help">
+                                            La empresa puede operar y crear proyectos
+                                        </span>
+                                    </span>
+                                </label>
+                            </div>
+                        </div>
+
+                        <!-- Botones de Acción -->
+                        <div class="form-actions">
+                            <a href="{% url 'empresas:empresas_list' %}" class="btn-secondary">
+                                ← Cancelar
+                            </a>
+                            <button type="submit" class="btn-regency btn-lg">
+                                {% if form.instance.pk %}
+                                    💾 Actualizar Empresa
+                                {% else %}
+                                    ➕ Crear Empresa
+                                {% endif %}
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+
+        <!-- Panel lateral -->
+        <div class="sidebar-panel">
+            <!-- Ayuda e Información -->
+            <div class="form-card">
+                <div class="card-header-secondary">
+                    💡 Ayuda e Información
+                </div>
+                <div class="card-body">
+                    <div class="alert-info">
+                        <h6>📋 Campos Obligatorios</h6>
+                        <ul style="margin-bottom: 0;">
+                            <li>Nombre de la Empresa</li>
+                            <li>NIT (Número de Identificación Tributaria)</li>
+                        </ul>
+                    </div>
+                    
+                    <h6 style="font-size: 0.85rem; font-weight: 600; margin-bottom: 0.5rem;">📝 Consejos:</h6>
+                    <ul style="font-size: 0.8rem; margin-bottom: 0;">
+                        <li>Use el nombre completo y oficial de la empresa</li>
+                        <li>Verifique que el NIT sea correcto</li>
+                        <li>Complete la información de contacto para mejor comunicación</li>
+                        <li>Una empresa activa puede crear proyectos y centros operativos</li>
+                    </ul>
+                </div>
+            </div>
+
+            <!-- Acciones Rápidas -->
+            <div class="form-card">
+                <div class="card-header-regency">
+                    ⚡ Acciones Rápidas
+                </div>
+                <div class="card-body">
+                    <div class="panel-buttons">
+                        <a href="{% url 'empresas:dashboard' %}" class="btn-regency-outline">
+                            🏠 Ir al Dashboard
+                        </a>
+                        <a href="{% url 'empresas:empresas_list' %}" class="btn-regency-outline">
+                            📋 Lista de Empresas
+                        </a>
+                        {% if form.instance.pk %}
+                            <a href="{% url 'empresas:empresa_detail' form.instance.pk %}" class="btn-regency-outline">
+                                👁️ Ver Detalles
+                            </a>
+                        {% endif %}
                     </div>
                 </div>
             </div>
         </div>
     </div>
+</div>
 
-    <!-- Bootstrap JS -->
-    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/js/bootstrap.bundle.min.js"></script>
-    
-    <!-- Script para mejorar la UX del formulario -->
-    <script>
-        document.addEventListener('DOMContentLoaded', function() {
-            // Agregar clases de Bootstrap a los campos del formulario
-            const formControls = document.querySelectorAll('input[type="text"], input[type="email"], input[type="tel"], textarea, select');
-            formControls.forEach(control => {
-                control.classList.add('form-control');
+<!-- Script para mejorar la UX del formulario -->
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        // Validación en tiempo real del NIT
+        const nitInput = document.querySelector('input[name="nit"]');
+        if (nitInput) {
+            nitInput.addEventListener('input', function() {
+                // Remover caracteres no numéricos excepto guiones
+                this.value = this.value.replace(/[^0-9-]/g, '');
             });
-            
-            // Agregar clase especial a checkboxes
-            const checkboxes = document.querySelectorAll('input[type="checkbox"]');
-            checkboxes.forEach(checkbox => {
-                checkbox.classList.add('form-check-input');
+        }
+        
+        // Auto-focus en el primer campo
+        const firstInput = document.querySelector('input[name="nombre"]');
+        if (firstInput) {
+            firstInput.focus();
+        }
+
+        // Validación visual de campos requeridos
+        const requiredInputs = document.querySelectorAll('input[required]');
+        requiredInputs.forEach(input => {
+            input.addEventListener('blur', function() {
+                if (!this.value.trim()) {
+                    this.classList.add('error');
+                } else {
+                    this.classList.remove('error');
+                }
             });
-            
-            // Validación en tiempo real del NIT (ejemplo básico)
-            const nitInput = document.querySelector('input[name="nit"]');
-            if (nitInput) {
-                nitInput.addEventListener('input', function() {
-                    // Remover caracteres no numéricos excepto guiones
-                    this.value = this.value.replace(/[^0-9-]/g, '');
-                });
-            }
-            
-            // Auto-focus en el primer campo
-            const firstInput = document.querySelector('input[name="nombre"]');
-            if (firstInput) {
-                firstInput.focus();
-            }
         });
-    </script>
-</body>
-</html>
+    });
+</script>
+{% endblock %}

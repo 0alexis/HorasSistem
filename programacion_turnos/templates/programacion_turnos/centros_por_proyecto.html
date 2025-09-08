@@ -3,175 +3,119 @@
 
 {% block extrastyle %}
 <style>
-    /* Variables de colores Regency unificadas */
+    /* Variables consistentes con el proyecto */
     :root {
-        --regency-red: #B91C1C;
-        --regency-red-dark: #991B1B;
-        --regency-red-light: #DC2626;
-        --regency-gray: #f8fafc;
+        --regency-red: #871F1B;
+        --regency-red-dark: #6b191b;
+        --regency-red-light: #a13832;
+        --regency-gray: #f8f9fa;
         --regency-gray-dark: #64748b;
+        --regency-text: #333;
+        --border-radius: 8px;
+        --shadow-sm: 0 1px 3px rgba(0, 0, 0, 0.1);
+        --shadow-md: 0 4px 6px rgba(0, 0, 0, 0.1);
     }
 
-    /* Reset y base */
+    /* Reset básico */
     * {
         box-sizing: border-box;
     }
 
+    /* Tipografía consistente - misma que el sidebar */
     body {
-        font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+        font-size: 14px;
+        line-height: 1.5;
+        color: var(--regency-text);
         background: var(--regency-gray);
-        margin: 0;
-        line-height: 1.6;
     }
 
-    /* Header corporativo */
+    /* Header del proyecto - más compacto */
     .main-header {
-        background: linear-gradient(135deg, #B91C1C 0%, #991B1B 100%);
+        background: var(--regency-red);
         color: #fff;
-        padding: 1.5rem 2rem;
-        display: flex;
-        align-items: center;
-        justify-content: space-between;
-        box-shadow: 0 2px 8px rgba(0,0,0,0.08);
-        border-radius: 0 0 16px 16px;
+        padding: 1rem 1.5rem;
+        border-radius: var(--border-radius);
+        margin-bottom: 1rem;
+        box-shadow: var(--shadow-sm);
     }
 
-    .main-header .logo {
-        height: 48px;
-        margin-right: 1.5rem;
-    }
-
-    .main-header-title {
-        font-size: 2rem;
+    .main-header h1 {
+        font-size: 1.4rem;
         font-weight: 600;
-        letter-spacing: 1px;
-    }
-
-    .main-header-user {
-        font-size: 1rem;
-        font-weight: 400;
-        opacity: 0.85;
-    }
-
-    /* Botón corporativo */
-    .btn-corporativo {
-        background: #B91C1C;
-        color: #fff;
-        border: none;
-        border-radius: 8px;
-        padding: 0.7rem 1.5rem;
-        font-size: 1rem;
-        font-weight: 500;
-        box-shadow: 0 2px 6px rgba(0,0,0,0.07);
-        transition: background 0.2s;
-        cursor: pointer;
-    }
-
-    .btn-corporativo:hover {
-        background: #991B1B;
-    }
-
-    /* Bloque de proyecto */
-    .project-block {
-        background: linear-gradient(135deg, #B91C1C 0%, #DC2626 100%);
-        color: #fff;
-        padding: 2rem 2.5rem;
-        border-radius: 16px;
-        margin-bottom: 2rem;
-        box-shadow: 0 4px 16px rgba(0,0,0,0.10);
+        margin: 0;
         display: flex;
         align-items: center;
-        gap: 2rem;
+        gap: 0.5rem;
     }
 
-    .project-block .icon {
-        font-size: 3rem;
-        margin-right: 1.5rem;
-    }
-
-    .project-block-title {
-        font-size: 2.2rem;
-        font-weight: 700;
-        letter-spacing: 1px;
-        margin-bottom: 0.5rem;
-    }
-
-    .project-block-desc {
-        font-size: 1.1rem;
+    .main-header .subtitle {
+        font-size: 0.9rem;
         opacity: 0.9;
+        margin-top: 0.25rem;
+        font-weight: 400;
     }
 
-    /* Breadcrumb mejorado */
-    .breadcrumb-custom {
+    /* Botón de retorno - más pequeño */
+    .back-button-container {
+        margin: 0 0 1rem 0;
+    }
+
+    .back-button {
         background: #fff;
-        border-radius: 8px;
-        padding: 1rem 2rem;
-        margin-bottom: 1.5rem;
-        box-shadow: 0 1px 4px rgba(0,0,0,0.07);
-        font-size: 1rem;
-        color: #B91C1C;
-    }
-
-    .breadcrumb-custom a {
-        color: #B91C1C;
+        color: var(--regency-red);
+        border: 1px solid var(--regency-red);
+        border-radius: var(--border-radius);
+        padding: 0.5rem 1rem;
+        font-size: 0.9rem;
         font-weight: 500;
         text-decoration: none;
-        margin-right: 0.5rem;
+        display: inline-flex;
+        align-items: center;
+        gap: 0.5rem;
+        transition: all 0.2s ease;
+        box-shadow: var(--shadow-sm);
     }
 
-    .breadcrumb-custom a:hover {
-        text-decoration: underline;
+    .back-button:hover {
+        background: var(--regency-red);
+        color: #fff;
+        text-decoration: none;
+        transform: translateY(-1px);
     }
 
-    /* Grid moderno responsivo */
+    /* Grid más compacto */
     .centros-grid {
         display: grid;
-        grid-template-columns: repeat(auto-fill, minmax(360px, 1fr));
-        gap: 2rem;
-        margin: 2rem 0;
-        padding: 0 1rem;
+        grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+        gap: 1rem;
+        margin: 0;
+        padding: 0;
     }
 
-    /* Cards con diseño empresarial Regency */
+    /* Cards más pequeñas y consistentes */
     .centro-card {
-        background: white;
+        background: #fff;
         border: 1px solid #e5e7eb;
-        border-radius: 16px;
-        padding: 2rem;
-        box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
-        transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        border-radius: var(--border-radius);
+        padding: 1rem;
+        box-shadow: var(--shadow-sm);
+        transition: all 0.2s ease;
         position: relative;
-        overflow: hidden;
-    }
-
-    .centro-card::before {
-        content: '';
-        position: absolute;
-        top: 0;
-        left: 0;
-        right: 0;
-        height: 4px;
-        background: linear-gradient(90deg, var(--regency-red), var(--regency-red-light), var(--regency-red-dark));
-        opacity: 0;
-        transition: opacity 0.3s ease;
     }
 
     .centro-card:hover {
-        box-shadow: 0 20px 25px -5px rgba(185, 28, 28, 0.15), 0 10px 10px -5px rgba(185, 28, 28, 0.08);
-        transform: translateY(-4px);
-        border-color: #d1d5db;
+        box-shadow: var(--shadow-md);
+        transform: translateY(-2px);
+        border-color: var(--regency-red-light);
     }
 
-    .centro-card:hover::before {
-        opacity: 1;
-    }
-
-    /* Nombre del centro */
+    /* Nombre del centro - más pequeño */
     .centro-nombre {
-        font-size: 1.4rem;
-        font-weight: 700;
-        color: #1f2937;
-        margin-bottom: 0.75rem;
+        font-size: 1.1rem;
+        font-weight: 600;
+        color: var(--regency-text);
+        margin-bottom: 0.5rem;
         display: flex;
         align-items: center;
         gap: 0.5rem;
@@ -179,188 +123,138 @@
 
     .centro-nombre::before {
         content: '🏢';
-        font-size: 1.2rem;
-        padding: 0.5rem;
-        background: linear-gradient(135deg, #fee2e2, #fecaca);
-        border-radius: 10px;
-        border: 1px solid #fca5a5;
+        font-size: 1rem;
+        padding: 0.25rem;
+        background: #f3f4f6;
+        border-radius: 4px;
+        border: 1px solid #e5e7eb;
     }
 
-    /* Información del centro */
+    /* Información del centro - más compacta */
     .centro-info {
-        margin-bottom: 1.5rem;
-        padding: 0.75rem 1rem;
+        margin-bottom: 1rem;
+        padding: 0.5rem 0.75rem;
         background: var(--regency-gray);
-        border-radius: 8px;
+        border-radius: 4px;
         border-left: 3px solid var(--regency-red);
     }
 
     .centro-info small {
         color: var(--regency-gray-dark);
-        font-size: 0.95rem;
+        font-size: 0.85rem;
         font-weight: 500;
         display: flex;
         align-items: center;
-        gap: 0.5rem;
+        gap: 0.25rem;
     }
 
-    /* Botones modernos con colores Regency */
+    /* Botones más pequeños y consistentes con el sidebar */
     .centro-actions {
         display: flex;
-        gap: 0.75rem;
+        gap: 0.5rem;
         flex-wrap: wrap;
     }
 
     .btn-regency {
-        background: linear-gradient(135deg, var(--regency-red) 0%, var(--regency-red-light) 100%);
-        color: white;
+        background: var(--regency-red);
+        color: #fff;
         border: none;
-        border-radius: 10px;
-        padding: 0.875rem 1.5rem;
-        font-size: 0.95rem;
-        font-weight: 600;
+        border-radius: var(--border-radius);
+        padding: 0.5rem 1rem;
+        font-size: 0.85rem;
+        font-weight: 500;
         cursor: pointer;
         text-decoration: none;
-        transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        transition: all 0.2s ease;
         display: inline-flex;
         align-items: center;
-        gap: 0.5rem;
-        box-shadow: 0 4px 6px -1px rgba(185, 28, 28, 0.2);
-        position: relative;
-        overflow: hidden;
-    }
-
-    .btn-regency::before {
-        content: '';
-        position: absolute;
-        top: 0;
-        left: -100%;
-        width: 100%;
-        height: 100%;
-        background: linear-gradient(90deg, transparent, rgba(255,255,255,0.2), transparent);
-        transition: left 0.5s ease;
+        gap: 0.25rem;
+        box-shadow: var(--shadow-sm);
     }
 
     .btn-regency:hover {
-        background: linear-gradient(135deg, var(--regency-red-dark) 0%, var(--regency-red) 100%);
-        color: white;
+        background: var(--regency-red-dark);
+        color: #fff;
         text-decoration: none;
         transform: translateY(-1px);
-        box-shadow: 0 10px 15px -3px rgba(185, 28, 28, 0.3);
-    }
-
-    .btn-regency:hover::before {
-        left: 100%;
+        box-shadow: var(--shadow-md);
     }
 
     .btn-regency-outline {
         background: transparent;
         color: var(--regency-red);
-        border: 2px solid var(--regency-red);
-        border-radius: 10px;
-        padding: 0.75rem 1.5rem;
-        font-size: 0.95rem;
-        font-weight: 600;
+        border: 1px solid var(--regency-red);
+        border-radius: var(--border-radius);
+        padding: 0.5rem 1rem;
+        font-size: 0.85rem;
+        font-weight: 500;
         cursor: pointer;
         text-decoration: none;
-        transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        transition: all 0.2s ease;
         display: inline-flex;
         align-items: center;
-        gap: 0.5rem;
+        gap: 0.25rem;
     }
 
     .btn-regency-outline:hover {
         background: var(--regency-red);
-        color: white;
+        color: #fff;
         text-decoration: none;
         transform: translateY(-1px);
-        box-shadow: 0 4px 6px -1px rgba(185, 28, 28, 0.2);
     }
 
-    /* Estado vacío mejorado */
+    /* Estado vacío - más moderado */
     .empty-state {
         text-align: center;
-        padding: 4rem 2rem;
-        color: #6b7280;
-        background: white;
-        border-radius: 16px;
+        padding: 2rem 1rem;
+        color: var(--regency-gray-dark);
+        background: #fff;
+        border-radius: var(--border-radius);
         border: 2px dashed #d1d5db;
-        margin: 2rem 0;
+        margin: 1rem 0;
     }
 
     .empty-state i {
-        font-size: 4rem;
-        margin-bottom: 1.5rem;
-        opacity: 0.4;
-        color: #9ca3af;
+        font-size: 2rem;
+        margin-bottom: 1rem;
+        opacity: 0.5;
+        color: var(--regency-gray-dark);
     }
 
     .empty-state h3 {
-        font-size: 1.5rem;
+        font-size: 1.1rem;
         font-weight: 600;
         margin-bottom: 0.5rem;
-        color: #374151;
+        color: var(--regency-text);
     }
 
     .empty-state p {
-        font-size: 1rem;
+        font-size: 0.9rem;
         margin: 0;
-        color: #6b7280;
+        color: var(--regency-gray-dark);
     }
 
-    /* Botón de retorno mejorado */
-    .back-button-container {
-        margin: 3rem 0 2rem 0;
-        padding: 0 1rem;
-    }
-
-    .back-button {
-        background: white;
-        color: var(--regency-red);
-        border: 2px solid var(--regency-red);
-        border-radius: 12px;
-        padding: 1rem 2rem;
-        font-size: 1rem;
-        font-weight: 600;
-        cursor: pointer;
-        text-decoration: none;
-        transition: all 0.3s ease;
-        display: inline-flex;
-        align-items: center;
-        gap: 0.75rem;
-    }
-
-    .back-button:hover {
-        background: var(--regency-red);
-        color: white;
-        border-color: var(--regency-red);
-        text-decoration: none;
-        transform: translateX(-4px);
-        box-shadow: 0 4px 6px -1px rgba(185, 28, 28, 0.2);
-    }
-
-    /* Responsive design */
+    /* Responsive más eficiente */
     @media (max-width: 768px) {
         .main-header {
-            padding: 2rem 1rem;
+            padding: 0.75rem 1rem;
         }
 
         .main-header h1 {
-            font-size: 2rem;
+            font-size: 1.2rem;
         }
 
-        .subtitle {
-            font-size: 1rem;
+        .main-header .subtitle {
+            font-size: 0.8rem;
         }
 
         .centros-grid {
             grid-template-columns: 1fr;
-            gap: 1.5rem;
-            padding: 0 0.5rem;
+            gap: 0.75rem;
         }
 
         .centro-card {
-            padding: 1.5rem;
+            padding: 0.75rem;
         }
 
         .centro-actions {
@@ -370,56 +264,43 @@
         .btn-regency,
         .btn-regency-outline {
             justify-content: center;
+            width: 100%;
         }
     }
 
-    /* Animaciones sutiles */
+    /* Animaciones suaves */
+    .centro-card {
+        animation: fadeInUp 0.3s ease forwards;
+    }
+
     @keyframes fadeInUp {
         from {
             opacity: 0;
-            transform: translateY(20px);
+            transform: translateY(10px);
         }
         to {
             opacity: 1;
             transform: translateY(0);
         }
     }
-
-    .centro-card {
-        animation: fadeInUp 0.6s ease forwards;
-    }
-
-    .centro-card:nth-child(1) { animation-delay: 0.1s; }
-    .centro-card:nth-child(2) { animation-delay: 0.2s; }
-    .centro-card:nth-child(3) { animation-delay: 0.3s; }
-    .centro-card:nth-child(4) { animation-delay: 0.4s; }
 </style>
 {% endblock %}
 
 {% block content %}
-<!-- Header corporativo -->
-<div class="main-header">
-    <img src="{% static 'img/logo.png' %}" alt="Regency Logo" class="logo">
-    <span class="main-header-title">REGENCY SERVICES - Sistema de Gestión de Turnos</span>
-    <span class="main-header-user">Bienvenido al sistema, {{ user.first_name|default:user.username }}</span>
-    <button class="btn-corporativo" onclick="location.href='{% url 'logout' %}'">Cerrar sesión</button>
-</div>
 
-<!-- Breadcrumb mejorado -->
-<div class="breadcrumb-custom">
-    <a href="{% url 'welcome' %}">🏠 Inicio</a>
-    <span>›</span>
-    <a href="{% url 'programacion_dashboard' %}">Proyectos</a>
-    <span>›</span>
-    <li class="breadcrumb-item active" aria-current="page">{{ proyecto.nombre }}</li>
 
-</div>
 
 
 
 <div class="main-header">
     <h1>📁 {{ proyecto.nombre }}</h1>
     <div class="subtitle">Centros Operativos del Proyecto</div>
+</div>
+<!-- Botón para regresar mejorado -->
+<div class="back-button-container">
+    <a href="{% url 'programacion_dashboard' %}" class="back-button">
+        ← Volver a Proyectos
+    </a>
 </div>
 
 <div class="centros-grid">
@@ -445,10 +326,5 @@
     {% endfor %}
 </div>
 
-<!-- Botón para regresar mejorado -->
-<div class="back-button-container">
-    <a href="{% url 'programacion_dashboard' %}" class="back-button">
-        ← Volver a Proyectos
-    </a>
-</div>
+
 {% endblock %}

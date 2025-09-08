@@ -1,32 +1,628 @@
-{% load static %}
-<!DOCTYPE html>
-<html lang="es">
-<head>
-    <meta charset="UTF-8">
-    <title>Detalle de Grupo</title>
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
-</head>
-<body>
-    <div class="container mt-4">
-        <h2>Detalle de Grupo</h2>
-        <dl class="row">
-            <dt class="col-sm-4">Nombre:</dt>
-            <dd class="col-sm-8">{{ group.name }}</dd>
-            <dt class="col-sm-4">Permisos:</dt>
-            <dd class="col-sm-8">
-                {% for perm in group.permissions.all %}
-                    <span class="badge bg-secondary">{{ perm.name }}</span>
-                {% empty %}
-                    <span class="text-muted">Sin permisos</span>
-                {% endfor %}
-            </dd>
-        </dl>
-        <a href="{% url 'usuarios:group_list' %}" class="btn btn-outline-secondary">
-            <i class="bi bi-arrow-left"></i> Volver al listado
-        </a>
-        <a href="{% url 'usuarios:group_update' group.pk %}" class="btn btn-warning">
-            <i class="bi bi-pencil-square"></i> Editar
-        </a>
+{% extends "admin/base_site.html" %}
+{% load i18n static %}
+
+{% block extrastyle %}
+{{ block.super }}
+<style>
+    /* Variables consistentes con el proyecto */
+    :root {
+        --regency-red: #871F1B;
+        --regency-red-dark: #6b191b;
+        --regency-red-light: #a13832;
+        --regency-gray: #f8f9fa;
+        --regency-gray-dark: #64748b;
+        --regency-text: #333;
+        --border-radius: 8px;
+        --shadow-sm: 0 1px 3px rgba(0, 0, 0, 0.1);
+        --shadow-md: 0 4px 6px rgba(0, 0, 0, 0.1);
+    }
+
+    /* ========== OCULTAR BREADCRUMB DJANGO ADMIN ========== */
+    .breadcrumbs,
+    div.breadcrumbs {
+        display: none !important;
+    }
+
+    /* Tipografía empresarial consistente */
+    body {
+        font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+        font-size: 14px;
+        line-height: 1.5;
+        color: var(--regency-text);
+        background: var(--regency-gray);
+    }
+
+    /* Container principal */
+    .detail-container {
+        padding: 1rem 1.5rem;
+        max-width: 1000px;
+        margin: 0 auto;
+    }
+
+    /* Header del detalle */
+    .detail-header {
+        background: var(--regency-red);
+        color: white;
+        padding: 1.25rem 1.5rem;
+        margin-bottom: 1.5rem;
+        border-radius: var(--border-radius);
+        box-shadow: var(--shadow-sm);
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        flex-wrap: wrap;
+        gap: 1rem;
+    }
+
+    .header-main {
+        flex: 1;
+        min-width: 0;
+    }
+
+    .detail-header h1 {
+        font-size: 1.4rem;
+        font-weight: 600;
+        margin: 0 0 0.4rem 0;
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+        line-height: 1.2;
+    }
+
+    .detail-subtitle {
+        font-size: 0.85rem;
+        opacity: 0.9;
+        margin: 0;
+        font-weight: 400;
+    }
+
+    .header-actions {
+        display: flex;
+        gap: 0.5rem;
+        flex-shrink: 0;
+    }
+
+    /* Breadcrumb personalizado */
+    .custom-breadcrumb {
+        background: white;
+        border: 1px solid #e5e7eb;
+        border-radius: var(--border-radius);
+        padding: 0.75rem 1rem;
+        margin-bottom: 1.5rem;
+        box-shadow: var(--shadow-sm);
+        font-size: 0.85rem;
+    }
+
+    .custom-breadcrumb a {
+        color: var(--regency-red);
+        text-decoration: none;
+        font-weight: 500;
+        transition: color 0.2s ease;
+    }
+
+    .custom-breadcrumb a:hover {
+        color: var(--regency-red-dark);
+        text-decoration: underline;
+    }
+
+    .breadcrumb-separator {
+        color: var(--regency-gray-dark);
+        margin: 0 0.5rem;
+    }
+
+    /* Cards */
+    .detail-card {
+        background: white;
+        border-radius: var(--border-radius);
+        overflow: hidden;
+        box-shadow: var(--shadow-sm);
+        border: 1px solid #e5e7eb;
+        margin-bottom: 1.5rem;
+    }
+
+    .card-header-regency {
+        background: var(--regency-red);
+        color: white;
+        padding: 1rem 1.25rem;
+        font-weight: 600;
+        font-size: 1rem;
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+    }
+
+    .card-body {
+        padding: 1.5rem;
+    }
+
+    /* Grid para información */
+    .info-grid {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 1.5rem;
+        margin-bottom: 1.5rem;
+    }
+
+    .info-grid-full {
+        grid-column: 1 / -1;
+    }
+
+    /* Elementos de información */
+    .info-item {
+        display: flex;
+        flex-direction: column;
+        gap: 0.4rem;
+    }
+
+    .info-label {
+        font-size: 0.8rem;
+        font-weight: 600;
+        color: var(--regency-gray-dark);
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+        display: flex;
+        align-items: center;
+        gap: 0.3rem;
+    }
+
+    .info-value {
+        font-size: 0.95rem;
+        color: var(--regency-text);
+        font-weight: 500;
+        padding: 0.5rem 0.75rem;
+        background: #f8fafc;
+        border-radius: var(--border-radius);
+        border: 1px solid #e2e8f0;
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+    }
+
+    .info-value.highlight {
+        background: #fef2f2;
+        border-color: #fecaca;
+        color: var(--regency-red);
+        font-weight: 600;
+    }
+
+    .group-id {
+        font-family: 'SF Mono', 'Monaco', 'Inconsolata', 'Roboto Mono', monospace;
+        font-size: 0.9rem;
+        font-weight: 600;
+        color: var(--regency-text);
+        background: #f0f9ff;
+        border-color: #bae6fd;
+    }
+
+    /* Lista de permisos */
+    .permissions-list {
+        display: grid;
+        grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+        gap: 0.75rem;
+        margin-top: 1rem;
+    }
+
+    .permission-item {
+        background: #f8fafc;
+        border: 1px solid #e2e8f0;
+        border-radius: var(--border-radius);
+        padding: 0.75rem;
+        font-size: 0.85rem;
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+        transition: all 0.2s ease;
+    }
+
+    .permission-item:hover {
+        background: #f1f5f9;
+        border-color: #cbd5e1;
+    }
+
+    .permission-icon {
+        width: 1.5rem;
+        height: 1.5rem;
+        background: var(--regency-red);
+        color: white;
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 0.7rem;
+        flex-shrink: 0;
+    }
+
+    .permission-text {
+        flex: 1;
+        color: var(--regency-text);
+        font-weight: 500;
+    }
+
+    /* Estadísticas */
+    .stats-container {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+        gap: 1rem;
+        margin-bottom: 1.5rem;
+    }
+
+    .stat-card {
+        background: white;
+        border: 1px solid #e5e7eb;
+        border-radius: var(--border-radius);
+        padding: 1rem;
+        text-align: center;
+        box-shadow: var(--shadow-sm);
+        transition: all 0.2s ease;
+    }
+
+    .stat-card:hover {
+        transform: translateY(-2px);
+        box-shadow: var(--shadow-md);
+    }
+
+    .stat-number {
+        font-size: 2rem;
+        font-weight: 700;
+        color: var(--regency-red);
+        margin-bottom: 0.25rem;
+    }
+
+    .stat-label {
+        font-size: 0.8rem;
+        color: var(--regency-gray-dark);
+        font-weight: 600;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+    }
+
+    /* Botones empresariales */
+    .btn-regency {
+        background: var(--regency-red);
+        color: white;
+        border: none;
+        padding: 0.75rem 1.25rem;
+        border-radius: var(--border-radius);
+        font-weight: 500;
+        font-size: 0.9rem;
+        cursor: pointer;
+        transition: all 0.2s ease;
+        text-decoration: none;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        gap: 0.5rem;
+        box-shadow: var(--shadow-sm);
+    }
+
+    .btn-regency:hover {
+        background: var(--regency-red-dark);
+        color: white;
+        text-decoration: none;
+        transform: translateY(-1px);
+        box-shadow: var(--shadow-md);
+    }
+
+    .btn-regency-outline {
+        background: transparent;
+        color: var(--regency-red);
+        border: 1px solid var(--regency-red);
+        padding: 0.75rem 1.25rem;
+        border-radius: var(--border-radius);
+        font-weight: 500;
+        font-size: 0.9rem;
+        cursor: pointer;
+        transition: all 0.2s ease;
+        text-decoration: none;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        gap: 0.5rem;
+    }
+
+    .btn-regency-outline:hover {
+        background: var(--regency-red);
+        color: white;
+        text-decoration: none;
+        transform: translateY(-1px);
+    }
+
+    .btn-secondary {
+        background: #6b7280;
+        color: white;
+        border: 1px solid #6b7280;
+        padding: 0.75rem 1.25rem;
+        border-radius: var(--border-radius);
+        font-weight: 500;
+        font-size: 0.9rem;
+        cursor: pointer;
+        transition: all 0.2s ease;
+        text-decoration: none;
+        display: inline-flex;
+        align-items: center;
+        gap: 0.5rem;
+    }
+
+    .btn-secondary:hover {
+        background: #4b5563;
+        border-color: #4b5563;
+        color: white;
+        text-decoration: none;
+    }
+
+    .btn-lg {
+        padding: 0.9rem 1.5rem;
+        font-size: 1rem;
+        font-weight: 600;
+    }
+
+    .btn-sm {
+        padding: 0.4rem 0.75rem;
+        font-size: 0.8rem;
+    }
+
+    /* Área de acciones */
+    .action-bar {
+        background: #f8fafc;
+        border: 1px solid #e5e7eb;
+        border-radius: var(--border-radius);
+        padding: 1rem 1.5rem;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        gap: 1rem;
+        flex-wrap: wrap;
+        margin-bottom: 1.5rem;
+    }
+
+    .actions-primary {
+        display: flex;
+        gap: 0.75rem;
+    }
+
+    .actions-secondary {
+        display: flex;
+        gap: 0.5rem;
+    }
+
+    /* Alerts */
+    .alert {
+        border-radius: var(--border-radius);
+        padding: 1rem;
+        margin-bottom: 1rem;
+        border: 1px solid;
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+    }
+
+    .alert-success {
+        background: #f0fdf4;
+        border-color: #bbf7d0;
+        color: #166534;
+    }
+
+    .alert-info {
+        background: #f0f9ff;
+        border-color: #bae6fd;
+        color: #0c4a6e;
+    }
+
+    .alert-warning {
+        background: #fffbeb;
+        border-color: #fed7aa;
+        color: #92400e;
+    }
+
+    .alert-error {
+        background: #fef2f2;
+        border-color: #fecaca;
+        color: #991b1b;
+    }
+
+    /* Estado vacío para permisos */
+    .empty-permissions {
+        text-align: center;
+        padding: 2rem;
+        color: var(--regency-gray-dark);
+        font-style: italic;
+    }
+
+    /* Responsive */
+    @media (max-width: 768px) {
+        .detail-container {
+            padding: 0.75rem 1rem;
+        }
+
+        .detail-header {
+            padding: 1rem;
+            flex-direction: column;
+            align-items: stretch;
+            text-align: center;
+        }
+
+        .detail-header h1 {
+            font-size: 1.2rem;
+            justify-content: center;
+        }
+
+        .header-actions {
+            justify-content: center;
+            margin-top: 0.5rem;
+        }
+
+        .info-grid {
+            grid-template-columns: 1fr;
+            gap: 1rem;
+        }
+
+        .permissions-list {
+            grid-template-columns: 1fr;
+        }
+
+        .stats-container {
+            grid-template-columns: 1fr 1fr;
+        }
+
+        .card-body {
+            padding: 1rem;
+        }
+
+        .action-bar {
+            padding: 1rem;
+            flex-direction: column;
+            align-items: stretch;
+        }
+
+        .actions-primary,
+        .actions-secondary {
+            justify-content: center;
+        }
+    }
+
+    /* Animaciones */
+    .detail-card {
+        animation: fadeInUp 0.3s ease forwards;
+    }
+
+    @keyframes fadeInUp {
+        from {
+            opacity: 0;
+            transform: translateY(10px);
+        }
+        to {
+            opacity: 1;
+            transform: translateY(0);
+        }
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="detail-container">
+    <!-- Header del detalle -->
+    <div class="detail-header">
+        <div class="header-main">
+            <h1>👥 Detalle del Grupo: {{ group.name }}</h1>
+            <p class="detail-subtitle">Información completa del grupo en el sistema REGENCY</p>
+        </div>
+        <div class="header-actions">
+            <a href="{% url 'usuarios:group_list' %}" class="btn-secondary btn-sm">
+                📋 Lista de Grupos
+            </a>
+        </div>
     </div>
-</body>
-</html>
+
+
+    <!-- Mensajes -->
+    {% if messages %}
+        {% for message in messages %}
+            <div class="alert alert-{{ message.tags }}">
+                {{ message }}
+            </div>
+        {% endfor %}
+    {% endif %}
+
+    <!-- Barra de acciones -->
+    <div class="action-bar">
+        <div class="actions-primary">
+            <a href="{% url 'usuarios:group_update' group.pk %}" class="btn-regency">
+                ✏️ Editar Grupo
+            </a>
+        </div>
+        <div class="actions-secondary">
+            <a href="{% url 'usuarios:group_list' %}" class="btn-secondary">
+                ← Volver a la Lista
+            </a>
+        </div>
+    </div>
+
+    <!-- Estadísticas rápidas -->
+    <div class="stats-container">
+        <div class="stat-card">
+            <div class="stat-number">{{ group.permissions.count }}</div>
+            <div class="stat-label">🔐 Permisos Asignados</div>
+        </div>
+        <div class="stat-card">
+            <div class="stat-number">{{ group.user_set.count }}</div>
+            <div class="stat-label">👤 Usuarios en el Grupo</div>
+        </div>
+    </div>
+
+    <!-- Información básica del grupo -->
+    <div class="detail-card">
+        <div class="card-header-regency">
+            📋 Información Básica del Grupo
+        </div>
+        <div class="card-body">
+            <div class="info-grid">
+                <div class="info-item">
+                    <div class="info-label">🆔 ID del Grupo</div>
+                    <div class="info-value group-id">#{{ group.id }}</div>
+                </div>
+                <div class="info-item">
+                    <div class="info-label">👥 Nombre del Grupo</div>
+                    <div class="info-value highlight">{{ group.name }}</div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Permisos del grupo -->
+    <div class="detail-card">
+        <div class="card-header-regency">
+            🔐 Permisos del Grupo ({{ group.permissions.count }})
+        </div>
+        <div class="card-body">
+            {% if group.permissions.exists %}
+                <div class="permissions-list">
+                    {% for permission in group.permissions.all %}
+                    <div class="permission-item">
+                        <div class="permission-icon">🔑</div>
+                        <div class="permission-text">
+                            <strong>{{ permission.name }}</strong>
+                            <br>
+                            <small style="color: var(--regency-gray-dark);">{{ permission.content_type.app_label }}.{{ permission.codename }}</small>
+                        </div>
+                    </div>
+                    {% endfor %}
+                </div>
+            {% else %}
+                <div class="empty-permissions">
+                    <p>🚫 Este grupo no tiene permisos asignados</p>
+                    <a href="{% url 'usuarios:group_update' group.pk %}" class="btn-regency-outline">
+                        🔐 Asignar Permisos
+                    </a>
+                </div>
+            {% endif %}
+        </div>
+    </div>
+
+    <!-- Usuarios en el grupo -->
+    <div class="detail-card">
+        <div class="card-header-regency">
+            👤 Usuarios en este Grupo ({{ group.user_set.count }})
+        </div>
+        <div class="card-body">
+            {% if group.user_set.exists %}
+                <div class="permissions-list">
+                    {% for user in group.user_set.all %}
+                    <div class="permission-item">
+                        <div class="permission-icon">👤</div>
+                        <div class="permission-text">
+                            <strong>{{ user.get_full_name|default:user.username }}</strong>
+                            <br>
+                            <small style="color: var(--regency-gray-dark);">{{ user.email|default:"Sin email" }}</small>
+                        </div>
+                    </div>
+                    {% endfor %}
+                </div>
+            {% else %}
+                <div class="empty-permissions">
+                    <p>👥 No hay usuarios asignados a este grupo</p>
+                </div>
+            {% endif %}
+        </div>
+    </div>
+</div>
+{% endblock %}

@@ -1,37 +1,756 @@
-{% load static %}
-<!DOCTYPE html>
-<html lang="es">
-<head>
-    <meta charset="UTF-8">
-    <title>Detalle de Usuario</title>
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
-</head>
-<body>
-    <div class="container mt-4">
-        <h2>Detalle de Usuario</h2>
-        <dl class="row">
-            <dt class="col-sm-4">Documento:</dt>
-            <dd class="col-sm-8">{{ tercero.documento }}</dd>
-            <dt class="col-sm-4">Nombre:</dt>
-            <dd class="col-sm-8">{{ tercero.nombre_tercero }}</dd>
-            <dt class="col-sm-4">Apellido:</dt>
-            <dd class="col-sm-8">{{ tercero.apellido_tercero }}</dd>
-            <dt class="col-sm-4">Correo:</dt>
-            <dd class="col-sm-8">{{ tercero.correo_tercero }}</dd>
-            <dt class="col-sm-4">Cargo:</dt>
-            <dd class="col-sm-8">{{ tercero.cargo_predefinido.nombre }}<br>  </dd>
-            <dt class="col-sm-4">Centro Operativo:</dt>
-            <dd class="col-sm-8">{{ tercero.centro_operativo }}</dd>
-            <dt class="col-sm-4">Unidad de Negocio:</dt>
-            <dd class="col-sm-8">{{ tercero.unidad_negocio }}</dd>
-            <dt class="col-sm-4">Centro de Costo:</dt>
-            <dd class="col-sm-8">{{ tercero.centro_de_costo }}</dd>
-            <dt class="col-sm-4">Proyecto:</dt>
-            <dd class="col-sm-8">{{ tercero.proyecto }}</dd>
-        </dl>
-        <a href="{% url 'usuarios:tercero_list' %}" class="btn btn-outline-secondary">
-            <i class="bi bi-arrow-left"></i> Volver al listado
-        </a>
+{% extends "admin/base_site.html" %}
+{% load i18n static %}
+
+{% block extrastyle %}
+{{ block.super }}
+<style>
+    /* Variables consistentes con el proyecto */
+    :root {
+        --regency-red: #871F1B;
+        --regency-red-dark: #6b191b;
+        --regency-red-light: #a13832;
+        --regency-gray: #f8f9fa;
+        --regency-gray-dark: #64748b;
+        --regency-text: #333;
+        --border-radius: 8px;
+        --shadow-sm: 0 1px 3px rgba(0, 0, 0, 0.1);
+        --shadow-md: 0 4px 6px rgba(0, 0, 0, 0.1);
+    }
+
+    /* ========== OCULTAR BREADCRUMB DJANGO ADMIN ========== */
+    .breadcrumbs,
+    div.breadcrumbs {
+        display: none !important;
+    }
+
+    /* Tipografía empresarial consistente */
+    body {
+        font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+        font-size: 14px;
+        line-height: 1.5;
+        color: var(--regency-text);
+        background: var(--regency-gray);
+    }
+
+    /* Container principal */
+    .detail-container {
+        padding: 1rem 1.5rem;
+        max-width: 1200px;
+        margin: 0 auto;
+    }
+
+    /* Header de detalle con usuario */
+    .detail-header {
+        background: var(--regency-red);
+        color: white;
+        padding: 1.25rem 1.5rem;
+        margin-bottom: 1.5rem;
+        border-radius: var(--border-radius);
+        box-shadow: var(--shadow-sm);
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        flex-wrap: wrap;
+        gap: 1rem;
+    }
+
+    .header-main {
+        flex: 1;
+        min-width: 0;
+    }
+
+    .detail-header h1 {
+        font-size: 1.4rem;
+        font-weight: 600;
+        margin: 0 0 0.4rem 0;
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+        line-height: 1.2;
+    }
+
+    .usuario-subtitle {
+        font-size: 0.85rem;
+        opacity: 0.9;
+        margin: 0;
+        font-weight: 400;
+        display: flex;
+        align-items: center;
+        gap: 1rem;
+        flex-wrap: wrap;
+    }
+
+    .header-actions {
+        display: flex;
+        gap: 0.5rem;
+        flex-shrink: 0;
+    }
+
+    /* Breadcrumb personalizado */
+    .custom-breadcrumb {
+        background: white;
+        border: 1px solid #e5e7eb;
+        border-radius: var(--border-radius);
+        padding: 0.75rem 1rem;
+        margin-bottom: 1.5rem;
+        box-shadow: var(--shadow-sm);
+        font-size: 0.85rem;
+    }
+
+    .custom-breadcrumb a {
+        color: var(--regency-red);
+        text-decoration: none;
+        font-weight: 500;
+        transition: color 0.2s ease;
+    }
+
+    .custom-breadcrumb a:hover {
+        color: var(--regency-red-dark);
+        text-decoration: underline;
+    }
+
+    .breadcrumb-separator {
+        color: var(--regency-gray-dark);
+        margin: 0 0.5rem;
+    }
+
+    /* Layout principal */
+    .detail-layout {
+        display: grid;
+        grid-template-columns: 2fr 1fr;
+        gap: 1.5rem;
+    }
+
+    /* Cards */
+    .detail-card {
+        background: white;
+        border-radius: var(--border-radius);
+        overflow: hidden;
+        box-shadow: var(--shadow-sm);
+        border: 1px solid #e5e7eb;
+        margin-bottom: 1.5rem;
+    }
+
+    .card-header-regency {
+        background: var(--regency-red);
+        color: white;
+        padding: 1rem 1.25rem;
+        font-weight: 600;
+        font-size: 1rem;
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+    }
+
+    .card-header-secondary {
+        background: var(--regency-red-dark);
+        color: white;
+        padding: 1rem 1.25rem;
+        font-weight: 600;
+        font-size: 1rem;
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+    }
+
+    .card-body {
+        padding: 1.25rem;
+    }
+
+    /* Información de usuario */
+    .info-grid {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 1.5rem;
+    }
+
+    .info-section {
+        border-left: 3px solid var(--regency-red);
+        padding-left: 0.75rem;
+        margin-bottom: 1.5rem;
+    }
+
+    .section-title {
+        font-size: 0.9rem;
+        font-weight: 600;
+        color: var(--regency-red);
+        margin-bottom: 1rem;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+    }
+
+    .info-item {
+        margin-bottom: 1rem;
+    }
+
+    .info-label {
+        font-size: 0.8rem;
+        font-weight: 600;
+        color: var(--regency-gray-dark);
+        margin-bottom: 0.3rem;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+        display: flex;
+        align-items: center;
+        gap: 0.3rem;
+    }
+
+    .info-value {
+        font-size: 0.95rem;
+        font-weight: 500;
+        color: var(--regency-text);
+        line-height: 1.3;
+    }
+
+    .info-value.documento {
+        font-family: 'SF Mono', 'Monaco', 'Inconsolata', 'Roboto Mono', monospace;
+        font-size: 0.9rem;
+        background: #f8fafc;
+        padding: 0.3rem 0.6rem;
+        border-radius: 4px;
+        border: 1px solid #e2e8f0;
+        display: inline-block;
+    }
+
+    .info-value a {
+        color: var(--regency-red);
+        text-decoration: none;
+        transition: color 0.2s ease;
+    }
+
+    .info-value a:hover {
+        color: var(--regency-red-dark);
+        text-decoration: underline;
+    }
+
+    .info-empty {
+        color: var(--regency-gray-dark);
+        font-style: italic;
+        font-size: 0.85rem;
+    }
+
+    /* Badges y estados */
+    .badge {
+        padding: 0.3rem 0.7rem;
+        border-radius: 12px;
+        font-size: 0.7rem;
+        font-weight: 600;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+    }
+
+    .badge-cargo {
+        background: #e0f2fe;
+        color: #0369a1;
+        border: 1px solid #bae6fd;
+    }
+
+    .badge-centro {
+        background: #ecfdf5;
+        color: #047857;
+        border: 1px solid #bbf7d0;
+    }
+
+    .badge-proyecto {
+        background: #fef3c7;
+        color: #92400e;
+        border: 1px solid #fed7aa;
+    }
+
+    /* Botones empresariales */
+    .btn-regency {
+        background: var(--regency-red);
+        color: white;
+        border: none;
+        padding: 0.6rem 1rem;
+        border-radius: var(--border-radius);
+        font-weight: 500;
+        font-size: 0.85rem;
+        cursor: pointer;
+        transition: all 0.2s ease;
+        text-decoration: none;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        gap: 0.5rem;
+        box-shadow: var(--shadow-sm);
+        width: 100%;
+    }
+
+    .btn-regency:hover {
+        background: var(--regency-red-dark);
+        color: white;
+        text-decoration: none;
+        transform: translateY(-1px);
+        box-shadow: var(--shadow-md);
+    }
+
+    .btn-regency-outline {
+        background: transparent;
+        color: var(--regency-red);
+        border: 1px solid var(--regency-red);
+        padding: 0.6rem 1rem;
+        border-radius: var(--border-radius);
+        font-weight: 500;
+        font-size: 0.85rem;
+        cursor: pointer;
+        transition: all 0.2s ease;
+        text-decoration: none;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        gap: 0.5rem;
+        width: 100%;
+    }
+
+    .btn-regency-outline:hover {
+        background: var(--regency-red);
+        color: white;
+        text-decoration: none;
+        transform: translateY(-1px);
+    }
+
+    .btn-secondary {
+        background: #6b7280;
+        color: white;
+        border: 1px solid #6b7280;
+        padding: 0.6rem 1rem;
+        border-radius: var(--border-radius);
+        font-weight: 500;
+        font-size: 0.85rem;
+        cursor: pointer;
+        transition: all 0.2s ease;
+        text-decoration: none;
+        display: inline-flex;
+        align-items: center;
+        gap: 0.5rem;
+        width: 100%;
+    }
+
+    .btn-secondary:hover {
+        background: #4b5563;
+        border-color: #4b5563;
+        color: white;
+        text-decoration: none;
+    }
+
+    .btn-warning {
+        background: #f59e0b;
+        color: white;
+        border: 1px solid #f59e0b;
+        padding: 0.6rem 1rem;
+        border-radius: var(--border-radius);
+        font-weight: 500;
+        font-size: 0.85rem;
+        cursor: pointer;
+        transition: all 0.2s ease;
+        text-decoration: none;
+        display: inline-flex;
+        align-items: center;
+        gap: 0.5rem;
+    }
+
+    .btn-warning:hover {
+        background: #d97706;
+        border-color: #d97706;
+        color: white;
+        text-decoration: none;
+    }
+
+    .btn-success {
+        background: #059669;
+        color: white;
+        border: 1px solid #059669;
+        padding: 0.6rem 1rem;
+        border-radius: var(--border-radius);
+        font-weight: 500;
+        font-size: 0.85rem;
+        cursor: pointer;
+        transition: all 0.2s ease;
+        text-decoration: none;
+        display: inline-flex;
+        align-items: center;
+        gap: 0.5rem;
+        width: 100%;
+    }
+
+    .btn-success:hover {
+        background: #047857;
+        border-color: #047857;
+        color: white;
+        text-decoration: none;
+    }
+
+    .btn-sm {
+        padding: 0.4rem 0.75rem;
+        font-size: 0.8rem;
+    }
+
+    /* Panel lateral */
+    .sidebar-panel {
+        display: flex;
+        flex-direction: column;
+        gap: 1rem;
+    }
+
+    .panel-buttons {
+        display: flex;
+        flex-direction: column;
+        gap: 0.5rem;
+    }
+
+    /* Información del sistema */
+    .system-info {
+        background: #f8fafc;
+        border: 1px solid #e2e8f0;
+        border-radius: var(--border-radius);
+        padding: 0.75rem;
+        font-size: 0.8rem;
+    }
+
+    .system-info-item {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 0.4rem;
+    }
+
+    .system-info-item:last-child {
+        margin-bottom: 0;
+    }
+
+    .system-label {
+        color: var(--regency-gray-dark);
+        font-weight: 500;
+    }
+
+    .system-value {
+        color: var(--regency-text);
+        font-weight: 600;
+        font-family: 'SF Mono', 'Monaco', 'Inconsolata', 'Roboto Mono', monospace;
+    }
+
+    /* Alerts */
+    .alert {
+        border-radius: var(--border-radius);
+        padding: 1rem;
+        margin-bottom: 1rem;
+        border: 1px solid;
+    }
+
+    .alert-success {
+        background: #f0fdf4;
+        border-color: #bbf7d0;
+        color: #166534;
+    }
+
+    .alert-info {
+        background: #f0f9ff;
+        border-color: #bae6fd;
+        color: #0c4a6e;
+    }
+
+    .alert-warning {
+        background: #fffbeb;
+        border-color: #fed7aa;
+        color: #92400e;
+    }
+
+    .alert-error {
+        background: #fef2f2;
+        border-color: #fecaca;
+        color: #991b1b;
+    }
+
+    /* Responsive */
+    @media (max-width: 768px) {
+        .detail-container {
+            padding: 0.75rem 1rem;
+        }
+
+        .detail-header {
+            padding: 1rem;
+            flex-direction: column;
+            align-items: stretch;
+            text-align: center;
+        }
+
+        .detail-header h1 {
+            font-size: 1.2rem;
+            justify-content: center;
+        }
+
+        .header-actions {
+            justify-content: center;
+            margin-top: 0.5rem;
+        }
+
+        .detail-layout {
+            grid-template-columns: 1fr;
+            gap: 1rem;
+        }
+
+        .info-grid {
+            grid-template-columns: 1fr;
+            gap: 1rem;
+        }
+
+        .usuario-subtitle {
+            justify-content: center;
+            gap: 0.5rem;
+        }
+
+        .card-body {
+            padding: 1rem;
+        }
+    }
+
+    /* Animaciones */
+    .detail-card {
+        animation: fadeInUp 0.3s ease forwards;
+    }
+
+    @keyframes fadeInUp {
+        from {
+            opacity: 0;
+            transform: translateY(10px);
+        }
+        to {
+            opacity: 1;
+            transform: translateY(0);
+        }
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="detail-container">
+    <!-- Header de detalle -->
+    <div class="detail-header">
+        <div class="header-main">
+            <h1>👤 {{ tercero.nombre_tercero }} {{ tercero.apellido_tercero }}</h1>
+            <div class="usuario-subtitle">
+                <span>🆔 {{ tercero.documento }}</span>
+                {% if tercero.cargo_predefinido %}
+                    <span class="badge badge-cargo">💼 {{ tercero.cargo_predefinido.nombre }}</span>
+                {% endif %}
+                {% if tercero.centro_operativo %}
+                    <span class="badge badge-centro">🏭 {{ tercero.centro_operativo|truncatechars:15 }}</span>
+                {% endif %}
+            </div>
+        </div>
+        <div class="header-actions">
+            <a href="{% url 'usuarios:tercero_update' tercero.pk %}" class="btn-warning btn-sm">
+                Editar
+            </a>
+            <a href="{% url 'usuarios:tercero_list' %}" class="btn-secondary btn-sm">
+                Lista
+            </a>
+        </div>
     </div>
-</body>
-</html>
+
+
+    <!-- Mensajes -->
+    {% if messages %}
+        {% for message in messages %}
+            <div class="alert alert-{{ message.tags }}">
+                {{ message }}
+            </div>
+        {% endfor %}
+    {% endif %}
+
+    <!-- Layout principal -->
+    <div class="detail-layout">
+        <!-- Información principal -->
+        <div class="main-content">
+            <!-- Información Personal -->
+            <div class="detail-card">
+                <div class="card-header-regency">
+                    👤 Información Personal
+                </div>
+                <div class="card-body">
+                    <div class="info-grid">
+                        <div>
+                            <div class="info-item">
+                                <div class="info-label"> Documento de Identidad</div>
+                                <div class="info-value documento">{{ tercero.documento }}</div>
+                            </div>
+                            
+                            <div class="info-item">
+                                <div class="info-label"> Nombres</div>
+                                <div class="info-value">{{ tercero.nombre_tercero }}</div>
+                            </div>
+                            
+                            <div class="info-item">
+                                <div class="info-label"> Apellidos</div>
+                                <div class="info-value">{{ tercero.apellido_tercero }}</div>
+                            </div>
+                        </div>
+                        
+                        <div>
+                            <div class="info-item">
+                                <div class="info-label"> Correo Electrónico</div>
+                                <div class="info-value">
+                                    {% if tercero.correo_tercero %}
+                                        <a href="mailto:{{ tercero.correo_tercero }}">{{ tercero.correo_tercero }}</a>
+                                    {% else %}
+                                        <span class="info-empty">No registrado</span>
+                                    {% endif %}
+                                </div>
+                            </div>
+                            
+                            <div class="info-item">
+                                <div class="info-label"> Cargo Asignado</div>
+                                <div class="info-value">
+                                    {% if tercero.cargo_predefinido %}
+                                        <span class="badge badge-cargo">{{ tercero.cargo_predefinido.nombre }}</span>
+                                    {% else %}
+                                        <span class="info-empty">Sin cargo asignado</span>
+                                    {% endif %}
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Información Laboral -->
+            <div class="detail-card">
+                <div class="card-header-secondary">
+                    Información Laboral y Organizacional
+                </div>
+                <div class="card-body">
+                    <div class="info-grid">
+                        <div>
+                            <div class="info-item">
+                                <div class="info-label"> Centro Operativo</div>
+                                <div class="info-value">
+                                    {% if tercero.centro_operativo %}
+                                        <span class="badge badge-centro">{{ tercero.centro_operativo }}</span>
+                                    {% else %}
+                                        <span class="info-empty">No asignado</span>
+                                    {% endif %}
+                                </div>
+                            </div>
+                            
+                            <div class="info-item">
+                                <div class="info-label"> Unidad de Negocio</div>
+                                <div class="info-value">
+                                    {% if tercero.unidad_negocio %}
+                                        {{ tercero.unidad_negocio }}
+                                    {% else %}
+                                        <span class="info-empty">No asignada</span>
+                                    {% endif %}
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div>
+                            <div class="info-item">
+                                <div class="info-label"> Centro de Costo</div>
+                                <div class="info-value">
+                                    {% if tercero.centro_de_costo %}
+                                        {{ tercero.centro_de_costo }}
+                                    {% else %}
+                                        <span class="info-empty">No asignado</span>
+                                    {% endif %}
+                                </div>
+                            </div>
+                            
+                            <div class="info-item">
+                                <div class="info-label"> Proyecto Actual</div>
+                                <div class="info-value">
+                                    {% if tercero.proyecto %}
+                                        <span class="badge badge-proyecto">{{ tercero.proyecto }}</span>
+                                    {% else %}
+                                        <span class="info-empty">Sin proyecto asignado</span>
+                                    {% endif %}
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Información del Sistema -->
+            <div class="detail-card">
+                <div class="card-header-secondary">
+                    📊 Información del Sistema
+                </div>
+                <div class="card-body">
+                    <div class="system-info">
+                        <div class="system-info-item">
+                            <span class="system-label">📅 Fecha de Registro:</span>
+                            <span class="system-value">{{ tercero.fecha_creacion|date:"d/m/Y H:i" }}</span>
+                        </div>
+                        
+                        {% if tercero.fecha_actualizacion %}
+                        <div class="system-info-item">
+                            <span class="system-label">🔄 Última Actualización:</span>
+                            <span class="system-value">{{ tercero.fecha_actualizacion|date:"d/m/Y H:i" }}</span>
+                        </div>
+                        {% endif %}
+                        
+                        <div class="system-info-item">
+                            <span class="system-label">🔗 ID Sistema:</span>
+                            <span class="system-value">#{{ tercero.pk }}</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Panel lateral -->
+        <div class="sidebar-panel">
+            <!-- Acciones Rápidas -->
+            <div class="detail-card">
+                <div class="card-header-regency">
+                    ⚡ Acciones Rápidas
+                </div>
+                <div class="card-body">
+                    <div class="panel-buttons">
+                        <a href="{% url 'usuarios:tercero_update' tercero.pk %}" class="btn-regency">
+                            ✏️ Editar Usuario
+                        </a>
+                        <a href="{% url 'usuarios:tercero_list' %}" class="btn-regency-outline">
+                            📋 Lista de Usuarios
+                        </a>
+                        <a href="/" class="btn-regency-outline">
+                            🏠 Ir al Dashboard
+                        </a>
+                        <hr style="margin: 0.75rem 0; border-color: #e5e7eb;">
+                        <a href="{% url 'usuarios:tercero_create' %}" class="btn-success">
+                            ➕ Nuevo Usuario
+                        </a>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Navegación Relacionada -->
+            <div class="detail-card">
+                <div class="card-header-secondary">
+                    🔗 Gestión Relacionada
+                </div>
+                <div class="card-body">
+                    <div class="panel-buttons">
+                        {% if tercero.correo_tercero %}
+                        <a href="mailto:{{ tercero.correo_tercero }}" class="btn-regency-outline">
+                            📧 Enviar Email
+                        </a>
+                        {% endif %}
+                        <a href="#" class="btn-regency-outline">
+                            🕐 Ver Horarios
+                        </a>
+                        <a href="#" class="btn-regency-outline">
+                            📊 Ver Reportes
+                        </a>
+                        <a href="#" class="btn-regency-outline">
+                            📝 Historial
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

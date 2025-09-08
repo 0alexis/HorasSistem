@@ -1,297 +1,679 @@
-<!DOCTYPE html>
-<html lang="es">
-<head>
-    <meta charset="UTF-8">
-    <title>{{ empresa.nombre }} - Detalle de Empresa - REGENCY</title>
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/css/bootstrap.min.css" rel="stylesheet">
-    {% load static %}
-    <style>
-        :root {
-            --color-primary: #B91C1C;
-            --color-secondary: #991B1B;
-            --color-accent: #7F1D1D;
-            --color-light: #FEF2F2;
-            --color-dark: #450A0A;
+{% extends "admin/base_site.html" %}
+{% load i18n static %}
+
+{% block extrastyle %}
+{{ block.super }}
+<style>
+    /* Variables consistentes con el proyecto */
+    :root {
+        --regency-red: #871F1B;
+        --regency-red-dark: #6b191b;
+        --regency-red-light: #a13832;
+        --regency-gray: #f8f9fa;
+        --regency-gray-dark: #64748b;
+        --regency-text: #333;
+        --border-radius: 8px;
+        --shadow-sm: 0 1px 3px rgba(0, 0, 0, 0.1);
+        --shadow-md: 0 4px 6px rgba(0, 0, 0, 0.1);
+    }
+
+    /* ========== OCULTAR BREADCRUMB DJANGO ADMIN ========== */
+    .breadcrumbs,
+    div.breadcrumbs {
+        display: none !important;
+    }
+
+    /* Tipografía consistente */
+    body {
+        font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+        font-size: 14px;
+        line-height: 1.5;
+        color: var(--regency-text);
+        background: var(--regency-gray);
+    }
+
+    /* Container principal */
+    .detail-container {
+        padding: 1rem 1.5rem;
+        max-width: 1200px;
+        margin: 0 auto;
+    }
+
+    /* Header de detalle con empresa */
+    .detail-header {
+        background: var(--regency-red);
+        color: white;
+        padding: 1.25rem 1.5rem;
+        margin-bottom: 1.5rem;
+        border-radius: var(--border-radius);
+        box-shadow: var(--shadow-sm);
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        flex-wrap: wrap;
+        gap: 1rem;
+    }
+
+    .header-main {
+        flex: 1;
+        min-width: 0;
+    }
+
+    .detail-header h1 {
+        font-size: 1.4rem;
+        font-weight: 600;
+        margin: 0 0 0.4rem 0;
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+        line-height: 1.2;
+    }
+
+    .empresa-subtitle {
+        font-size: 0.85rem;
+        opacity: 0.9;
+        margin: 0;
+        font-weight: 400;
+        display: flex;
+        align-items: center;
+        gap: 1rem;
+        flex-wrap: wrap;
+    }
+
+    .header-actions {
+        display: flex;
+        gap: 0.5rem;
+        flex-shrink: 0;
+    }
+
+    /* Breadcrumb personalizado */
+    .custom-breadcrumb {
+        background: white;
+        border: 1px solid #e5e7eb;
+        border-radius: var(--border-radius);
+        padding: 0.75rem 1rem;
+        margin-bottom: 1.5rem;
+        box-shadow: var(--shadow-sm);
+        font-size: 0.85rem;
+    }
+
+    .custom-breadcrumb a {
+        color: var(--regency-red);
+        text-decoration: none;
+        font-weight: 500;
+        transition: color 0.2s ease;
+    }
+
+    .custom-breadcrumb a:hover {
+        color: var(--regency-red-dark);
+        text-decoration: underline;
+    }
+
+    .breadcrumb-separator {
+        color: var(--regency-gray-dark);
+        margin: 0 0.5rem;
+    }
+
+    /* Layout principal */
+    .detail-layout {
+        display: grid;
+        grid-template-columns: 2fr 1fr;
+        gap: 1.5rem;
+    }
+
+    /* Cards */
+    .detail-card {
+        background: white;
+        border-radius: var(--border-radius);
+        overflow: hidden;
+        box-shadow: var(--shadow-sm);
+        border: 1px solid #e5e7eb;
+        margin-bottom: 1.5rem;
+    }
+
+    .card-header-regency {
+        background: var(--regency-red);
+        color: white;
+        padding: 1rem 1.25rem;
+        font-weight: 600;
+        font-size: 1rem;
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+    }
+
+    .card-header-secondary {
+        background: var(--regency-red-dark);
+        color: white;
+        padding: 1rem 1.25rem;
+        font-weight: 600;
+        font-size: 1rem;
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+    }
+
+    .card-body {
+        padding: 1.25rem;
+    }
+
+    /* Información de empresa */
+    .info-grid {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 1.5rem;
+    }
+
+    .info-item {
+        border-left: 3px solid var(--regency-red);
+        padding-left: 0.75rem;
+        margin-bottom: 1rem;
+    }
+
+    .info-label {
+        font-size: 0.8rem;
+        font-weight: 600;
+        color: var(--regency-gray-dark);
+        margin-bottom: 0.3rem;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+    }
+
+    .info-value {
+        font-size: 0.95rem;
+        font-weight: 500;
+        color: var(--regency-text);
+        line-height: 1.3;
+    }
+
+    .info-value.nit {
+        font-family: 'SF Mono', 'Monaco', 'Inconsolata', 'Roboto Mono', monospace;
+        font-size: 0.9rem;
+    }
+
+    .info-value a {
+        color: var(--regency-red);
+        text-decoration: none;
+        transition: color 0.2s ease;
+    }
+
+    .info-value a:hover {
+        color: var(--regency-red-dark);
+        text-decoration: underline;
+    }
+
+    .info-empty {
+        color: var(--regency-gray-dark);
+        font-style: italic;
+        font-size: 0.85rem;
+    }
+
+    /* Estados */
+    .badge {
+        padding: 0.3rem 0.7rem;
+        border-radius: 12px;
+        font-size: 0.7rem;
+        font-weight: 600;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+    }
+
+    .badge-active {
+        background: #dcfce7;
+        color: #166534;
+        border: 1px solid #bbf7d0;
+    }
+
+    .badge-inactive {
+        background: #fee2e2;
+        color: #991b1b;
+        border: 1px solid #fecaca;
+    }
+
+    /* Botones */
+    .btn-regency {
+        background: var(--regency-red);
+        color: white;
+        border: none;
+        padding: 0.6rem 1rem;
+        border-radius: var(--border-radius);
+        font-weight: 500;
+        font-size: 0.85rem;
+        cursor: pointer;
+        transition: all 0.2s ease;
+        text-decoration: none;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        gap: 0.5rem;
+        box-shadow: var(--shadow-sm);
+        width: 100%;
+    }
+
+    .btn-regency:hover {
+        background: var(--regency-red-dark);
+        color: white;
+        text-decoration: none;
+        transform: translateY(-1px);
+        box-shadow: var(--shadow-md);
+    }
+
+    .btn-regency-outline {
+        background: transparent;
+        color: var(--regency-red);
+        border: 1px solid var(--regency-red);
+        padding: 0.6rem 1rem;
+        border-radius: var(--border-radius);
+        font-weight: 500;
+        font-size: 0.85rem;
+        cursor: pointer;
+        transition: all 0.2s ease;
+        text-decoration: none;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        gap: 0.5rem;
+        width: 100%;
+    }
+
+    .btn-regency-outline:hover {
+        background: var(--regency-red);
+        color: white;
+        text-decoration: none;
+        transform: translateY(-1px);
+    }
+
+    .btn-secondary {
+        background: #6b7280;
+        color: white;
+        border: 1px solid #6b7280;
+        padding: 0.6rem 1rem;
+        border-radius: var(--border-radius);
+        font-weight: 500;
+        font-size: 0.85rem;
+        cursor: pointer;
+        transition: all 0.2s ease;
+        text-decoration: none;
+        display: inline-flex;
+        align-items: center;
+        gap: 0.5rem;
+        width: 100%;
+    }
+
+    .btn-secondary:hover {
+        background: #4b5563;
+        border-color: #4b5563;
+        color: white;
+        text-decoration: none;
+    }
+
+    .btn-warning {
+        background: #f59e0b;
+        color: white;
+        border: 1px solid #f59e0b;
+        padding: 0.6rem 1rem;
+        border-radius: var(--border-radius);
+        font-weight: 500;
+        font-size: 0.85rem;
+        cursor: pointer;
+        transition: all 0.2s ease;
+        text-decoration: none;
+        display: inline-flex;
+        align-items: center;
+        gap: 0.5rem;
+    }
+
+    .btn-warning:hover {
+        background: #d97706;
+        border-color: #d97706;
+        color: white;
+        text-decoration: none;
+    }
+
+    .btn-success {
+        background: #059669;
+        color: white;
+        border: 1px solid #059669;
+        padding: 0.6rem 1rem;
+        border-radius: var(--border-radius);
+        font-weight: 500;
+        font-size: 0.85rem;
+        cursor: pointer;
+        transition: all 0.2s ease;
+        text-decoration: none;
+        display: inline-flex;
+        align-items: center;
+        gap: 0.5rem;
+        width: 100%;
+    }
+
+    .btn-success:hover {
+        background: #047857;
+        border-color: #047857;
+        color: white;
+        text-decoration: none;
+    }
+
+    .btn-sm {
+        padding: 0.4rem 0.75rem;
+        font-size: 0.8rem;
+    }
+
+    /* Panel lateral */
+    .sidebar-panel {
+        display: flex;
+        flex-direction: column;
+        gap: 1rem;
+    }
+
+    .panel-buttons {
+        display: flex;
+        flex-direction: column;
+        gap: 0.5rem;
+    }
+
+    /* Información del sistema */
+    .system-info {
+        background: #f8fafc;
+        border: 1px solid #e2e8f0;
+        border-radius: var(--border-radius);
+        padding: 0.75rem;
+        font-size: 0.8rem;
+    }
+
+    .system-info-item {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 0.4rem;
+    }
+
+    .system-info-item:last-child {
+        margin-bottom: 0;
+    }
+
+    .system-label {
+        color: var(--regency-gray-dark);
+        font-weight: 500;
+    }
+
+    .system-value {
+        color: var(--regency-text);
+        font-weight: 600;
+        font-family: 'SF Mono', 'Monaco', 'Inconsolata', 'Roboto Mono', monospace;
+    }
+
+    /* Alerts */
+    .alert {
+        border-radius: var(--border-radius);
+        padding: 1rem;
+        margin-bottom: 1rem;
+        border: 1px solid;
+    }
+
+    .alert-success {
+        background: #f0fdf4;
+        border-color: #bbf7d0;
+        color: #166534;
+    }
+
+    .alert-info {
+        background: #f0f9ff;
+        border-color: #bae6fd;
+        color: #0c4a6e;
+    }
+
+    .alert-warning {
+        background: #fffbeb;
+        border-color: #fed7aa;
+        color: #92400e;
+    }
+
+    .alert-error {
+        background: #fef2f2;
+        border-color: #fecaca;
+        color: #991b1b;
+    }
+
+    /* Responsive */
+    @media (max-width: 768px) {
+        .detail-container {
+            padding: 0.75rem 1rem;
         }
-        
-        body {
-            background-color: #F8FAFC;
-        }
-        
-        .header-corporativo {
-            background: linear-gradient(135deg, var(--color-primary), var(--color-secondary));
-            color: white;
-            padding: 20px;
-            border-radius: 10px;
-            margin-bottom: 30px;
-            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
-        }
-        
-        .logo-empresa {
-            height: 60px;
-            margin-right: 20px;
-            background: white;
-            padding: 5px;
-            border-radius: 8px;
-        }
-        
-        .btn-regency {
-            background-color: var(--color-primary);
-            border-color: var(--color-primary);
-            color: white;
-            font-weight: 500;
-        }
-        
-        .btn-regency:hover {
-            background-color: var(--color-secondary);
-            border-color: var(--color-secondary);
-            color: white;
-        }
-        
-        .btn-regency-outline {
-            border-color: var(--color-primary);
-            color: var(--color-primary);
-            font-weight: 500;
-        }
-        
-        .btn-regency-outline:hover {
-            background-color: var(--color-primary);
-            border-color: var(--color-primary);
-            color: white;
-        }
-        
-        .card-header-regency {
-            background-color: var(--color-primary);
-            color: white;
-            font-weight: 600;
-        }
-        
-        .card-header-secondary {
-            background-color: var(--color-secondary);
-            color: white;
-            font-weight: 600;
-        }
-        
-        .shadow-regency {
-            box-shadow: 0 4px 6px rgba(185, 28, 28, 0.1);
-        }
-        
-        .breadcrumb-regency {
-            background-color: white;
-            border: 1px solid #e5e7eb;
-            border-radius: 8px;
+
+        .detail-header {
             padding: 1rem;
-            margin-bottom: 1.5rem;
-            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+            flex-direction: column;
+            align-items: stretch;
+            text-align: center;
         }
-        
-        .breadcrumb-regency a {
-            color: var(--color-primary);
-            text-decoration: none;
-            font-weight: 500;
+
+        .detail-header h1 {
+            font-size: 1.2rem;
+            justify-content: center;
         }
-        
-        .breadcrumb-regency a:hover {
-            color: var(--color-secondary);
+
+        .header-actions {
+            justify-content: center;
+            margin-top: 0.5rem;
         }
-        
-        .info-item {
-            border-left: 4px solid var(--color-primary);
-            padding-left: 15px;
-            margin-bottom: 15px;
+
+        .detail-layout {
+            grid-template-columns: 1fr;
+            gap: 1rem;
         }
-        
-        .badge-active {
-            background-color: #059669 !important;
+
+        .info-grid {
+            grid-template-columns: 1fr;
+            gap: 1rem;
         }
-        
-        .badge-inactive {
-            background-color: var(--color-primary) !important;
+
+        .empresa-subtitle {
+            justify-content: center;
+            gap: 0.5rem;
         }
-    </style>
-</head>
-<body>
-    <div class="container-fluid">
-        <div class="row">
-            <div class="col-12">
-                <!-- Header Corporativo -->
-                <div class="header-corporativo">
-                    <div class="d-flex align-items-center justify-content-between">
-                        <div class="d-flex align-items-center">
-                            <img src="{% static '/img/logo_regency.png' %}" alt="REGENCY SERVICES" class="logo-empresa">
-                            <div>
-                                <h1 class="mb-1">🏢 {{ empresa.nombre }}</h1>
-                                <p class="mb-0 opacity-75">
+
+        .card-body {
+            padding: 1rem;
+        }
+    }
+
+    /* Animaciones */
+    .detail-card {
+        animation: fadeInUp 0.3s ease forwards;
+    }
+
+    @keyframes fadeInUp {
+        from {
+            opacity: 0;
+            transform: translateY(10px);
+        }
+        to {
+            opacity: 1;
+            transform: translateY(0);
+        }
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="detail-container">
+    <!-- Header de detalle -->
+    <div class="detail-header">
+        <div class="header-main">
+            <h1>🏢 {{ empresa.nombre }}</h1>
+            <div class="empresa-subtitle">
+                <span>🆔 NIT: {{ empresa.nit }}</span>
+                {% if empresa.activo %}
+                    <span class="badge badge-active">✅ Activa</span>
+                {% else %}
+                    <span class="badge badge-inactive">❌ Inactiva</span>
+                {% endif %}
+                <span>📅 {{ empresa.creado_en|date:"d/m/Y" }}</span>
+            </div>
+        </div>
+
+    </div>
+
+
+    <!-- Mensajes -->
+    {% if messages %}
+        {% for message in messages %}
+            <div class="alert alert-{{ message.tags }}">
+                {{ message }}
+            </div>
+        {% endfor %}
+    {% endif %}
+
+    <!-- Layout principal -->
+    <div class="detail-layout">
+        <!-- Información principal -->
+        <div class="main-content">
+            <!-- Información General -->
+            <div class="detail-card">
+                <div class="card-header-regency">
+                    📝 Información General
+                </div>
+                <div class="card-body">
+                    <div class="info-grid">
+                        <div>
+                            <div class="info-item">
+                                <div class="info-label">🏢 Nombre Completo</div>
+                                <div class="info-value">{{ empresa.nombre }}</div>
+                            </div>
+                            
+                            <div class="info-item">
+                                <div class="info-label">🆔 NIT</div>
+                                <div class="info-value nit">{{ empresa.nit }}</div>
+                            </div>
+                            
+                            <div class="info-item">
+                                <div class="info-label">⚙️ Estado</div>
+                                <div class="info-value">
                                     {% if empresa.activo %}
-                                        <span class="badge bg-success">✅ Empresa Activa</span>
+                                        <span class="badge badge-active">✅ Empresa Activa</span>
                                     {% else %}
-                                        <span class="badge bg-danger">❌ Empresa Inactiva</span>
+                                        <span class="badge badge-inactive">❌ Empresa Inactiva</span>
                                     {% endif %}
-                                    | NIT: {{ empresa.nit }}
-                                </p>
+                                </div>
                             </div>
                         </div>
                         
-                        <!-- Botones de Acción -->
-                        <div class="d-flex gap-2">
-                            <a href="{% url 'empresas:empresa_update' empresa.pk %}" class="btn btn-warning">
-                                ✏️ Editar
-                            </a>
-                            <a href="{% url 'empresas:empresas_list' %}" class="btn btn-light">
-                                📋 Lista
-                            </a>
-                        </div>
-                    </div>
-                </div>
-
-                <!-- Breadcrumb -->
-                <div class="breadcrumb-regency">
-                    <a href="{% url 'empresas:dashboard' %}">🏠 Dashboard</a>
-                    <span class="text-muted mx-2">→</span>
-                    <a href="{% url 'empresas:empresas_list' %}">📋 Lista de Empresas</a>
-                    <span class="text-muted mx-2">→</span>
-                    <span class="text-muted">👁️ {{ empresa.nombre }}</span>
-                </div>
-
-                <!-- Mensajes -->
-                {% if messages %}
-                    {% for message in messages %}
-                        <div class="alert alert-{{ message.tags }} alert-dismissible fade show" role="alert">
-                            {{ message }}
-                            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
-                        </div>
-                    {% endfor %}
-                {% endif %}
-
-                <!-- Contenido Principal -->
-                <div class="row">
-                    <div class="col-lg-8">
-                        <!-- Información General -->
-                        <div class="card shadow-regency mb-4">
-                            <div class="card-header card-header-regency">
-                                <h5 class="mb-0">📝 Información General</h5>
-                            </div>
-                            <div class="card-body">
-                                <div class="row">
-                                    <div class="col-md-6">
-                                        <div class="info-item">
-                                            <h6 class="fw-bold mb-1">🏢 Nombre Completo</h6>
-                                            <p class="mb-0">{{ empresa.nombre }}</p>
-                                        </div>
-                                        
-                                        <div class="info-item">
-                                            <h6 class="fw-bold mb-1">🆔 NIT</h6>
-                                            <p class="mb-0">{{ empresa.nit }}</p>
-                                        </div>
-                                        
-                                        <div class="info-item">
-                                            <h6 class="fw-bold mb-1">⚙️ Estado</h6>
-                                            <p class="mb-0">
-                                                {% if empresa.activo %}
-                                                    <span class="badge badge-active">✅ Activa</span>
-                                                {% else %}
-                                                    <span class="badge badge-inactive">❌ Inactiva</span>
-                                                {% endif %}
-                                            </p>
-                                        </div>
-                                    </div>
-                                    
-                                    <div class="col-md-6">
-                                        <div class="info-item">
-                                            <h6 class="fw-bold mb-1">📧 Email</h6>
-                                            <p class="mb-0">
-                                                {% if empresa.email %}
-                                                    <a href="mailto:{{ empresa.email }}">{{ empresa.email }}</a>
-                                                {% else %}
-                                                    <span class="text-muted">No registrado</span>
-                                                {% endif %}
-                                            </p>
-                                        </div>
-                                        
-                                        <div class="info-item">
-                                            <h6 class="fw-bold mb-1">📞 Teléfono</h6>
-                                            <p class="mb-0">
-                                                {% if empresa.telefono %}
-                                                    <a href="tel:{{ empresa.telefono }}">{{ empresa.telefono }}</a>
-                                                {% else %}
-                                                    <span class="text-muted">No registrado</span>
-                                                {% endif %}
-                                            </p>
-                                        </div>
-                                        
-                                        <div class="info-item">
-                                            <h6 class="fw-bold mb-1">📍 Dirección</h6>
-                                            <p class="mb-0">
-                                                {% if empresa.direccion %}
-                                                    {{ empresa.direccion }}
-                                                {% else %}
-                                                    <span class="text-muted">No registrada</span>
-                                                {% endif %}
-                                            </p>
-                                        </div>
-                                    </div>
+                        <div>
+                            <div class="info-item">
+                                <div class="info-label">📧 Email de Contacto</div>
+                                <div class="info-value">
+                                    {% if empresa.email %}
+                                        <a href="mailto:{{ empresa.email }}">{{ empresa.email }}</a>
+                                    {% else %}
+                                        <span class="info-empty">No registrado</span>
+                                    {% endif %}
                                 </div>
                             </div>
-                        </div>
-
-                        <!-- Proyectos Relacionados (si existen) -->
-                    
-                    </div>
-
-                    <!-- Panel Lateral -->
-                    <div class="col-lg-4">
-                        <!-- Acciones Rápidas -->
-                        <div class="card shadow-regency mb-3">
-                            <div class="card-header card-header-regency">
-                                <h5 class="mb-0">⚡ Acciones Rápidas</h5>
-                            </div>
-                            <div class="card-body">
-                                <div class="d-grid gap-2">
-                                    <a href="{% url 'empresas:empresa_update' empresa.pk %}" class="btn btn-regency">
-                                        ✏️ Editar Empresa
-                                    </a>
-                                    <a href="{% url 'empresas:dashboard' %}" class="btn btn-regency-outline">
-                                        🏠 Ir al Dashboard
-                                    </a>
-                                    <a href="{% url 'empresas:empresas_list' %}" class="btn btn-regency-outline">
-                                        📋 Lista de Empresas
-                                    </a>
-                                    <hr>
-                                    <a href="{% url 'empresas:empresa_create' %}" class="btn btn-outline-success">
-                                        ➕ Nueva Empresa
-                                    </a>
+                            
+                            <div class="info-item">
+                                <div class="info-label">📞 Teléfono</div>
+                                <div class="info-value">
+                                    {% if empresa.telefono %}
+                                        <a href="tel:{{ empresa.telefono }}">{{ empresa.telefono }}</a>
+                                    {% else %}
+                                        <span class="info-empty">No registrado</span>
+                                    {% endif %}
                                 </div>
                             </div>
-                        </div>
-
-                        <!-- Información del Sistema -->
-                        <div class="card shadow-regency">
-                            <div class="card-header card-header-secondary">
-                                <h5 class="mb-0">📊 Información del Sistema</h5>
-                            </div>
-                            <div class="card-body">
-                                <div class="info-item">
-                                    <h6 class="fw-bold mb-1">📅 Fecha de Registro</h6>
-                                    <p class="mb-0 small">{{ empresa.creado_en|date:"d/m/Y H:i" }}</p>
+                            
+                            <div class="info-item">
+                                <div class="info-label">📍 Dirección</div>
+                                <div class="info-value">
+                                    {% if empresa.direccion %}
+                                        {{ empresa.direccion }}
+                                    {% else %}
+                                        <span class="info-empty">No registrada</span>
+                                    {% endif %}
                                 </div>
-                                
-                                {% if empresa.actualizado_en %}
-                                <div class="info-item">
-                                    <h6 class="fw-bold mb-1">🔄 Última Actualización</h6>
-                                    <p class="mb-0 small">{{ empresa.actualizado_en|date:"d/m/Y H:i" }}</p>
-                                </div>
-                                {% endif %}
-                                
-                                
                             </div>
                         </div>
                     </div>
                 </div>
             </div>
+
+            <!-- Información del Sistema -->
+            <div class="detail-card">
+                <div class="card-header-secondary">
+                    📊 Información del Sistema
+                </div>
+                <div class="card-body">
+                    <div class="system-info">
+                        <div class="system-info-item">
+                            <span class="system-label">📅 Fecha de Registro:</span>
+                            <span class="system-value">{{ empresa.creado_en|date:"d/m/Y H:i" }}</span>
+                        </div>
+                        
+                        {% if empresa.actualizado_en %}
+                        <div class="system-info-item">
+                            <span class="system-label">🔄 Última Actualización:</span>
+                            <span class="system-value">{{ empresa.actualizado_en|date:"d/m/Y H:i" }}</span>
+                        </div>
+                        {% endif %}
+                        
+                        <div class="system-info-item">
+                            <span class="system-label">🔗 ID Sistema:</span>
+                            <span class="system-value">#{{ empresa.pk }}</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Panel lateral -->
+        <div class="sidebar-panel">
+            <!-- Acciones Rápidas -->
+            <div class="detail-card">
+                <div class="card-header-regency">
+                    ⚡ Acciones Rápidas
+                </div>
+                <div class="card-body">
+                    <div class="panel-buttons">
+                        <a href="{% url 'empresas:empresa_update' empresa.pk %}" class="btn-regency">
+                            ✏️ Editar Empresa
+                        </a>
+                        <a href="{% url 'empresas:dashboard' %}" class="btn-regency-outline">
+                            🏠 Ir al Dashboard
+                        </a>
+                        <a href="{% url 'empresas:empresas_list' %}" class="btn-regency-outline">
+                            📋 Lista de Empresas
+                        </a>
+                        <hr style="margin: 0.75rem 0; border-color: #e5e7eb;">
+                        <a href="{% url 'empresas:empresa_create' %}" class="btn-success">
+                            ➕ Nueva Empresa
+                        </a>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Navegación Relacionada -->
+            <div class="detail-card">
+                <div class="card-header-secondary">
+                    🔗 Navegación Relacionada
+                </div>
+                <div class="card-body">
+                    <div class="panel-buttons">
+                        <a href="#" class="btn-regency-outline">
+                            📁 Ver Proyectos
+                        </a>
+                        <a href="#" class="btn-regency-outline">
+                            🏭 Centros Operativos
+                        </a>
+                        <a href="#" class="btn-regency-outline">
+                            👥 Empleados
+                        </a>
+                        <a href="#" class="btn-regency-outline">
+                            📊 Reportes
+                        </a>
+                    </div>
+                </div>
+            </div>
         </div>
     </div>
-
-    <!-- Bootstrap JS -->
-    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/js/bootstrap.bundle.min.js"></script>
-</body>
-</html>
+</div>
+{% endblock %}

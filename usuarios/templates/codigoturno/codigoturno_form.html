@@ -1,80 +1,714 @@
-{% load static %}
-<!DOCTYPE html>
-<html lang="es">
-<head>
-    <meta charset="UTF-8">
-    <title>{% if codigo %}Editar{% else %}Crear{% endif %} Código de Turno</title>
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
-    <style>
-        .logo-regency {
-            height: 56px;
-            background: white;
-            border-radius: 12px;
-            padding: 8px 16px;
-            box-shadow: 0 2px 8px rgba(185,28,28,0.08);
-            margin-bottom: 1rem;
+{% extends "admin/base_site.html" %}
+{% load i18n static %}
+
+{% block extrastyle %}
+{{ block.super }}
+<style>
+    /* Variables consistentes con el proyecto */
+    :root {
+        --regency-red: #871F1B;
+        --regency-red-dark: #6b191b;
+        --regency-red-light: #a13832;
+        --regency-gray: #f8f9fa;
+        --regency-gray-dark: #64748b;
+        --regency-text: #333;
+        --border-radius: 8px;
+        --shadow-sm: 0 1px 3px rgba(0, 0, 0, 0.1);
+        --shadow-md: 0 4px 6px rgba(0, 0, 0, 0.1);
+    }
+
+    /* ========== OCULTAR BREADCRUMB DJANGO ADMIN ========== */
+    .breadcrumbs,
+    div.breadcrumbs {
+        display: none !important;
+    }
+
+    /* Tipografía empresarial consistente */
+    body {
+        font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+        font-size: 14px;
+        line-height: 1.5;
+        color: var(--regency-text);
+        background: var(--regency-gray);
+    }
+
+    /* Container principal */
+    .form-container {
+        padding: 1rem 1.5rem;
+        max-width: 900px;
+        margin: 0 auto;
+    }
+
+    /* Header del formulario */
+    .form-header {
+        background: var(--regency-red);
+        color: white;
+        padding: 1.25rem 1.5rem;
+        margin-bottom: 1.5rem;
+        border-radius: var(--border-radius);
+        box-shadow: var(--shadow-sm);
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        flex-wrap: wrap;
+        gap: 1rem;
+    }
+
+    .header-main {
+        flex: 1;
+        min-width: 0;
+    }
+
+    .form-header h1 {
+        font-size: 1.4rem;
+        font-weight: 600;
+        margin: 0 0 0.4rem 0;
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+        line-height: 1.2;
+    }
+
+    .form-subtitle {
+        font-size: 0.85rem;
+        opacity: 0.9;
+        margin: 0;
+        font-weight: 400;
+    }
+
+    .header-actions {
+        display: flex;
+        gap: 0.5rem;
+        flex-shrink: 0;
+    }
+
+    /* Breadcrumb personalizado */
+    .custom-breadcrumb {
+        background: white;
+        border: 1px solid #e5e7eb;
+        border-radius: var(--border-radius);
+        padding: 0.75rem 1rem;
+        margin-bottom: 1.5rem;
+        box-shadow: var(--shadow-sm);
+        font-size: 0.85rem;
+    }
+
+    .custom-breadcrumb a {
+        color: var(--regency-red);
+        text-decoration: none;
+        font-weight: 500;
+        transition: color 0.2s ease;
+    }
+
+    .custom-breadcrumb a:hover {
+        color: var(--regency-red-dark);
+        text-decoration: underline;
+    }
+
+    .breadcrumb-separator {
+        color: var(--regency-gray-dark);
+        margin: 0 0.5rem;
+    }
+
+    /* Card del formulario */
+    .form-card {
+        background: white;
+        border-radius: var(--border-radius);
+        overflow: hidden;
+        box-shadow: var(--shadow-sm);
+        border: 1px solid #e5e7eb;
+    }
+
+    .card-header-regency {
+        background: var(--regency-red);
+        color: white;
+        padding: 1rem 1.25rem;
+        font-weight: 600;
+        font-size: 1rem;
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+    }
+
+    .card-body {
+        padding: 1.5rem;
+    }
+
+    /* Grid del formulario */
+    .form-grid {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 1.25rem;
+        margin-bottom: 1.25rem;
+    }
+
+    .form-grid-full {
+        grid-column: 1 / -1;
+    }
+
+    .form-grid-triple {
+        display: grid;
+        grid-template-columns: 1fr 1fr 1fr;
+        gap: 1.25rem;
+        margin-bottom: 1.25rem;
+    }
+
+    /* Grupos de formulario */
+    .form-group {
+        display: flex;
+        flex-direction: column;
+        gap: 0.5rem;
+    }
+
+    .form-label {
+        font-size: 0.85rem;
+        font-weight: 600;
+        color: var(--regency-text);
+        display: flex;
+        align-items: center;
+        gap: 0.3rem;
+    }
+
+    .form-label.required::after {
+        content: "*";
+        color: var(--regency-red);
+        font-weight: bold;
+        margin-left: 0.2rem;
+    }
+
+    /* Campos de formulario */
+    .form-input,
+    .form-select,
+    .form-textarea {
+        padding: 0.75rem;
+        border: 1px solid #d1d5db;
+        border-radius: var(--border-radius);
+        font-size: 0.9rem;
+        font-family: inherit;
+        transition: all 0.2s ease;
+        background: white;
+        width: 100%;
+    }
+
+    .form-input:focus,
+    .form-select:focus,
+    .form-textarea:focus {
+        outline: none;
+        border-color: var(--regency-red);
+        box-shadow: 0 0 0 2px rgba(135, 31, 27, 0.1);
+    }
+
+    .form-input.error,
+    .form-select.error,
+    .form-textarea.error {
+        border-color: #dc2626;
+        box-shadow: 0 0 0 2px rgba(220, 38, 38, 0.1);
+    }
+
+    /* Campo especial para tiempo */
+    .time-select {
+        font-family: 'SF Mono', 'Monaco', 'Inconsolata', 'Roboto Mono', monospace;
+        font-weight: 600;
+        color: var(--regency-text);
+        text-align: center;
+        letter-spacing: 1px;
+    }
+
+    /* Campo especial para letra de turno */
+    .letra-turno-input {
+        text-align: center;
+        font-weight: 700;
+        font-size: 1.1rem;
+        text-transform: uppercase;
+        letter-spacing: 2px;
+    }
+
+    /* Mensajes de error */
+    .error-message {
+        color: #dc2626;
+        font-size: 0.8rem;
+        font-weight: 500;
+        margin-top: 0.25rem;
+        display: flex;
+        align-items: center;
+        gap: 0.3rem;
+    }
+
+    .error-message::before {
+        content: "⚠️";
+        font-size: 0.7rem;
+    }
+
+    /* Botones empresariales */
+    .btn-regency {
+        background: var(--regency-red);
+        color: white;
+        border: none;
+        padding: 0.75rem 1.25rem;
+        border-radius: var(--border-radius);
+        font-weight: 500;
+        font-size: 0.9rem;
+        cursor: pointer;
+        transition: all 0.2s ease;
+        text-decoration: none;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        gap: 0.5rem;
+        box-shadow: var(--shadow-sm);
+    }
+
+    .btn-regency:hover {
+        background: var(--regency-red-dark);
+        color: white;
+        text-decoration: none;
+        transform: translateY(-1px);
+        box-shadow: var(--shadow-md);
+    }
+
+    .btn-regency-outline {
+        background: transparent;
+        color: var(--regency-red);
+        border: 1px solid var(--regency-red);
+        padding: 0.75rem 1.25rem;
+        border-radius: var(--border-radius);
+        font-weight: 500;
+        font-size: 0.9rem;
+        cursor: pointer;
+        transition: all 0.2s ease;
+        text-decoration: none;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        gap: 0.5rem;
+    }
+
+    .btn-regency-outline:hover {
+        background: var(--regency-red);
+        color: white;
+        text-decoration: none;
+        transform: translateY(-1px);
+    }
+
+    .btn-secondary {
+        background: #6b7280;
+        color: white;
+        border: 1px solid #6b7280;
+        padding: 0.75rem 1.25rem;
+        border-radius: var(--border-radius);
+        font-weight: 500;
+        font-size: 0.9rem;
+        cursor: pointer;
+        transition: all 0.2s ease;
+        text-decoration: none;
+        display: inline-flex;
+        align-items: center;
+        gap: 0.5rem;
+    }
+
+    .btn-secondary:hover {
+        background: #4b5563;
+        border-color: #4b5563;
+        color: white;
+        text-decoration: none;
+    }
+
+    .btn-lg {
+        padding: 0.9rem 1.5rem;
+        font-size: 1rem;
+        font-weight: 600;
+    }
+
+    .btn-sm {
+        padding: 0.4rem 0.75rem;
+        font-size: 0.8rem;
+    }
+
+    /* Área de botones */
+    .form-actions {
+        background: #f8fafc;
+        padding: 1rem 1.5rem;
+        border-top: 1px solid #e5e7eb;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        gap: 1rem;
+        flex-wrap: wrap;
+    }
+
+    .actions-primary {
+        display: flex;
+        gap: 0.75rem;
+    }
+
+    .actions-secondary {
+        display: flex;
+        gap: 0.5rem;
+    }
+
+    /* Helpers visuales */
+    .form-help {
+        font-size: 0.75rem;
+        color: var(--regency-gray-dark);
+        margin-top: 0.25rem;
+        display: flex;
+        align-items: center;
+        gap: 0.3rem;
+    }
+
+    .form-help::before {
+        content: "💡";
+        font-size: 0.7rem;
+    }
+
+    /* Card de ejemplo de turno */
+    .schedule-preview {
+        background: #f0f9ff;
+        border: 1px solid #bae6fd;
+        border-radius: var(--border-radius);
+        padding: 1rem;
+        margin-top: 1rem;
+        display: flex;
+        align-items: center;
+        gap: 0.75rem;
+    }
+
+    .schedule-preview-icon {
+        width: 2.5rem;
+        height: 2.5rem;
+        background: var(--regency-red);
+        color: white;
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 1rem;
+        flex-shrink: 0;
+    }
+
+    .schedule-preview-content {
+        flex: 1;
+    }
+
+    .schedule-preview-title {
+        font-weight: 600;
+        color: var(--regency-text);
+        font-size: 0.9rem;
+        margin-bottom: 0.25rem;
+    }
+
+    .schedule-preview-text {
+        font-size: 0.8rem;
+        color: var(--regency-gray-dark);
+    }
+
+    /* Responsive */
+    @media (max-width: 768px) {
+        .form-container {
+            padding: 0.75rem 1rem;
         }
-        .form-label { font-weight: 600; color: #B91C1C; }
-    </style>
-</head>
-<body>
-    <div class="container mt-4" style="max-width: 600px;">
-        <div class="text-center mb-4">
-            <img src="{% static 'img/logo_regency.png' %}" alt="Regency Logo" class="logo-regency">
+
+        .form-header {
+            padding: 1rem;
+            flex-direction: column;
+            align-items: stretch;
+            text-align: center;
+        }
+
+        .form-header h1 {
+            font-size: 1.2rem;
+            justify-content: center;
+        }
+
+        .header-actions {
+            justify-content: center;
+            margin-top: 0.5rem;
+        }
+
+        .form-grid,
+        .form-grid-triple {
+            grid-template-columns: 1fr;
+            gap: 1rem;
+        }
+
+        .card-body {
+            padding: 1rem;
+        }
+
+        .form-actions {
+            padding: 1rem;
+            flex-direction: column;
+            align-items: stretch;
+        }
+
+        .actions-primary,
+        .actions-secondary {
+            justify-content: center;
+        }
+    }
+
+    /* Mejoras en widgets Django */
+    input[type="text"],
+    input[type="number"],
+    select,
+    textarea {
+        padding: 0.75rem !important;
+        border: 1px solid #d1d5db !important;
+        border-radius: var(--border-radius) !important;
+        font-size: 0.9rem !important;
+        font-family: inherit !important;
+        transition: all 0.2s ease !important;
+        background: white !important;
+        width: 100% !important;
+        box-sizing: border-box !important;
+    }
+
+    input[type="text"]:focus,
+    input[type="number"]:focus,
+    select:focus,
+    textarea:focus {
+        outline: none !important;
+        border-color: var(--regency-red) !important;
+        box-shadow: 0 0 0 2px rgba(135, 31, 27, 0.1) !important;
+    }
+
+    /* Especial para selects de hora */
+    select[name="hora_inicio"],
+    select[name="hora_final"] {
+        font-family: 'SF Mono', 'Monaco', 'Inconsolata', 'Roboto Mono', monospace !important;
+        font-weight: 600 !important;
+        text-align: center !important;
+        letter-spacing: 1px !important;
+    }
+
+    /* Campo letra turno especial - PERMITIR N CANTIDAD DE LETRAS */
+    input[name="letra_turno"] {
+        text-align: center !important;
+        font-weight: 700 !important;
+        font-size: 1.1rem !important;
+        text-transform: uppercase !important;
+        letter-spacing: 2px !important;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="form-container">
+    <!-- Header del formulario -->
+    <div class="form-header">
+        <div class="header-main">
+            <h1>🕐 {% if codigo %}Editar Código de Turno{% else %}Crear Nuevo Código de Turno{% endif %}</h1>
+            <p class="form-subtitle">Gestión completa de códigos y horarios de turno del sistema REGENCY</p>
         </div>
-        <h2 class="mb-4">{% if codigo %}Editar{% else %}Crear{% endif %} Código de Turno</h2>
-        <form method="post">
+        <div class="header-actions">
+            <a href="{% url 'usuarios:codigoturno_list' %}" class="btn-secondary btn-sm">
+                📋 Lista de Códigos
+            </a>
+        </div>
+    </div>
+
+    <!-- Formulario principal -->
+    <div class="form-card">
+        <div class="card-header-regency">
+            🕐 {% if codigo %}Editar Información del Código de Turno{% else %}Información del Nuevo Código de Turno{% endif %}
+        </div>
+        
+        <form method="post" novalidate>
             {% csrf_token %}
-            <div class="mb-3">
-                <label class="form-label">Letra turno:</label>
-                {{ form.letra_turno }}
-            </div>
-            <div class="mb-3">
-                <label class="form-label">Tipo:</label>
-                {{ form.tipo }}
-            </div>
-            <div class="mb-3">
-                <label class="form-label">Hora inicio:</label>
-                <select name="hora_inicio" class="form-select">
-                    {% for h in hours %}
-                        {% for m in minutes %}
-                            {% with time=h|add:":"|add:m %}
-                                <option value="{{ time }}"
-                                    {% if form.hora_inicio.value == time %}selected{% endif %}>
-                                    {{ time }}
-                                </option>
-                            {% endwith %}
-                        {% endfor %}
-                    {% endfor %}
-                </select>
-            </div>
-            <div class="mb-3">
-                <label class="form-label">Hora final:</label>
-                <select name="hora_final" class="form-select">
-                    {% for h in hours %}
-                        {% for m in minutes %}
-                            {% with time=h|add:":"|add:m %}
-                                <option value="{{ time }}"
-                                    {% if form.hora_final.value == time %}selected{% endif %}>
-                                    {{ time }}
-                                </option>
-                            {% endwith %}
-                        {% endfor %}
-                    {% endfor %}
-                </select>
+            
+            <div class="card-body">
+                <!-- Información básica del código -->
+                <div class="form-grid-triple">
+                    <div class="form-group">
+                        <label class="form-label required">
+                             Letra del Turno
+                        </label>
+                        {{ form.letra_turno }}
+                        <div class="form-help">Código identificador del turno (puede ser una o más letras)</div>
+                    </div>
+
+                    <div class="form-group">
+                        <label class="form-label required">
+                             Tipo de Turno
+                        </label>
+                        {{ form.tipo }}
+                        <div class="form-help">Clasificación del tipo de turno</div>
+                    </div>
+
+                    <div class="form-group">
+                        <label class="form-label required">
+                             Estado del Código
+                        </label>
+                        {{ form.estado_codigo }}
+                        <div class="form-help">Estado numérico del código</div>
+                    </div>
+                </div>
+
+                <!-- Horarios del turno - USAR FORMATO DEL VIEW -->
+                <div class="form-grid">
+                    <div class="form-group">
+                        <label class="form-label required">
+                             Hora de Inicio
+                        </label>
+                        {{ form.hora_inicio }}
+                        <div class="form-help">Hora en que inicia el turno de trabajo</div>
+                    </div>
+
+                    <div class="form-group">
+                        <label class="form-label required">
+                             Hora Final
+                        </label>
+                        {{ form.hora_final }}
+                        <div class="form-help">Hora en que finaliza el turno de trabajo</div>
+                    </div>
+                </div>
+
+                <!-- Descripción de novedad -->
+                <div class="form-grid-full">
+                    <div class="form-group">
+                        <label class="form-label">
+                             Descripción de Novedad
+                        </label>
+                        {{ form.descripcion_novedad }}
+                        <div class="form-help">Descripción detallada de novedades o características especiales del turno</div>
+                    </div>
+                </div>
+
+                <!-- Preview del horario -->
+                <div class="schedule-preview">
+                    <div class="schedule-preview-icon">🕐</div>
+                    <div class="schedule-preview-content">
+                        <div class="schedule-preview-title">Vista previa del turno</div>
+                        <div class="schedule-preview-text">Los horarios se mostrarán aquí una vez que complete los campos</div>
+                    </div>
+                </div>
             </div>
 
-            <div class="mb-3">
-                <label class="form-label">Descripción novedad:</label>
-                {{ form.descripcion_novedad }}
+            <!-- Acciones del formulario -->
+            <div class="form-actions">
+                <div class="actions-primary">
+                    <button type="submit" class="btn-regency btn-lg">
+                         {% if codigo %}Actualizar Código{% else %}Crear Código{% endif %}
+                    </button>
+                </div>
+                <div class="actions-secondary">
+                    <a href="{% url 'usuarios:codigoturno_list' %}" class="btn-secondary">
+                        ← Volver al Listado
+                    </a>
+                </div>
             </div>
-            <div class="mb-3">
-                <label class="form-label">Estado código:</label>
-                {{ form.estado_codigo }}
-            </div>
-            <button type="submit" class="btn btn-success">Guardar</button>
-            <a href="{% url 'usuarios:codigoturno_list' %}" class="btn btn-secondary">Volver al listado</a>
         </form>
     </div>
-</body>
-</html>
+</div>
+
+<!-- Script para mejorar la UX del formulario -->
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        // Auto-focus en el primer campo
+        const firstInput = document.querySelector('input[name="letra_turno"]');
+        if (firstInput) {
+            firstInput.focus();
+        }
+
+        // Formateo automático para letra de turno - PERMITIR N CANTIDAD DE LETRAS
+        const letraField = document.querySelector('input[name="letra_turno"]');
+        if (letraField) {
+            letraField.addEventListener('input', function() {
+                // Solo convertir a mayúsculas, SIN LIMITAR CANTIDAD
+                this.value = this.value.toUpperCase();
+            });
+        }
+
+        // Preview del horario en tiempo real
+        const horaInicioField = document.querySelector('select[name="hora_inicio"]');
+        const horaFinalField = document.querySelector('select[name="hora_final"]');
+        const tipoField = document.querySelector('select[name="tipo"]');
+        const letraTurnoField = document.querySelector('input[name="letra_turno"]');
+        const previewContent = document.querySelector('.schedule-preview-text');
+
+        function updatePreview() {
+            const inicio = horaInicioField ? horaInicioField.value : '';
+            const fin = horaFinalField ? horaFinalField.value : '';
+            const tipo = tipoField ? tipoField.options[tipoField.selectedIndex].text : '';
+            const letra = letraTurnoField ? letraTurnoField.value : '';
+
+            if (inicio && fin) {
+                const duration = calculateDuration(inicio, fin);
+                previewContent.innerHTML = `
+                    <strong>Turno ${letra ? letra : '?'}:</strong> ${tipo || 'Sin tipo'}<br>
+                    <strong>Horario:</strong> ${inicio} - ${fin}<br>
+                    <strong>Duración:</strong> ${duration} horas
+                `;
+            } else {
+                previewContent.textContent = 'Los horarios se mostrarán aquí una vez que complete los campos';
+            }
+        }
+
+        function calculateDuration(inicio, fin) {
+            const [horaIni, minIni] = inicio.split(':').map(Number);
+            const [horaFin, minFin] = fin.split(':').map(Number);
+            
+            let inicioMinutos = horaIni * 60 + minIni;
+            let finMinutos = horaFin * 60 + minFin;
+            
+            // Si la hora final es menor que la inicial, es del día siguiente
+            if (finMinutos <= inicioMinutos) {
+                finMinutos += 24 * 60;
+            }
+            
+            const duracionMinutos = finMinutos - inicioMinutos;
+            const horas = Math.floor(duracionMinutos / 60);
+            const minutos = duracionMinutos % 60;
+            
+            return minutos > 0 ? `${horas}:${minutos.toString().padStart(2, '0')}` : `${horas}:00`;
+        }
+
+        // Actualizar preview cuando cambien los campos
+        if (horaInicioField) horaInicioField.addEventListener('change', updatePreview);
+        if (horaFinalField) horaFinalField.addEventListener('change', updatePreview);
+        if (tipoField) tipoField.addEventListener('change', updatePreview);
+        if (letraTurnoField) letraTurnoField.addEventListener('input', updatePreview);
+
+        // Validación de horarios
+        function validarHorarios() {
+            if (horaInicioField && horaFinalField && horaInicioField.value && horaFinalField.value) {
+                const inicio = horaInicioField.value;
+                const fin = horaFinalField.value;
+                
+                if (inicio === fin) {
+                    horaFinalField.style.borderColor = '#f59e0b';
+                } else {
+                    horaFinalField.style.borderColor = '#d1d5db';
+                }
+            }
+        }
+
+        if (horaInicioField) horaInicioField.addEventListener('change', validarHorarios);
+        if (horaFinalField) horaFinalField.addEventListener('change', validarHorarios);
+
+        // Inicializar preview
+        updatePreview();
+
+        // Confirmación antes de salir si hay cambios
+        let formChanged = false;
+        const formInputs = document.querySelectorAll('input, select, textarea');
+        formInputs.forEach(input => {
+            input.addEventListener('change', function() {
+                formChanged = true;
+            });
+        });
+
+        window.addEventListener('beforeunload', function(e) {
+            if (formChanged) {
+                e.preventDefault();
+                e.returnValue = '';
+            }
+        });
+
+        // Resetear flag al enviar formulario
+        document.querySelector('form').addEventListener('submit', function() {
+            formChanged = false;
+        });
+    });
+</script>
+{% endblock %}

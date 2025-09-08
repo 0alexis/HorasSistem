@@ -57,16 +57,7 @@
     <!-- Navegación Breadcrumb -->
     {% block breadcrumbs %}
     {% if title %}
-    <nav class="regency-breadcrumb">
-        <div class="breadcrumb-container">
-            <a href="{% url 'admin:index' %}" class="breadcrumb-link">
-                <span class="breadcrumb-icon">🏠</span>
-                Inicio
-            </a>
-            <span class="breadcrumb-separator">〉</span>
-            <span class="breadcrumb-current">{{ title }}</span>
-        </div>
-    </nav>
+ 
     {% endif %}
     {% endblock %}
 

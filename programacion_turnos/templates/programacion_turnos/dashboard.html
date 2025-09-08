@@ -146,19 +146,7 @@
 
 {% block content %}
 <!-- Breadcrumb -->
-<nav aria-label="breadcrumb">
-    <ol class="breadcrumb">
-        <li class="breadcrumb-item">
-            <a href="{% url 'welcome' %}">🏠 Inicio</a>
-        </li>
-        <li class="breadcrumb-item active" aria-current="page">Proyectos</li>
-    </ol>
-</nav>
 
-<div class="main-header">
-    <h1>Centro de Control - Regency Services</h1>
-    <div class="subtitle">Seleccione un Proyecto para gestionar sus centros operativos y programaciones</div>
-</div>
 
 <div class="centros-grid">
     {% for proyecto in proyectos %}

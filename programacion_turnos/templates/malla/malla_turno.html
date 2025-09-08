@@ -5,355 +5,306 @@
 {% block extrastyle %}
 {{ block.super }}
 <style>
+    /* Variables consistentes con el proyecto */
     :root {
-        --regency-red: #B91C1C;
-        --regency-red-dark: #991B1B;
-        --regency-red-light: #DC2626;
+        --regency-red: #871F1B;
+        --regency-red-dark: #6b191b;
+        --regency-red-light: #a13832;
+        --regency-gray: #f8f9fa;
+        --regency-gray-dark: #64748b;
+        --regency-text: #333;
+        --border-radius: 8px;
+        --shadow-sm: 0 1px 3px rgba(0, 0, 0, 0.1);
+        --shadow-md: 0 4px 6px rgba(0, 0, 0, 0.1);
+    }
+
+    /* ========== OCULTAR BREADCRUMB DJANGO ADMIN ========== */
+    .breadcrumbs,
+    div.breadcrumbs {
+        display: none !important;
+    }
+
+    /* Tipografía consistente */
+    body {
+        font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+        font-size: 13px;
+        line-height: 1.4;
+        color: var(--regency-text);
+        background: var(--regency-gray);
     }
     
+    /* Header más compacto */
     .main-header {
-        background: linear-gradient(135deg, var(--regency-red) 0%, var(--regency-red-dark) 100%);
+        background: var(--regency-red);
         color: white;
-        padding: 2rem;
-        margin: -20px -20px 2rem -20px;
-        border-radius: 0 0 12px 12px;
-        box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        padding: 1rem 1.5rem;
+        margin: 0 0 1rem 0;
+        border-radius: var(--border-radius);
+        box-shadow: var(--shadow-sm);
     }
     
     .main-header h1 {
-        margin: 0;
-        font-size: 2rem;
-        font-weight: 300;
+        margin: 0 0 0.75rem 0;
+        font-size: 1.3rem;
+        font-weight: 600;
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+    }
+
+    .main-header h1::before {
+        content: '📋';
+        font-size: 1.1rem;
+        padding: 0.25rem;
+        background: rgba(255, 255, 255, 0.1);
+        border-radius: 4px;
     }
     
+    /* Stats más compactas */
     .programacion-stats {
         display: grid;
-        grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-        gap: 1rem;
-        margin-top: 1rem;
-        opacity: 0.9;
+        grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+        gap: 0.75rem;
+        margin: 0;
+        opacity: 0.95;
     }
     
     .stat-item {
         background: rgba(255, 255, 255, 0.1);
-        padding: 1rem;
-        border-radius: 8px;
+        padding: 0.6rem 0.75rem;
+        border-radius: 6px;
         text-align: center;
     }
     
     .stat-number {
-        font-size: 1.5rem;
-        font-weight: bold;
+        font-size: 1.1rem;
+        font-weight: 700;
         display: block;
+        line-height: 1.2;
     }
     
     .stat-label {
-        font-size: 0.9rem;
-        margin-top: 0.25rem;
+        font-size: 0.75rem;
+        margin-top: 0.15rem;
+        opacity: 0.9;
+        font-weight: 500;
     }
     
+    /* Breadcrumb más pequeño */
     .breadcrumb-custom {
         background: white;
         border: 1px solid #e5e7eb;
-        border-radius: 8px;
-        padding: 1rem;
-        margin-bottom: 1.5rem;
-        box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+        border-radius: var(--border-radius);
+        padding: 0.6rem 1rem;
+        margin-bottom: 1rem;
+        box-shadow: var(--shadow-sm);
+        font-size: 0.85rem;
     }
     
     .breadcrumb-custom a {
         color: var(--regency-red);
         text-decoration: none;
         font-weight: 500;
-        margin-right: 0.5rem;
+        margin-right: 0.4rem;
+        transition: color 0.2s ease;
     }
     
+    .breadcrumb-custom a:hover {
+        color: var(--regency-red-dark);
+    }
+    
+    /* Contenedor de la malla optimizado */
     .malla-container {
         background: white;
-        border-radius: 12px;
+        border-radius: var(--border-radius);
         overflow: hidden;
-        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+        box-shadow: var(--shadow-sm);
         overflow-x: auto;
+        border: 1px solid #e5e7eb;
     }
     
     .malla-table {
         width: 100%;
         border-collapse: collapse;
         min-width: 800px;
+        font-size: 0.8rem; /* Tabla más compacta */
     }
     
+    /* Headers más pequeños */
     .malla-table th {
-        background: linear-gradient(135deg, #f8fafc 0%, #e2e8f0 100%);
-        color: #374151;
+        background: var(--regency-gray);
+        color: var(--regency-text);
         font-weight: 600;
-        padding: 1rem 0.75rem;
+        padding: 0.5rem 0.4rem;
         text-align: center;
         border-bottom: 2px solid var(--regency-red);
         position: sticky;
         top: 0;
         z-index: 10;
+        font-size: 0.75rem;
     }
     
+    /* Columna de empleados MÁS COMPACTA */
     .empleado-header {
         text-align: left;
-        min-width: 200px;
-        max-width: 200px;
+        min-width: 160px; /* Reducido de 200px */
+        max-width: 160px;
         position: sticky;
         left: 0;
-        background: linear-gradient(135deg, #f8fafc 0%, #e2e8f0 100%);
+        background: var(--regency-gray);
         z-index: 11;
     }
     
+    /* Headers de fecha más pequeños */
     .fecha-header {
-        min-width: 80px;
+        min-width: 50px; /* Reducido de 80px */
         text-align: center;
+        padding: 0.4rem 0.25rem;
     }
     
     .fecha-dia {
-        font-size: 1.1rem;
-        font-weight: bold;
+        font-size: 0.9rem; /* Reducido de 1.1rem */
+        font-weight: 700;
         color: var(--regency-red);
+        line-height: 1;
     }
     
     .fecha-mes {
-        font-size: 0.8rem;
-        color: #6b7280;
+        font-size: 0.65rem; /* Reducido de 0.8rem */
+        color: var(--regency-gray-dark);
+        margin-top: 1px;
     }
     
     .fecha-dow {
-        font-size: 0.7rem;
+        font-size: 0.6rem; /* Reducido de 0.7rem */
         color: #9ca3af;
         text-transform: uppercase;
+        margin-top: 1px;
     }
     
+    /* Celdas más compactas */
     .malla-table td {
-        padding: 0.75rem;
+        padding: 0.4rem 0.25rem; /* Reducido padding */
         border-bottom: 1px solid #e5e7eb;
         text-align: center;
         vertical-align: middle;
+        font-size: 0.8rem;
     }
     
+    /* Información de empleados MÁS COMPACTA */
     .empleado-cell {
         text-align: left;
-        min-width: 200px;
-        max-width: 200px;
+        min-width: 160px; /* Reducido de 200px */
+        max-width: 160px;
         position: sticky;
         left: 0;
         background: white;
         border-right: 2px solid #e5e7eb;
         z-index: 9;
+        padding: 0.4rem 0.5rem !important; /* Padding específico */
     }
     
     .empleado-nombre {
         font-weight: 600;
-        color: #374151;
-        font-size: 0.9rem;
+        color: var(--regency-text);
+        font-size: 0.75rem; /* Reducido de 0.9rem */
+        line-height: 1.2;
+        margin-bottom: 1px;
+    }
+
+    .empleado-apellido {
+        font-weight: 500;
+        color: var(--regency-text);
+        font-size: 0.7rem; /* Nuevo - apellido más pequeño */
+        line-height: 1.2;
+        margin-bottom: 2px;
+    }
+
+    .empleado-cedula {
+        font-size: 0.65rem; /* Reducido de 0.8rem */
+        color: var(--regency-gray-dark);
+        margin: 1px 0;
+        font-weight: 500;
     }
     
     .empleado-cargo {
-        font-size: 0.8rem;
-        color: #6b7280;
-        margin-top: 0.25rem;
+        font-size: 0.65rem; /* Reducido de 0.8rem */
+        color: var(--regency-gray-dark);
+        margin-top: 1px;
+        font-style: italic;
+        font-weight: 400;
     }
     
+    /* Celdas de turno más pequeñas */
     .turno-cell {
-        min-width: 80px;
+        min-width: 50px; /* Reducido de 80px */
         position: relative;
+        padding: 0.3rem 0.2rem !important;
     }
     
+    /* Letras de turno más pequeñas */
     .turno-letra {
         display: inline-block;
-        width: 40px;
-        height: 40px;
-        line-height: 40px;
+        width: 28px; /* Reducido de 40px */
+        height: 28px; /* Reducido de 40px */
+        line-height: 28px;
         border-radius: 50%;
-        font-weight: bold;
-        font-size: 0.9rem;
+        font-weight: 700;
+        font-size: 0.75rem; /* Reducido de 0.9rem */
         text-align: center;
         cursor: pointer;
         transition: all 0.2s ease;
-        box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+        box-shadow: var(--shadow-sm);
         user-select: none;
+        border-width: 1.5px !important;
     }
     
     .turno-letra:hover {
         transform: scale(1.1);
-        box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+        box-shadow: var(--shadow-md);
         z-index: 10;
     }
     
     .turno-letra.editable {
         cursor: pointer;
-        border: 2px solid transparent;
+        border: 1.5px solid transparent;
     }
     
     .turno-letra.editable:hover {
-        border-color: var(--regency-red);
+        border-color: var(--regency-red) !important;
+        border-width: 2px !important;
     }
     
-    /* Colores por tipo de turno */
-    .turno-F {
-        background: #fef3c7;
-        color: #92400e;
-        border: 2px solid #f59e0b;
-    }
+    /* Colores optimizados para mejor contraste */
+    .turno-F { background: #fef3c7; color: #92400e; border: 1.5px solid #f59e0b; }
+    .turno-H { background: #dbeafe; color: #1e40af; border: 1.5px solid #3b82f6; }
+    .turno-D { background: #dcfce7; color: #166534; border: 1.5px solid #22c55e; }
+    .turno-N { background: #e0e7ff; color: #3730a3; border: 1.5px solid #6366f1; }
+    .turno-L { background: #fce7f3; color: #be185d; border: 1.5px solid #ec4899; }
+    .turno-A { background: #fef2f2; color: #991b1b; border: 1.5px solid #ef4444; }
+    .turno-B { background: #f0f9ff; color: #0c4a6e; border: 1.5px solid #0ea5e9; }
+    .turno-C { background: #f0fdf4; color: #14532d; border: 1.5px solid #16a34a; }
+    .turno-E { background: #faf5ff; color: #581c87; border: 1.5px solid #a855f7; }
+    .turno-G { background: #fff7ed; color: #9a3412; border: 1.5px solid #ea580c; }
+    .turno-I { background: #f0f9ff; color: #1e40af; border: 1.5px solid #3b82f6; }
+    .turno-J { background: #fefce8; color: #854d0e; border: 1.5px solid #eab308; }
+    .turno-K { background: #fdf2f8; color: #831843; border: 1.5px solid #ec4899; }
+    .turno-M { background: #f0fdfa; color: #134e4a; border: 1.5px solid #14b8a6; }
+    .turno-O { background: #fef3c7; color: #92400e; border: 1.5px solid #f59e0b; }
+    .turno-P { background: #dbeafe; color: #1e40af; border: 1.5px solid #3b82f6; }
+    .turno-Q { background: #dcfce7; color: #166534; border: 1.5px solid #22c55e; }
+    .turno-R { background: #e0e7ff; color: #3730a3; border: 1.5px solid #6366f1; }
+    .turno-S { background: #fce7f3; color: #be185d; border: 1.5px solid #ec4899; }
+    .turno-T { background: #fef2f2; color: #991b1b; border: 1.5px solid #ef4444; }
+    .turno-U { background: #f0f9ff; color: #0c4a6e; border: 1.5px solid #0ea5e9; }
+    .turno-V { background: #f0fdf4; color: #14532d; border: 1.5px solid #16a34a; }
+    .turno-W { background: #faf5ff; color: #581c87; border: 1.5px solid #a855f7; }
+    .turno-X { background: #fff7ed; color: #9a3412; border: 1.5px solid #ea580c; }
+    .turno-Y { background: #f0f9ff; color: #1e40af; border: 1.5px solid #3b82f6; }
+    .turno-Z { background: #fefce8; color: #854d0e; border: 1.5px solid #eab308; }
+    .turno-vacio { background: #f9fafb; color: #9ca3af; border: 1.5px dashed #d1d5db; }
     
-    .turno-H {
-        background: #dbeafe;
-        color: #1e40af;
-        border: 2px solid #3b82f6;
-    }
-    
-    .turno-D {
-        background: #dcfce7;
-        color: #166534;
-        border: 2px solid #22c55e;
-    }
-    
-    .turno-N {
-        background: #e0e7ff;
-        color: #3730a3;
-        border: 2px solid #6366f1;
-    }
-    
-    .turno-L {
-        background: #fce7f3;
-        color: #be185d;
-        border: 2px solid #ec4899;
-    }
-    
-    .turno-A {
-        background: #fef2f2;
-        color: #991b1b;
-        border: 2px solid #ef4444;
-    }
-    
-    .turno-B {
-        background: #f0f9ff;
-        color: #0c4a6e;
-        border: 2px solid #0ea5e9;
-    }
-    
-    .turno-C {
-        background: #f0fdf4;
-        color: #14532d;
-        border: 2px solid #16a34a;
-    }
-    
-    .turno-E {
-        background: #faf5ff;
-        color: #581c87;
-        border: 2px solid #a855f7;
-    }
-    
-    .turno-G {
-        background: #fff7ed;
-        color: #9a3412;
-        border: 2px solid #ea580c;
-    }
-    
-    .turno-I {
-        background: #f0f9ff;
-        color: #1e40af;
-        border: 2px solid #3b82f6;
-    }
-    
-    .turno-J {
-        background: #fefce8;
-        color: #854d0e;
-        border: 2px solid #eab308;
-    }
-    
-    .turno-K {
-        background: #fdf2f8;
-        color: #831843;
-        border: 2px solid #ec4899;
-    }
-    
-    .turno-M {
-        background: #f0fdfa;
-        color: #134e4a;
-        border: 2px solid #14b8a6;
-    }
-    
-    .turno-O {
-        background: #fef3c7;
-        color: #92400e;
-        border: 2px solid #f59e0b;
-    }
-    
-    .turno-P {
-        background: #dbeafe;
-        color: #1e40af;
-        border: 2px solid #3b82f6;
-    }
-    
-    .turno-Q {
-        background: #dcfce7;
-        color: #166534;
-        border: 2px solid #22c55e;
-    }
-    
-    .turno-R {
-        background: #e0e7ff;
-        color: #3730a3;
-        border: 2px solid #6366f1;
-    }
-    
-    .turno-S {
-        background: #fce7f3;
-        color: #be185d;
-        border: 2px solid #ec4899;
-    }
-    
-    .turno-T {
-        background: #fef2f2;
-        color: #991b1b;
-        border: 2px solid #ef4444;
-    }
-    
-    .turno-U {
-        background: #f0f9ff;
-        color: #0c4a6e;
-        border: 2px solid #0ea5e9;
-    }
-    
-    .turno-V {
-        background: #f0fdf4;
-        color: #14532d;
-        border: 2px solid #16a34a;
-    }
-    
-    .turno-W {
-        background: #faf5ff;
-        color: #581c87;
-        border: 2px solid #a855f7;
-    }
-    
-    .turno-X {
-        background: #fff7ed;
-        color: #9a3412;
-        border: 2px solid #ea580c;
-    }
-    
-    .turno-Y {
-        background: #f0f9ff;
-        color: #1e40af;
-        border: 2px solid #3b82f6;
-    }
-    
-    .turno-Z {
-        background: #fefce8;
-        color: #854d0e;
-        border: 2px solid #eab308;
-    }
-    
-    .turno-vacio {
-        background: #f9fafb;
-        color: #9ca3af;
-        border: 2px dashed #d1d5db;
-    }
-    
+    /* Hover de filas más sutil */
     .malla-table tr:hover {
         background-color: #f8fafc;
     }
@@ -362,63 +313,204 @@
         background-color: #f8fafc;
     }
     
-    /* Estilos para el editor de turnos */
-    .turno-editor {
-        display: flex;
-        flex-direction: column;
-        gap: 0.5rem;
-        align-items: center;
+    /* Fila de resumen más compacta */
+    .malla-table tr[style*="border-top"] .turno-cell {
+        padding: 0.25rem 0.1rem !important;
+    }
+
+    .malla-table tr[style*="border-top"] .turno-letra {
+        width: 14px !important;
+        height: 14px !important;
+        line-height: 14px !important;
+        font-size: 0.6rem !important;
+        border-width: 1px !important;
     }
     
-    .turno-select {
-        padding: 0.5rem;
+    /* Filtros más compactos */
+    #filtro-fechas-malla input[type="date"] {
+        padding: 0.25rem 0.4rem;
+        font-size: 0.8rem;
         border: 1px solid #d1d5db;
         border-radius: 4px;
-        font-size: 0.9rem;
-        min-width: 60px;
     }
-    
-    .turno-buttons {
-        display: flex;
-        gap: 0.25rem;
-    }
-    
-    .btn-turno {
-        padding: 0.25rem 0.5rem;
+
+    #filtro-fechas-malla button {
+        background: var(--regency-red);
+        color: white;
         border: none;
         border-radius: 4px;
+        padding: 0.25rem 0.6rem;
+        font-weight: 600;
+        font-size: 0.8rem;
+        cursor: pointer;
+        transition: background 0.2s ease;
+    }
+
+    #filtro-fechas-malla button:hover {
+        background: var(--regency-red-dark);
+    }
+
+    /* Botones de acción más pequeños */
+    .btn-regency {
+        background: var(--regency-red);
+        color: white;
+        border: none;
+        padding: 0.4rem 0.8rem;
+        border-radius: var(--border-radius);
+        font-weight: 600;
         font-size: 0.8rem;
         cursor: pointer;
         transition: all 0.2s ease;
+        text-decoration: none;
+        display: inline-flex;
+        align-items: center;
+        gap: 0.4rem;
+        box-shadow: var(--shadow-sm);
     }
     
-    .btn-guardar {
-        background: #22c55e;
+    .btn-regency:hover {
+        background: var(--regency-red-dark);
         color: white;
+        text-decoration: none;
+        transform: translateY(-1px);
+    }
+
+    /* Leyenda más compacta */
+    .leyenda-container {
+        margin-top: 1rem;
+        background: white;
+        border-radius: var(--border-radius);
+        padding: 1rem;
+        box-shadow: var(--shadow-sm);
+        border: 1px solid #e5e7eb;
+    }
+
+    .leyenda-container h3 {
+        margin: 0 0 0.75rem 0;
+        color: var(--regency-text);
+        font-size: 1rem;
+        font-weight: 600;
+    }
+
+    .leyenda-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
+        gap: 0.5rem;
+    }
+
+    .leyenda-item {
+        display: flex;
+        align-items: center;
+        gap: 0.4rem;
+        padding: 0.25rem;
+    }
+
+    .leyenda-item .turno-letra {
+        width: 20px !important;
+        height: 20px !important;
+        line-height: 20px !important;
+        font-size: 0.65rem !important;
+        flex-shrink: 0;
+    }
+
+    .leyenda-text {
+        font-size: 0.75rem;
+        line-height: 1.2;
+    }
+
+    .leyenda-desc {
+        font-weight: 500;
+        color: var(--regency-text);
+        margin-bottom: 1px;
+    }
+
+    .leyenda-info {
+        color: var(--regency-gray-dark);
+        font-size: 0.7rem;
     }
     
-    .btn-guardar:hover {
-        background: #16a34a;
-    }
-    
-    .btn-cancelar {
-        background: #ef4444;
-        color: white;
-    }
-    
-    .btn-cancelar:hover {
-        background: #dc2626;
-    }
-    
-    /* Responsivo */
-    @media (max-width: 768px) {
-        .programacion-stats {
-            grid-template-columns: 1fr;
+    /* Responsive más eficiente */
+    @media (max-width: 1024px) {
+        .empleado-header,
+        .empleado-cell {
+            min-width: 140px;
+            max-width: 140px;
         }
-        
+
+        .empleado-nombre {
+            font-size: 0.7rem;
+        }
+
+        .empleado-apellido {
+            font-size: 0.65rem;
+        }
+
+        .empleado-cedula,
+        .empleado-cargo {
+            font-size: 0.6rem;
+        }
+    }
+
+    @media (max-width: 768px) {
+        .main-header {
+            padding: 0.75rem 1rem;
+        }
+
+        .main-header h1 {
+            font-size: 1.1rem;
+        }
+
+        .programacion-stats {
+            grid-template-columns: repeat(2, 1fr);
+            gap: 0.5rem;
+        }
+
+        .stat-item {
+            padding: 0.5rem;
+        }
+
+        .stat-number {
+            font-size: 1rem;
+        }
+
+        .stat-label {
+            font-size: 0.7rem;
+        }
+
         .malla-container {
-            margin: 0 -1rem;
+            margin: 0 -0.5rem;
             border-radius: 0;
+        }
+
+        .empleado-header,
+        .empleado-cell {
+            min-width: 120px;
+            max-width: 120px;
+        }
+
+        .turno-letra {
+            width: 24px !important;
+            height: 24px !important;
+            line-height: 24px !important;
+            font-size: 0.7rem !important;
+        }
+    }
+
+    /* Animaciones suaves */
+    .malla-container,
+    .main-header,
+    .breadcrumb-custom {
+        animation: fadeInUp 0.3s ease forwards;
+    }
+
+    @keyframes fadeInUp {
+        from {
+            opacity: 0;
+            transform: translateY(10px);
+        }
+        to {
+            opacity: 1;
+            transform: translateY(0);
         }
     }
 </style>

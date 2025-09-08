@@ -1,162 +1,691 @@
-<!DOCTYPE html>
-<html lang="es">
-<head>
-    <meta charset="UTF-8">
-    <title>{% if turno %}Editar{% else %}Crear{% endif %} Modelo de Turno</title>
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.0/font/bootstrap-icons.css" rel="stylesheet">
-    {% load static %}
-    <style>
-        body { background: #f8fafc; }
-        .card-main {
-            border-radius: 16px;
-            box-shadow: 0 4px 16px rgba(185,28,28,0.08);
-            border: none;
-            margin-top: 2rem;
+{% extends "admin/base_site.html" %}
+{% load i18n static %}
+
+{% block extrastyle %}
+{{ block.super }}
+<style>
+    /* Variables empresariales REGENCY */
+    :root {
+        --regency-red: #871F1B;
+        --regency-red-dark: #6b191b;
+        --regency-red-light: #a13832;
+        --regency-gray: #f8f9fa;
+        --regency-gray-dark: #64748b;
+        --regency-text: #333;
+        --border-radius: 8px;
+        --shadow-sm: 0 1px 3px rgba(0, 0, 0, 0.1);
+        --shadow-md: 0 4px 6px rgba(0, 0, 0, 0.1);
+    }
+
+    /* ========== OCULTAR BREADCRUMB DJANGO ADMIN ========== */
+    .breadcrumbs,
+    div.breadcrumbs {
+        display: none !important;
+    }
+
+    /* Tipografía empresarial consistente */
+    body {
+        font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+        font-size: 13px; /* Reducido de 14px */
+        line-height: 1.4; /* Reducido de 1.5 */
+        color: var(--regency-text);
+        background: var(--regency-gray);
+    }
+
+    /* Container principal */
+    .form-container {
+        padding: 0.8rem 1.2rem; /* Reducido */
+        max-width: 900px;
+        margin: 0 auto;
+    }
+
+    /* Header del formulario */
+    .form-header {
+        background: var(--regency-red);
+        color: white;
+        padding: 1rem 1.2rem; /* Reducido */
+        margin-bottom: 1.2rem; /* Reducido */
+        border-radius: var(--border-radius);
+        box-shadow: var(--shadow-sm);
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        flex-wrap: wrap;
+        gap: 0.8rem; /* Reducido */
+    }
+
+    .header-main {
+        flex: 1;
+        min-width: 0;
+    }
+
+    .form-header h1 {
+        font-size: 1.2rem; /* Reducido de 1.4rem */
+        font-weight: 600;
+        margin: 0 0 0.3rem 0; /* Reducido */
+        display: flex;
+        align-items: center;
+        gap: 0.4rem; /* Reducido */
+        line-height: 1.1; /* Reducido */
+    }
+
+    .form-subtitle {
+        font-size: 0.75rem; /* Reducido de 0.85rem */
+        opacity: 0.9;
+        margin: 0;
+        font-weight: 400;
+    }
+
+    .header-actions {
+        display: flex;
+        gap: 0.4rem; /* Reducido */
+        flex-shrink: 0;
+    }
+
+    /* Breadcrumb personalizado */
+    .custom-breadcrumb {
+        background: white;
+        border: 1px solid #e5e7eb;
+        border-radius: var(--border-radius);
+        padding: 0.6rem 0.8rem; /* Reducido */
+        margin-bottom: 1.2rem; /* Reducido */
+        box-shadow: var(--shadow-sm);
+        font-size: 0.75rem; /* Reducido */
+    }
+
+    .custom-breadcrumb a {
+        color: var(--regency-red);
+        text-decoration: none;
+        font-weight: 500;
+        transition: color 0.2s ease;
+    }
+
+    .custom-breadcrumb a:hover {
+        color: var(--regency-red-dark);
+        text-decoration: underline;
+    }
+
+    .breadcrumb-separator {
+        color: var(--regency-gray-dark);
+        margin: 0 0.4rem; /* Reducido */
+    }
+
+    /* Card del formulario */
+    .form-card {
+        background: white;
+        border-radius: var(--border-radius);
+        overflow: hidden;
+        box-shadow: var(--shadow-sm);
+        border: 1px solid #e5e7eb;
+    }
+
+    .card-header-regency {
+        background: var(--regency-red);
+        color: white;
+        padding: 0.8rem 1rem; /* Reducido */
+        font-weight: 600;
+        font-size: 0.9rem; /* Reducido */
+        display: flex;
+        align-items: center;
+        gap: 0.4rem; /* Reducido */
+    }
+
+    .card-body {
+        padding: 1.2rem; /* Reducido de 1.5rem */
+    }
+
+    /* Grid del formulario */
+    .form-grid {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 1rem; /* Reducido de 1.25rem */
+        margin-bottom: 1rem; /* Reducido */
+    }
+
+    .form-grid-full {
+        grid-column: 1 / -1;
+    }
+
+    /* Grupos de formulario */
+    .form-group {
+        display: flex;
+        flex-direction: column;
+        gap: 0.4rem; /* Reducido */
+    }
+
+    /* Grupo horizontal para descripción */
+    .form-group-horizontal {
+        display: flex;
+        flex-direction: row;
+        align-items: center;
+        gap: 1rem;
+    }
+
+    .form-group-horizontal .form-label {
+        min-width: 140px;
+        flex-shrink: 0;
+        margin: 0;
+    }
+
+    .form-group-horizontal .form-input-wrapper {
+        flex: 1;
+        display: flex;
+        flex-direction: column;
+        gap: 0.2rem;
+    }
+
+    .form-label {
+        font-size: 0.75rem; /* Reducido de 0.85rem */
+        font-weight: 600;
+        color: var(--regency-text);
+        display: flex;
+        align-items: center;
+        gap: 0.25rem; /* Reducido */
+    }
+
+    .form-label.required::after {
+        content: "*";
+        color: var(--regency-red);
+        font-weight: bold;
+        margin-left: 0.15rem; /* Reducido */
+    }
+
+    /* Helpers visuales */
+    .form-help {
+        font-size: 0.65rem; /* Reducido de 0.75rem */
+        color: var(--regency-gray-dark);
+        margin-top: 0.2rem; /* Reducido */
+        display: flex;
+        align-items: center;
+        gap: 0.25rem; /* Reducido */
+    }
+
+    .form-help::before {
+        content: "💡";
+        font-size: 0.6rem; /* Reducido */
+    }
+
+    /* Área de matriz de letras */
+    .matriz-container {
+        background: #f8fafc;
+        border: 1px solid #e5e7eb;
+        border-radius: var(--border-radius);
+        padding: 0.8rem; /* Reducido */
+        margin: 0.8rem 0; /* Reducido */
+    }
+
+    .matriz-title {
+        font-weight: 600;
+        color: var(--regency-red);
+        margin-bottom: 0.6rem; /* Reducido */
+        display: flex;
+        align-items: center;
+        gap: 0.4rem; /* Reducido */
+        font-size: 0.8rem; /* Reducido */
+    }
+
+    .matriz-table {
+        border-collapse: separate;
+        border-spacing: 4px; /* Reducido de 6px */
+        margin: 0;
+        width: 100%;
+    }
+
+    .matriz-table td {
+        min-width: 32px; /* Reducido de 36px */
+        height: 32px; /* Reducido de 36px */
+        text-align: center;
+        font-size: 1rem; /* Reducido de 1.1rem */
+        border: 2px solid #e5e7eb;
+        border-radius: 6px;
+        background: white;
+        font-weight: 600;
+        color: var(--regency-text);
+        transition: all 0.2s ease;
+    }
+
+    .matriz-table td:hover {
+        border-color: var(--regency-red);
+        background: #fef2f2;
+    }
+
+    /* Botones empresariales */
+    .btn-regency {
+        background: var(--regency-red);
+        color: white;
+        border: none;
+        padding: 0.6rem 1rem; /* Reducido */
+        border-radius: var(--border-radius);
+        font-weight: 500;
+        font-size: 0.8rem; /* Reducido */
+        cursor: pointer;
+        transition: all 0.2s ease;
+        text-decoration: none;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        gap: 0.4rem; /* Reducido */
+        box-shadow: var(--shadow-sm);
+    }
+
+    .btn-regency:hover {
+        background: var(--regency-red-dark);
+        color: white;
+        text-decoration: none;
+        transform: translateY(-1px);
+        box-shadow: var(--shadow-md);
+    }
+
+    .btn-regency-outline {
+        background: transparent;
+        color: var(--regency-red);
+        border: 1px solid var(--regency-red);
+        padding: 0.6rem 1rem; /* Reducido */
+        border-radius: var(--border-radius);
+        font-weight: 500;
+        font-size: 0.8rem; /* Reducido */
+        cursor: pointer;
+        transition: all 0.2s ease;
+        text-decoration: none;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        gap: 0.4rem; /* Reducido */
+    }
+
+    .btn-regency-outline:hover {
+        background: var(--regency-red);
+        color: white;
+        text-decoration: none;
+        transform: translateY(-1px);
+    }
+
+    .btn-secondary {
+        background: #6b7280;
+        color: white;
+        border: 1px solid #6b7280;
+        padding: 0.6rem 1rem; /* Reducido */
+        border-radius: var(--border-radius);
+        font-weight: 500;
+        font-size: 0.8rem; /* Reducido */
+        cursor: pointer;
+        transition: all 0.2s ease;
+        text-decoration: none;
+        display: inline-flex;
+        align-items: center;
+        gap: 0.4rem; /* Reducido */
+    }
+
+    .btn-secondary:hover {
+        background: #4b5563;
+        border-color: #4b5563;
+        color: white;
+        text-decoration: none;
+    }
+
+    .btn-lg {
+        padding: 0.75rem 1.2rem; /* Reducido */
+        font-size: 0.9rem; /* Reducido */
+        font-weight: 600;
+    }
+
+    .btn-sm {
+        padding: 0.35rem 0.6rem; /* Reducido */
+        font-size: 0.7rem; /* Reducido */
+    }
+
+    /* Área de botones */
+    .form-actions {
+        background: #f8fafc;
+        padding: 0.8rem 1.2rem; /* Reducido */
+        border-top: 1px solid #e5e7eb;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        gap: 0.8rem; /* Reducido */
+        flex-wrap: wrap;
+    }
+
+    .actions-primary {
+        display: flex;
+        gap: 0.6rem; /* Reducido */
+        flex-wrap: wrap;
+    }
+
+    .actions-secondary {
+        display: flex;
+        gap: 0.4rem; /* Reducido */
+    }
+
+    /* Mensajes de error */
+    .error-message {
+        color: #dc2626;
+        font-size: 0.7rem; /* Reducido */
+        font-weight: 500;
+        margin-top: 0.2rem; /* Reducido */
+        display: flex;
+        align-items: center;
+        gap: 0.25rem; /* Reducido */
+    }
+
+    .error-message::before {
+        content: "⚠️";
+        font-size: 0.6rem; /* Reducido */
+    }
+
+    .errorlist {
+        color: #dc2626;
+        font-size: 0.7rem; /* Reducido */
+        margin: 0.2rem 0 0 0; /* Reducido */
+        padding: 0;
+        list-style: none;
+    }
+
+    .errorlist li {
+        display: flex;
+        align-items: center;
+        gap: 0.25rem; /* Reducido */
+    }
+
+    .errorlist li::before {
+        content: "⚠️";
+        font-size: 0.6rem; /* Reducido */
+    }
+
+    /* Alert de errores generales */
+    .alert-danger {
+        background: #fef2f2;
+        border: 1px solid #fecaca;
+        color: #dc2626;
+        padding: 0.6rem 0.8rem; /* Reducido */
+        border-radius: var(--border-radius);
+        margin-bottom: 0.8rem; /* Reducido */
+        font-size: 0.8rem; /* Reducido */
+    }
+
+    /* Responsive */
+    @media (max-width: 768px) {
+        .form-container {
+            padding: 0.6rem 0.8rem; /* Reducido */
         }
-        .card-header {
-            background: linear-gradient(135deg, #B91C1C, #991B1B);
-            color: white;
-            font-weight: 600;
-            border-radius: 16px 16px 0 0;
-            display: flex;
-            align-items: center;
-            gap: 1rem;
-            flex-wrap: wrap;
+
+        .form-header {
+            padding: 0.8rem; /* Reducido */
+            flex-direction: column;
+            align-items: stretch;
+            text-align: center;
         }
-        .logo-regency {
-            height: 48px;
-            background: white;
-            border-radius: 8px;
-            padding: 4px 8px;
-            box-shadow: 0 2px 8px rgba(185,28,28,0.08);
+
+        .form-header h1 {
+            font-size: 1.1rem; /* Reducido */
+            justify-content: center;
         }
-        .card-header h4 {
-            margin-bottom: 0;
-            font-size: 1.5rem;
-            flex: 1;
+
+        .header-actions {
+            justify-content: center;
+            margin-top: 0.4rem; /* Reducido */
         }
-        .form-label { font-weight: 600; color: #B91C1C; }
-        .btn-regency {
-            background: #B91C1C;
-            color: white;
-            font-weight: 600;
-            border-radius: 8px;
-            border: none;
+
+        .form-grid {
+            grid-template-columns: 1fr;
+            gap: 0.8rem; /* Reducido */
         }
-        .btn-regency:hover { background: #991B1B; color: white; }
-        .btn-outline-regency {
-            border: 2px solid #B91C1C;
-            color: #B91C1C;
-            font-weight: 600;
-            border-radius: 8px;
-            background: white;
+
+        .card-body {
+            padding: 0.8rem; /* Reducido */
         }
-        .btn-outline-regency:hover { background: #B91C1C; color: white; }
-        .matriz-btn { margin: 4px; padding: 2px 8px; }
-        .errorlist { color: #dc2626; font-size: 0.95em; margin-bottom: 0.5em; }
-        .matriz-table {
-            border-collapse: separate;
-            border-spacing: 6px;
-            margin-bottom: 1rem;
+
+        .form-actions {
+            padding: 0.8rem; /* Reducido */
+            flex-direction: column;
+            align-items: stretch;
+        }
+
+        .actions-primary,
+        .actions-secondary {
+            justify-content: center;
             width: 100%;
         }
+
         .matriz-table td {
-            min-width: 36px;
-            height: 36px;
-            text-align: center;
-            font-size: 1.1rem;
-            border: 2px solid #e5e7eb;
-            border-radius: 8px;
-            background: #fff;
+            min-width: 26px; /* Reducido */
+            height: 26px; /* Reducido */
+            font-size: 0.9rem; /* Reducido */
         }
-        @media (max-width: 900px) {
-            .card-main { margin-top: 1rem; }
-            .card-header h4 { font-size: 1.2rem; }
-            .logo-regency { height: 36px; }
+
+        /* Hacer la descripción vertical en móvil */
+        .form-group-horizontal {
+            flex-direction: column;
+            align-items: stretch;
         }
-        @media (max-width: 600px) {
-            .card-main { margin-top: 0.5rem; }
-            .card-header { flex-direction: column; align-items: flex-start; gap: 0.5rem; }
-            .logo-regency { height: 28px; }
-            .matriz-table td { min-width: 28px; height: 28px; font-size: 1rem; }
-            .d-flex.gap-2.flex-wrap { flex-direction: column; gap: 0.5rem !important; }
+
+        .form-group-horizontal .form-label {
+            min-width: auto;
         }
-    </style>
-</head>
-<body>
-    <div class="container">
-        <div class="card card-main mx-auto" style="max-width: 800px;">
-            <div class="card-header">
-                <img src="{% static 'img/logo_regency.png' %}" alt="Regency Logo" class="logo-regency">
-                <h4>
-                    <i class="bi bi-calendar2-plus me-2"></i>
-                    {% if turno %}Editar{% else %}Crear{% endif %} Modelo de Turno
-                </h4>
-            </div>
-            <div class="card-body">
-                <form method="post">
-                    {% csrf_token %}
-                    {% if form.non_field_errors %}
-                        <div class="alert alert-danger">
-                            {{ form.non_field_errors }}
-                        </div>
-                    {% endif %}
-                    <div class="mb-3">
-                        <label class="form-label">Nombre:</label>
-                        {{ form.nombre }}
-                        {% if form.nombre.errors %}
-                            <div class="errorlist">{{ form.nombre.errors }}</div>
-                        {% endif %}
-                    </div>
-                    <div class="mb-3">
-                        <label class="form-label">Descripción:</label>
-                        {{ form.descripcion }}
-                        {% if form.descripcion.errors %}
-                            <div class="errorlist">{{ form.descripcion.errors }}</div>
-                        {% endif %}
-                    </div>
-                    <div class="row mb-3">
-                        <div class="col-md-6">
-                            <label class="form-label">Unidad de Negocio:</label>
-                            {{ form.unidad_negocio }}
-                            {% if form.unidad_negocio.errors %}
-                                <div class="errorlist">{{ form.unidad_negocio.errors }}</div>
-                            {% endif %}
-                        </div>
-                        <div class="col-md-6">
-                            <label class="form-label">Tipo:</label>
-                            {{ form.tipo }}
-                            {% if form.tipo.errors %}
-                                <div class="errorlist">{{ form.tipo.errors }}</div>
-                            {% endif %}
-                        </div>
-                    </div>
-                    <div class="mb-4">
-                        <label class="form-label">Matriz de Letras:</label>
-                        {{ form.matriz_letras }}
-                        {% if form.matriz_letras.errors %}
-                            <div class="errorlist">{{ form.matriz_letras.errors }}</div>
-                        {% endif %}
-                    </div>
-                    <div class="d-flex gap-2 flex-wrap">
-                        <button type="submit" class="btn btn-regency">
-                            <i class="bi bi-save me-1"></i>Grabar
-                        </button>
-                        <button type="submit" name="_addanother" class="btn btn-outline-regency">
-                            <i class="bi bi-plus-circle me-1"></i>Grabar y añadir otro
-                        </button>
-                        <button type="submit" name="_continue" class="btn btn-outline-regency">
-                            <i class="bi bi-pencil-square me-1"></i>Grabar y continuar editando
-                        </button>
-                        <a href="{% url 'programacion_models:modeloturno_list' %}" class="btn btn-outline-secondary ms-auto">
-                            <i class="bi bi-arrow-left"></i> Volver a la lista
-                        </a>
-                    </div>
-                </form>
-            </div>
+    }
+
+    /* Mejoras en widgets Django */
+    input[type="text"],
+    input[type="number"],
+    select,
+    textarea {
+        padding: 0.6rem !important; /* Reducido de 0.75rem */
+        border: 1px solid #d1d5db !important;
+        border-radius: var(--border-radius) !important;
+        font-size: 0.8rem !important; /* Reducido de 0.9rem */
+        font-family: inherit !important;
+        transition: all 0.2s ease !important;
+        background: white !important;
+        width: 100% !important;
+        box-sizing: border-box !important;
+    }
+
+    /* Especial para textarea de descripción - MAS PEQUEÑO Y HORIZONTAL */
+    textarea[name="descripcion"] {
+        min-height: 40px !important; /* Mucho más pequeño */
+        max-height: 60px !important; /* Limitar altura máxima */
+        resize: vertical !important;
+        font-size: 0.75rem !important; /* Más pequeño */
+        line-height: 1.3 !important;
+    }
+
+    input[type="text"]:focus,
+    input[type="number"]:focus,
+    select:focus,
+    textarea:focus {
+        outline: none !important;
+        border-color: var(--regency-red) !important;
+        box-shadow: 0 0 0 2px rgba(135, 31, 27, 0.1) !important;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="form-container">
+    <!-- Header del formulario -->
+    <div class="form-header">
+        <div class="header-main">
+            <h1>📋 {% if turno %}Editar Modelo de Turno{% else %}Crear Nuevo Modelo de Turno{% endif %}</h1>
+            <p class="form-subtitle">Gestión completa de modelos de turno del sistema REGENCY</p>
+        </div>
+        <div class="header-actions">
+            <a href="{% url 'programacion_models:modeloturno_list' %}" class="btn-secondary btn-sm">
+                📋 Lista de Modelos
+            </a>
         </div>
     </div>
-    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
-</body>
-</html>
+
+ 
+
+    <!-- Formulario principal -->
+    <div class="form-card">
+        <div class="card-header-regency">
+            📋 {% if turno %}Editar Información del Modelo de Turno{% else %}Información del Nuevo Modelo de Turno{% endif %}
+        </div>
+        
+        <form method="post" novalidate>
+            {% csrf_token %}
+            
+            <div class="card-body">
+                <!-- Errores generales -->
+                {% if form.non_field_errors %}
+                    <div class="alert-danger">
+                        {{ form.non_field_errors }}
+                    </div>
+                {% endif %}
+
+                <!-- Información básica del modelo -->
+                <div class="form-grid-full">
+                    <div class="form-group">
+                        <label class="form-label required">
+                            📝 Nombre del Modelo
+                        </label>
+                        {{ form.nombre }}
+                        {% if form.nombre.errors %}
+                            <div class="errorlist">
+                                {% for error in form.nombre.errors %}
+                                    <li>{{ error }}</li>
+                                {% endfor %}
+                            </div>
+                        {% endif %}
+                        <div class="form-help">Nombre identificativo del modelo de turno</div>
+                    </div>
+                </div>
+
+                <!-- Descripción HORIZONTAL -->
+                <div class="form-grid-full">
+                    <div class="form-group-horizontal">
+                        <label class="form-label">
+                            📄 Descripción
+                        </label>
+                        <div class="form-input-wrapper">
+                            {{ form.descripcion }}
+                            {% if form.descripcion.errors %}
+                                <div class="errorlist">
+                                    {% for error in form.descripcion.errors %}
+                                        <li>{{ error }}</li>
+                                    {% endfor %}
+                                </div>
+                            {% endif %}
+                            <div class="form-help">Descripción detallada del modelo de turno</div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Configuración del modelo -->
+                <div class="form-grid">
+                    <div class="form-group">
+                        <label class="form-label required">
+                            🏢 Unidad de Negocio
+                        </label>
+                        {{ form.unidad_negocio }}
+                        {% if form.unidad_negocio.errors %}
+                            <div class="errorlist">
+                                {% for error in form.unidad_negocio.errors %}
+                                    <li>{{ error }}</li>
+                                {% endfor %}
+                            </div>
+                        {% endif %}
+                        <div class="form-help">Unidad de negocio a la que pertenece</div>
+                    </div>
+
+                    <div class="form-group">
+                        <label class="form-label required">
+                            🔄 Tipo de Modelo
+                        </label>
+                        {{ form.tipo }}
+                        {% if form.tipo.errors %}
+                            <div class="errorlist">
+                                {% for error in form.tipo.errors %}
+                                    <li>{{ error }}</li>
+                                {% endfor %}
+                            </div>
+                        {% endif %}
+                        <div class="form-help">Clasificación del tipo de modelo</div>
+                    </div>
+                </div>
+
+                <!-- Matriz de letras -->
+                <div class="matriz-container">
+                    <div class="matriz-title">
+                        🔤 Matriz de Letras de Turno
+                    </div>
+                    {{ form.matriz_letras }}
+                    {% if form.matriz_letras.errors %}
+                        <div class="errorlist">
+                            {% for error in form.matriz_letras.errors %}
+                                <li>{{ error }}</li>
+                            {% endfor %}
+                        </div>
+                    {% endif %}
+                    <div class="form-help">Configure la matriz de letras para los turnos del modelo</div>
+                </div>
+            </div>
+
+            <!-- Acciones del formulario -->
+            <div class="form-actions">
+                <div class="actions-primary">
+                    <button type="submit" class="btn-regency btn-lg">
+                        💾 {% if turno %}Actualizar Modelo{% else %}Crear Modelo{% endif %}
+                    </button>
+                    <button type="submit" name="_addanother" class="btn-regency-outline">
+                        ➕ Grabar y Añadir Otro
+                    </button>
+                    <button type="submit" name="_continue" class="btn-regency-outline">
+                        ✏️ Grabar y Continuar Editando
+                    </button>
+                </div>
+                <div class="actions-secondary">
+                    <a href="{% url 'programacion_models:modeloturno_list' %}" class="btn-secondary">
+                        ← Volver al Listado
+                    </a>
+                </div>
+            </div>
+        </form>
+    </div>
+</div>
+
+<!-- Script para funcionalidades -->
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        // Auto-focus en el primer campo
+        const firstInput = document.querySelector('input[name="nombre"]');
+        if (firstInput) {
+            firstInput.focus();
+        }
+
+        // Mejorar interacción con matriz
+        const matrizCells = document.querySelectorAll('.matriz-table td');
+        matrizCells.forEach(cell => {
+            cell.addEventListener('click', function() {
+                // Lógica adicional para matriz si es necesaria
+                this.style.background = '#fef2f2';
+                setTimeout(() => {
+                    this.style.background = 'white';
+                }, 200);
+            });
+        });
+
+        // Confirmación antes de salir si hay cambios
+        let formChanged = false;
+        const formInputs = document.querySelectorAll('input, select, textarea');
+        formInputs.forEach(input => {
+            input.addEventListener('change', function() {
+                formChanged = true;
+            });
+        });
+
+        window.addEventListener('beforeunload', function(e) {
+            if (formChanged) {
+                e.preventDefault();
+                e.returnValue = '';
+            }
+        });
+
+        // Resetear flag al enviar formulario
+        document.querySelector('form').addEventListener('submit', function() {
+            formChanged = false;
+        });
+    });
+</script>
+{% endblock %}

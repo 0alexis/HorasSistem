@@ -4,211 +4,358 @@
 {% block extrastyle %}
 {{ block.super }}
 <style>
+    /* Variables consistentes con el proyecto */
     :root {
-        --regency-red: #B91C1C;
-        --regency-red-dark: #991B1B;
-        --regency-red-light: #DC2626;
+        --regency-red: #871F1B;
+        --regency-red-dark: #6b191b;
+        --regency-red-light: #a13832;
+        --regency-gray: #f8f9fa;
+        --regency-gray-dark: #64748b;
+        --regency-text: #333;
+        --border-radius: 8px;
+        --shadow-sm: 0 1px 3px rgba(0, 0, 0, 0.1);
+        --shadow-md: 0 4px 6px rgba(0, 0, 0, 0.1);
     }
-    
+
+    /* ========== OCULTAR BREADCRUMB DJANGO ADMIN ========== */
+    .breadcrumbs,
+    div.breadcrumbs {
+        display: none !important;
+    }
+
+    /* Tipografía consistente */
+    body {
+        font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+        font-size: 14px;
+        line-height: 1.5;
+        color: var(--regency-text);
+        background: var(--regency-gray);
+    }
+
+    /* Header principal - más compacto */
     .main-header {
-        background: linear-gradient(135deg, var(--regency-red) 0%, var(--regency-red-dark) 100%);
+        background: var(--regency-red);
         color: white;
-        padding: 2rem;
-        margin: -20px -20px 2rem -20px;
-        border-radius: 0 0 12px 12px;
-        box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        padding: 1rem 1.5rem;
+        margin: 0 0 1rem 0;
+        border-radius: var(--border-radius);
+        box-shadow: var(--shadow-sm);
     }
     
     .main-header h1 {
         margin: 0;
-        font-size: 2rem;
-        font-weight: 300;
+        font-size: 1.4rem;
+        font-weight: 600;
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
     }
-    
+
+    .main-header h1::before {
+        content: '📝';
+        font-size: 1.2rem;
+        padding: 0.25rem;
+        background: rgba(255, 255, 255, 0.1);
+        border-radius: 4px;
+    }
+
+    /* Breadcrumb personalizado más pequeño */
     .breadcrumb-custom {
         background: white;
         border: 1px solid #e5e7eb;
-        border-radius: 8px;
-        padding: 1rem;
-        margin-bottom: 1.5rem;
-        box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+        border-radius: var(--border-radius);
+        padding: 0.75rem 1rem;
+        margin-bottom: 1rem;
+        box-shadow: var(--shadow-sm);
     }
     
     .breadcrumb-custom a {
         color: var(--regency-red);
         text-decoration: none;
         font-weight: 500;
+        font-size: 0.9rem;
         display: inline-flex;
         align-items: center;
         gap: 0.5rem;
+        transition: color 0.2s ease;
     }
     
     .breadcrumb-custom a:hover {
         color: var(--regency-red-dark);
+        text-decoration: none;
     }
-    
+
+    /* Contenedor del formulario más compacto */
     .form-container {
         background: white;
-        border-radius: 12px;
-        padding: 2rem;
-        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
-        margin-bottom: 2rem;
-        max-width: 800px;
-        margin: 0 auto 2rem auto;
-    }
-    
-    .field-group {
-        background: #f9fafb;
-        border-radius: 8px;
+        border-radius: var(--border-radius);
         padding: 1.5rem;
-        margin-bottom: 1.5rem;
-        border-left: 4px solid var(--regency-red);
+        box-shadow: var(--shadow-sm);
+        margin: 0 auto 1rem auto;
+        max-width: 800px;
+        border: 1px solid #e5e7eb;
+    }
+
+    /* Grupos de campos más eficientes */
+    .field-group {
+        background: #fafbfb;
+        border-radius: var(--border-radius);
+        padding: 1rem;
+        margin-bottom: 1rem;
+        border-left: 3px solid var(--regency-red);
+        border: 1px solid #f0f0f0;
     }
     
     .field-group label {
         font-weight: 600;
-        color: #374151;
+        color: var(--regency-text);
         margin-bottom: 0.5rem;
         display: block;
-        font-size: 1rem;
+        font-size: 0.9rem;
     }
-    
-    .form-control {
-        width: 100%;
-        padding: 0.75rem;
-        border: 2px solid #e5e7eb;
-        border-radius: 8px;
-        font-size: 1rem;
-        transition: all 0.3s ease;
-        background-color: #ffffff !important;
-        color: #000000 !important;
-        font-weight: 500 !important;
-    }
-    
-    /* SOLUCIÓN DIRECTA PARA SELECT */
-    select.form-control,
+
+    /* Inputs más consistentes */
+    .form-control,
+    input[type="text"],
+    input[type="date"],
     select,
-    .form-control select {
+    textarea {
+        width: 100%;
+        padding: 0.6rem 0.75rem;
+        border: 1px solid #d1d5db;
+        border-radius: var(--border-radius);
+        font-size: 0.9rem;
+        font-family: inherit;
+        transition: all 0.2s ease;
+        background-color: #ffffff !important;
+        color: #000000 !important;
+        font-weight: 500 !important;
+        box-sizing: border-box;
+    }
+
+    /* Solución para select - color negro */
+    select.form-control,
+    select {
         color: #000000 !important;
         background-color: #ffffff !important;
         font-weight: 500 !important;
-        text-shadow: none !important;
         -webkit-text-fill-color: #000000 !important;
-        -webkit-appearance: menulist !important;
-        -moz-appearance: menulist !important;
-        appearance: menulist !important;
+        -webkit-appearance: menulist;
+        -moz-appearance: menulist;
+        appearance: menulist;
     }
     
-    /* Forzar color en opciones */
     select option {
         color: #000000 !important;
         background-color: #ffffff !important;
         font-weight: normal !important;
     }
     
-    /* Selectores ultra específicos */
-
-    
-    /* Resetear cualquier herencia */
-    * select {
-        color: #000000 !important;
-    }
-    
-    .form-control:focus {
+    .form-control:focus,
+    input:focus,
+    select:focus,
+    textarea:focus {
         outline: none;
         border-color: var(--regency-red);
-        box-shadow: 0 0 0 3px rgba(185, 28, 28, 0.1);
+        box-shadow: 0 0 0 2px rgba(135, 31, 27, 0.1);
         color: #000000 !important;
     }
-    
+
+    /* Grid del formulario más compacto */
     .form-grid {
         display: grid;
         grid-template-columns: 1fr 1fr;
-        gap: 1.5rem;
+        gap: 1rem;
     }
-    
+
+    /* Checkbox más pequeño */
     .checkbox-field {
         display: flex;
         align-items: center;
-        gap: 0.75rem;
-        margin-top: 1rem;
-        padding: 1rem;
+        gap: 0.5rem;
+        margin-top: 0.5rem;
+        padding: 0.75rem;
         background: #f0f9ff;
-        border-radius: 8px;
-        border-left: 4px solid #83c6e4;
+        border-radius: var(--border-radius);
+        border-left: 3px solid #3b82f6;
     }
     
     .form-check-input {
-        width: 1.25rem;
-        height: 1.25rem;
+        width: 1rem;
+        height: 1rem;
         accent-color: var(--regency-red);
     }
-    
+
+    .checkbox-field label {
+        margin: 0 !important;
+        font-size: 0.9rem !important;
+        font-weight: 500 !important;
+    }
+
+    /* Botones consistentes con el proyecto */
     .btn-container {
         display: flex;
-        gap: 1rem;
+        gap: 0.75rem;
         justify-content: center;
-        margin-top: 2rem;
+        margin-top: 1.5rem;
+        padding-top: 1rem;
+        border-top: 1px solid #e5e7eb;
     }
     
     .btn-regency {
-        background: linear-gradient(135deg, var(--regency-red) 0%, var(--regency-red-light) 100%);
+        background: var(--regency-red);
         color: white;
         border: none;
-        padding: 0.875rem 2rem;
-        border-radius: 8px;
+        padding: 0.6rem 1.5rem;
+        border-radius: var(--border-radius);
         font-weight: 600;
-        font-size: 1rem;
+        font-size: 0.9rem;
         cursor: pointer;
-        transition: all 0.3s ease;
+        transition: all 0.2s ease;
         text-decoration: none;
-        display: inline-block;
+        display: inline-flex;
+        align-items: center;
+        gap: 0.5rem;
+        box-shadow: var(--shadow-sm);
     }
     
     .btn-regency:hover {
-        background: linear-gradient(135deg, var(--regency-red-dark) 0%, var(--regency-red) 100%);
-        transform: translateY(-1px);
-        box-shadow: 0 4px 8px rgba(185, 28, 28, 0.3);
+        background: var(--regency-red-dark);
         color: white;
+        text-decoration: none;
+        transform: translateY(-1px);
+        box-shadow: var(--shadow-md);
     }
     
     .btn-secondary {
-        background: #6b7280;
-        color: white;
-        border: 2px solid #6b7280;
-        padding: 0.875rem 2rem;
-        border-radius: 8px;
-        font-weight: 600;
-        font-size: 1rem;
+        background: transparent;
+        color: var(--regency-gray-dark);
+        border: 1px solid #d1d5db;
+        padding: 0.6rem 1.5rem;
+        border-radius: var(--border-radius);
+        font-weight: 500;
+        font-size: 0.9rem;
         cursor: pointer;
-        transition: all 0.3s ease;
+        transition: all 0.2s ease;
         text-decoration: none;
-        display: inline-block;
+        display: inline-flex;
+        align-items: center;
+        gap: 0.5rem;
     }
     
     .btn-secondary:hover {
-        background: #4b5563;
-        border-color: #4b5563;
-        color: white;
+        background: #f9fafb;
+        border-color: var(--regency-gray-dark);
+        color: var(--regency-text);
+        text-decoration: none;
+        transform: translateY(-1px);
     }
-    
+
+    /* Texto de ayuda más pequeño */
     .help-text {
-        font-size: 0.875rem;
-        color: #6b7280;
+        font-size: 0.8rem;
+        color: var(--regency-gray-dark);
         margin-top: 0.25rem;
         font-style: italic;
     }
     
+    /* Errores más discretos */
     .error-list {
         color: #dc2626;
-        font-size: 0.875rem;
+        font-size: 0.8rem;
         margin-top: 0.25rem;
         list-style: none;
         padding: 0;
+        background: #fef2f2;
+        border: 1px solid #fecaca;
+        border-radius: 4px;
+        padding: 0.5rem;
     }
     
     .error-list li {
         margin-bottom: 0.25rem;
+        display: flex;
+        align-items: center;
+        gap: 0.25rem;
+    }
+
+    .error-list li::before {
+        content: '⚠';
+        font-size: 0.8rem;
+    }
+
+    /* Responsive optimizado */
+    @media (max-width: 768px) {
+        .main-header {
+            padding: 0.75rem 1rem;
+        }
+
+        .main-header h1 {
+            font-size: 1.2rem;
+        }
+
+        .form-container {
+            padding: 1rem;
+            margin: 0 0.5rem 1rem 0.5rem;
+        }
+
+        .form-grid {
+            grid-template-columns: 1fr;
+            gap: 0.75rem;
+        }
+
+        .field-group {
+            padding: 0.75rem;
+            margin-bottom: 0.75rem;
+        }
+
+        .btn-container {
+            flex-direction: column;
+            gap: 0.5rem;
+        }
+
+        .btn-regency,
+        .btn-secondary {
+            width: 100%;
+            justify-content: center;
+        }
+    }
+
+    /* Mejoras de accesibilidad */
+    .btn-regency:focus,
+    .btn-secondary:focus,
+    .breadcrumb-custom a:focus {
+        outline: 2px solid var(--regency-red-light);
+        outline-offset: 2px;
+    }
+
+    /* Animación suave al cargar */
+    .form-container,
+    .main-header,
+    .breadcrumb-custom {
+        animation: fadeInUp 0.3s ease forwards;
+    }
+
+    @keyframes fadeInUp {
+        from {
+            opacity: 0;
+            transform: translateY(10px);
+        }
+        to {
+            opacity: 1;
+            transform: translateY(0);
+        }
+    }
+
+    /* Asegurar que todos los elementos del formulario tengan el color correcto */
+    .form-container * {
+        color: inherit;
+    }
+
+    .form-container input,
+    .form-container select,
+    .form-container textarea {
+        color: #000000 !important;
     }
 </style>
 {% endblock %}

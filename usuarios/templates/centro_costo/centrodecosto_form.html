@@ -1,72 +1,605 @@
-{% load static %}
-<!DOCTYPE html>
-<html lang="es">
-<head>
-    <meta charset="UTF-8">
-    <title>{% if centrodecosto %}Editar{% else %}Crear{% endif %} Centro de Costo</title>
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.0/font/bootstrap-icons.css" rel="stylesheet">
-    <style>
-        body { background: #f8fafc; }
-        .card-main { border-radius: 16px; box-shadow: 0 4px 16px rgba(185,28,28,0.08); border: none; margin-top: 2rem; }
-        .card-header { background: linear-gradient(135deg, #B91C1C, #991B1B); color: white; font-weight: 600; border-radius: 16px 16px 0 0; display: flex; align-items: center; gap: 1rem; flex-wrap: wrap; }
-        .logo-regency { height: 56px; background: white; border-radius: 12px; padding: 8px 16px; box-shadow: 0 2px 8px rgba(185,28,28,0.08); }
-        .card-header h4 { margin-bottom: 0; font-size: 1.5rem; flex: 1; }
-        .form-label { font-weight: 600; color: #B91C1C; }
-        .btn-regency { background: #B91C1C; color: white; font-weight: 600; border-radius: 8px; border: none; }
-        .btn-regency:hover { background: #991B1B; color: white; }
-        .btn-outline-regency { border: 2px solid #B91C1C; color: #B91C1C; font-weight: 600; border-radius: 8px; background: white; }
-        .btn-outline-regency:hover { background: #B91C1C; color: white; }
-        .errorlist { color: #dc2626; font-size: 0.95em; margin-bottom: 0.5em; }
-        @media (max-width: 900px) { .card-main { margin-top: 1rem; } .card-header h4 { font-size: 1.2rem; } .logo-regency { height: 36px; } }
-        @media (max-width: 600px) { .card-main { margin-top: 0.5rem; } .card-header { flex-direction: column; align-items: flex-start; gap: 0.5rem; } .logo-regency { height: 28px; } .d-flex.gap-2.flex-wrap { flex-direction: column; gap: 0.5rem !important; } }
-    </style>
-</head>
-<body>
-    <div class="container">
-        <div class="card card-main mx-auto" style="max-width: 600px;">
-            <div class="card-header">
-                <img src="{% static 'img/logo_regency.png' %}" alt="Regency Logo" class="logo-regency">
-                <h4>
-                    <i class="bi bi-building me-2"></i>
-                    {% if centrodecosto %}Editar{% else %}Crear{% endif %} Centro de Costo
-                </h4>
-            </div>
-            <div class="card-body">
-                <form method="post">
-                    {% csrf_token %}
-                    {% if form.non_field_errors %}
-                        <div class="alert alert-danger">
-                            {{ form.non_field_errors }}
-                        </div>
-                    {% endif %}
-                    <div class="mb-3">
-                        <label class="form-label">Nombre:</label>
-                        {{ form.nombre }}
-                        {% if form.nombre.errors %}
-                            <div class="errorlist">{{ form.nombre.errors }}</div>
-                        {% endif %}
-                    </div>
-                    <div class="mb-3">
-                        <label class="form-label">Código:</label>
-                        {{ form.codigo }}
-                        {% if form.codigo.errors %}
-                            <div class="errorlist">{{ form.codigo.errors }}</div>
-                        {% endif %}
-                    </div>
-                    
-                    <div class="d-flex gap-2 flex-wrap">
-                        <button type="submit" class="btn btn-regency">
-                            <i class="bi bi-save me-1"></i>Grabar
-                        </button>
-                        <a href="{% url 'usuarios:centrodecosto_list' %}" class="btn btn-outline-secondary ms-auto">
-                            <i class="bi bi-arrow-left"></i> Volver al listado
-                        </a>
-                    </div>
-                </form>
-            </div>
+{% extends "admin/base_site.html" %}
+{% load i18n static %}
+
+{% block extrastyle %}
+{{ block.super }}
+<style>
+    /* Variables consistentes con el proyecto */
+    :root {
+        --regency-red: #871F1B;
+        --regency-red-dark: #6b191b;
+        --regency-red-light: #a13832;
+        --regency-gray: #f8f9fa;
+        --regency-gray-dark: #64748b;
+        --regency-text: #333;
+        --border-radius: 8px;
+        --shadow-sm: 0 1px 3px rgba(0, 0, 0, 0.1);
+        --shadow-md: 0 4px 6px rgba(0, 0, 0, 0.1);
+    }
+
+    /* ========== OCULTAR BREADCRUMB DJANGO ADMIN ========== */
+    .breadcrumbs,
+    div.breadcrumbs {
+        display: none !important;
+    }
+
+    /* Tipografía empresarial consistente */
+    body {
+        font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+        font-size: 14px;
+        line-height: 1.5;
+        color: var(--regency-text);
+        background: var(--regency-gray);
+    }
+
+    /* Container principal */
+    .form-container {
+        padding: 1rem 1.5rem;
+        max-width: 700px;
+        margin: 0 auto;
+    }
+
+    /* Header del formulario */
+    .form-header {
+        background: var(--regency-red);
+        color: white;
+        padding: 1.25rem 1.5rem;
+        margin-bottom: 1.5rem;
+        border-radius: var(--border-radius);
+        box-shadow: var(--shadow-sm);
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        flex-wrap: wrap;
+        gap: 1rem;
+    }
+
+    .header-main {
+        flex: 1;
+        min-width: 0;
+    }
+
+    .form-header h1 {
+        font-size: 1.4rem;
+        font-weight: 600;
+        margin: 0 0 0.4rem 0;
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+        line-height: 1.2;
+    }
+
+    .form-subtitle {
+        font-size: 0.85rem;
+        opacity: 0.9;
+        margin: 0;
+        font-weight: 400;
+    }
+
+    .header-actions {
+        display: flex;
+        gap: 0.5rem;
+        flex-shrink: 0;
+    }
+
+    /* Breadcrumb personalizado */
+    .custom-breadcrumb {
+        background: white;
+        border: 1px solid #e5e7eb;
+        border-radius: var(--border-radius);
+        padding: 0.75rem 1rem;
+        margin-bottom: 1.5rem;
+        box-shadow: var(--shadow-sm);
+        font-size: 0.85rem;
+    }
+
+    .custom-breadcrumb a {
+        color: var(--regency-red);
+        text-decoration: none;
+        font-weight: 500;
+        transition: color 0.2s ease;
+    }
+
+    .custom-breadcrumb a:hover {
+        color: var(--regency-red-dark);
+        text-decoration: underline;
+    }
+
+    .breadcrumb-separator {
+        color: var(--regency-gray-dark);
+        margin: 0 0.5rem;
+    }
+
+    /* Card del formulario */
+    .form-card {
+        background: white;
+        border-radius: var(--border-radius);
+        overflow: hidden;
+        box-shadow: var(--shadow-sm);
+        border: 1px solid #e5e7eb;
+    }
+
+    .card-header-regency {
+        background: var(--regency-red);
+        color: white;
+        padding: 1rem 1.25rem;
+        font-weight: 600;
+        font-size: 1rem;
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+    }
+
+    .card-body {
+        padding: 1.5rem;
+    }
+
+    /* Grid del formulario */
+    .form-grid {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 1.25rem;
+        margin-bottom: 1.25rem;
+    }
+
+    .form-grid-full {
+        grid-column: 1 / -1;
+    }
+
+    /* Grupos de formulario */
+    .form-group {
+        display: flex;
+        flex-direction: column;
+        gap: 0.5rem;
+    }
+
+    .form-label {
+        font-size: 0.85rem;
+        font-weight: 600;
+        color: var(--regency-text);
+        display: flex;
+        align-items: center;
+        gap: 0.3rem;
+    }
+
+    .form-label.required::after {
+        content: "*";
+        color: var(--regency-red);
+        font-weight: bold;
+        margin-left: 0.2rem;
+    }
+
+    /* Campos de formulario */
+    .form-input,
+    .form-select,
+    .form-textarea {
+        padding: 0.75rem;
+        border: 1px solid #d1d5db;
+        border-radius: var(--border-radius);
+        font-size: 0.9rem;
+        font-family: inherit;
+        transition: all 0.2s ease;
+        background: white;
+        width: 100%;
+    }
+
+    .form-input:focus,
+    .form-select:focus,
+    .form-textarea:focus {
+        outline: none;
+        border-color: var(--regency-red);
+        box-shadow: 0 0 0 2px rgba(135, 31, 27, 0.1);
+    }
+
+    .form-input.error,
+    .form-select.error,
+    .form-textarea.error {
+        border-color: #dc2626;
+        box-shadow: 0 0 0 2px rgba(220, 38, 38, 0.1);
+    }
+
+    /* Mensajes de error */
+    .error-message {
+        color: #dc2626;
+        font-size: 0.8rem;
+        font-weight: 500;
+        margin-top: 0.25rem;
+        display: flex;
+        align-items: center;
+        gap: 0.3rem;
+    }
+
+    .error-message::before {
+        content: "⚠️";
+        font-size: 0.7rem;
+    }
+
+    /* Botones empresariales */
+    .btn-regency {
+        background: var(--regency-red);
+        color: white;
+        border: none;
+        padding: 0.75rem 1.25rem;
+        border-radius: var(--border-radius);
+        font-weight: 500;
+        font-size: 0.9rem;
+        cursor: pointer;
+        transition: all 0.2s ease;
+        text-decoration: none;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        gap: 0.5rem;
+        box-shadow: var(--shadow-sm);
+    }
+
+    .btn-regency:hover {
+        background: var(--regency-red-dark);
+        color: white;
+        text-decoration: none;
+        transform: translateY(-1px);
+        box-shadow: var(--shadow-md);
+    }
+
+    .btn-regency-outline {
+        background: transparent;
+        color: var(--regency-red);
+        border: 1px solid var(--regency-red);
+        padding: 0.75rem 1.25rem;
+        border-radius: var(--border-radius);
+        font-weight: 500;
+        font-size: 0.9rem;
+        cursor: pointer;
+        transition: all 0.2s ease;
+        text-decoration: none;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        gap: 0.5rem;
+    }
+
+    .btn-regency-outline:hover {
+        background: var(--regency-red);
+        color: white;
+        text-decoration: none;
+        transform: translateY(-1px);
+    }
+
+    .btn-secondary {
+        background: #6b7280;
+        color: white;
+        border: 1px solid #6b7280;
+        padding: 0.75rem 1.25rem;
+        border-radius: var(--border-radius);
+        font-weight: 500;
+        font-size: 0.9rem;
+        cursor: pointer;
+        transition: all 0.2s ease;
+        text-decoration: none;
+        display: inline-flex;
+        align-items: center;
+        gap: 0.5rem;
+    }
+
+    .btn-secondary:hover {
+        background: #4b5563;
+        border-color: #4b5563;
+        color: white;
+        text-decoration: none;
+    }
+
+    .btn-lg {
+        padding: 0.9rem 1.5rem;
+        font-size: 1rem;
+        font-weight: 600;
+    }
+
+    .btn-sm {
+        padding: 0.4rem 0.75rem;
+        font-size: 0.8rem;
+    }
+
+    /* Área de botones */
+    .form-actions {
+        background: #f8fafc;
+        padding: 1rem 1.5rem;
+        border-top: 1px solid #e5e7eb;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        gap: 1rem;
+        flex-wrap: wrap;
+    }
+
+    .actions-primary {
+        display: flex;
+        gap: 0.75rem;
+    }
+
+    .actions-secondary {
+        display: flex;
+        gap: 0.5rem;
+    }
+
+    /* Alerts */
+    .alert {
+        border-radius: var(--border-radius);
+        padding: 1rem;
+        margin-bottom: 1rem;
+        border: 1px solid;
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+    }
+
+    .alert-success {
+        background: #f0fdf4;
+        border-color: #bbf7d0;
+        color: #166534;
+    }
+
+    .alert-info {
+        background: #f0f9ff;
+        border-color: #bae6fd;
+        color: #0c4a6e;
+    }
+
+    .alert-warning {
+        background: #fffbeb;
+        border-color: #fed7aa;
+        color: #92400e;
+    }
+
+    .alert-error {
+        background: #fef2f2;
+        border-color: #fecaca;
+        color: #991b1b;
+    }
+
+    /* Helpers visuales */
+    .form-help {
+        font-size: 0.75rem;
+        color: var(--regency-gray-dark);
+        margin-top: 0.25rem;
+        display: flex;
+        align-items: center;
+        gap: 0.3rem;
+    }
+
+    .form-help::before {
+        content: "💡";
+        font-size: 0.7rem;
+    }
+
+    /* Responsive */
+    @media (max-width: 768px) {
+        .form-container {
+            padding: 0.75rem 1rem;
+        }
+
+        .form-header {
+            padding: 1rem;
+            flex-direction: column;
+            align-items: stretch;
+            text-align: center;
+        }
+
+        .form-header h1 {
+            font-size: 1.2rem;
+            justify-content: center;
+        }
+
+        .header-actions {
+            justify-content: center;
+            margin-top: 0.5rem;
+        }
+
+        .form-grid {
+            grid-template-columns: 1fr;
+            gap: 1rem;
+        }
+
+        .card-body {
+            padding: 1rem;
+        }
+
+        .form-actions {
+            padding: 1rem;
+            flex-direction: column;
+            align-items: stretch;
+        }
+
+        .actions-primary,
+        .actions-secondary {
+            justify-content: center;
+        }
+    }
+
+    /* Animaciones */
+    .form-card {
+        animation: fadeInUp 0.3s ease forwards;
+    }
+
+    @keyframes fadeInUp {
+        from {
+            opacity: 0;
+            transform: translateY(10px);
+        }
+        to {
+            opacity: 1;
+            transform: translateY(0);
+        }
+    }
+
+    /* Mejoras en los widgets de Django */
+    input[type="text"],
+    input[type="email"],
+    input[type="number"],
+    select,
+    textarea {
+        padding: 0.75rem !important;
+        border: 1px solid #d1d5db !important;
+        border-radius: var(--border-radius) !important;
+        font-size: 0.9rem !important;
+        font-family: inherit !important;
+        transition: all 0.2s ease !important;
+        background: white !important;
+        width: 100% !important;
+        box-sizing: border-box !important;
+    }
+
+    input[type="text"]:focus,
+    input[type="email"]:focus,
+    input[type="number"]:focus,
+    select:focus,
+    textarea:focus {
+        outline: none !important;
+        border-color: var(--regency-red) !important;
+        box-shadow: 0 0 0 2px rgba(135, 31, 27, 0.1) !important;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="form-container">
+    <!-- Header del formulario -->
+    <div class="form-header">
+        <div class="header-main">
+            <h1> {{ centrodecosto|yesno:"Editar Centro de Costo,Crear Nuevo Centro de Costo" }}</h1>
+            <p class="form-subtitle">Gestión de centros de costos del sistema REGENCY</p>
+        </div>
+        <div class="header-actions">
+            <a href="{% url 'usuarios:centrodecosto_list' %}" class="btn-secondary btn-sm">
+                 Lista de Centros
+            </a>
         </div>
     </div>
-    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
-</body>
-</html>
+
+
+    <!-- Mensajes -->
+    {% if messages %}
+        {% for message in messages %}
+            <div class="alert alert-{{ message.tags }}">
+                {{ message }}
+            </div>
+        {% endfor %}
+    {% endif %}
+
+    <!-- Formulario principal -->
+    <div class="form-card">
+        <div class="card-header-regency">
+             {% if centrodecosto %}Editar Centro de Costo{% else %}Información del Nuevo Centro de Costo{% endif %}
+        </div>
+        
+        <form method="post" novalidate>
+            {% csrf_token %}
+            
+            <div class="card-body">
+                <!-- Errores generales del formulario -->
+                {% if form.non_field_errors %}
+                    <div class="alert alert-error">
+                        ⚠️ {{ form.non_field_errors }}
+                    </div>
+                {% endif %}
+
+                <!-- Información del Centro de Costo -->
+                <div class="form-grid">
+                    <div class="form-group">
+                        <label class="form-label {% if form.nombre.field.required %}required{% endif %}">
+                             Nombre del Centro
+                        </label>
+                        {{ form.nombre }}
+                        {% if form.nombre.errors %}
+                            <div class="error-message">{{ form.nombre.errors.0 }}</div>
+                        {% endif %}
+                        <div class="form-help">Nombre descriptivo del centro de costo</div>
+                    </div>
+
+                    <div class="form-group">
+                        <label class="form-label {% if form.codigo.field.required %}required{% endif %}">
+                             Código del Centro
+                        </label>
+                        {{ form.codigo }}
+                        {% if form.codigo.errors %}
+                            <div class="error-message">{{ form.codigo.errors.0 }}</div>
+                        {% endif %}
+                        <div class="form-help">Código único identificador del centro</div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Acciones del formulario -->
+            <div class="form-actions">
+                <div class="actions-primary">
+                    <button type="submit" class="btn-regency btn-lg">
+                        💾 {% if centrodecosto %}Actualizar Centro{% else %}Crear Centro{% endif %}
+                    </button>
+                </div>
+                <div class="actions-secondary">
+                    <a href="{% url 'usuarios:centrodecosto_list' %}" class="btn-secondary">
+                        ← Volver a la Lista
+                    </a>
+                    {% if centrodecosto %}
+                        <a href="{% url 'usuarios:centrodecosto_detail' centrodecosto.pk %}" class="btn-regency-outline">
+                             Ver Detalle
+                        </a>
+                    {% endif %}
+                </div>
+            </div>
+        </form>
+    </div>
+</div>
+
+<!-- Script para mejorar la UX del formulario -->
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        // Auto-focus en el primer campo
+        const firstInput = document.querySelector('input');
+        if (firstInput) {
+            firstInput.focus();
+        }
+
+        // Formateo automático para código
+        const codigoField = document.querySelector('input[name="codigo"]');
+        if (codigoField) {
+            codigoField.addEventListener('input', function() {
+                // Convertir a mayúsculas y remover espacios
+                this.value = this.value.toUpperCase().replace(/\s/g, '');
+            });
+        }
+
+        // Validación de longitud mínima
+        const nombreField = document.querySelector('input[name="nombre"]');
+        if (nombreField) {
+            nombreField.addEventListener('blur', function() {
+                if (this.value.trim().length < 3) {
+                    this.style.borderColor = '#dc2626';
+                } else {
+                    this.style.borderColor = '#d1d5db';
+                }
+            });
+        }
+
+        // Confirmación antes de salir si hay cambios
+        let formChanged = false;
+        const formInputs = document.querySelectorAll('input, select, textarea');
+        formInputs.forEach(input => {
+            input.addEventListener('change', function() {
+                formChanged = true;
+            });
+        });
+
+        window.addEventListener('beforeunload', function(e) {
+            if (formChanged) {
+                e.preventDefault();
+                e.returnValue = '';
+            }
+        });
+
+        // Resetear flag al enviar formulario
+        document.querySelector('form').addEventListener('submit', function() {
+            formChanged = false;
+        });
+    });
+</script>
+{% endblock %}

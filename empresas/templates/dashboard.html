@@ -1,327 +1,678 @@
-<!DOCTYPE html>
-<html lang="es">
-<head>
-    <meta charset="UTF-8">
-    <title>Dashboard de Empresas</title>
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/css/bootstrap.min.css" rel="stylesheet">
-    {% load static %}
-    <style>
-        :root {
-            --color-primary: #B91C1C;      /* Rojo REGENCY */
-            --color-secondary: #991B1B;    /* Rojo más oscuro */
-            --color-accent: #7F1D1D;       /* Rojo profundo */
-            --color-light: #FEF2F2;        /* Rojo muy claro */
-            --color-dark: #450A0A;         /* Rojo muy oscuro */
+{% extends "admin/base_site.html" %}
+{% load i18n static %}
+
+{% block extrastyle %}
+{{ block.super }}
+<style>
+    /* Variables consistentes con el proyecto */
+    :root {
+        --regency-red: #871F1B;
+        --regency-red-dark: #6b191b;
+        --regency-red-light: #a13832;
+        --regency-gray: #f8f9fa;
+        --regency-gray-dark: #64748b;
+        --regency-text: #333;
+        --border-radius: 8px;
+        --shadow-sm: 0 1px 3px rgba(0, 0, 0, 0.1);
+        --shadow-md: 0 4px 6px rgba(0, 0, 0, 0.1);
+    }
+
+    /* ========== OCULTAR BREADCRUMB DJANGO ADMIN ========== */
+    .breadcrumbs,
+    div.breadcrumbs {
+        display: none !important;
+    }
+
+    /* Tipografía consistente */
+    body {
+        font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+        font-size: 14px;
+        line-height: 1.5;
+        color: var(--regency-text);
+        background: var(--regency-gray);
+    }
+
+    /* Container principal */
+    .dashboard-container {
+        padding: 1rem 1.5rem;
+        max-width: 1200px;
+        margin: 0 auto;
+    }
+
+    /* Header del dashboard más compacto */
+    .dashboard-header {
+        background: var(--regency-red);
+        color: white;
+        padding: 1rem 1.5rem;
+        margin-bottom: 1.5rem;
+        border-radius: var(--border-radius);
+        box-shadow: var(--shadow-sm);
+    }
+
+    .dashboard-header h1 {
+        font-size: 1.4rem;
+        font-weight: 600;
+        margin: 0 0 0.25rem 0;
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+    }
+
+    .dashboard-header h1::before {
+        content: '🏢';
+        font-size: 1.2rem;
+        padding: 0.25rem;
+        background: rgba(255, 255, 255, 0.1);
+        border-radius: 4px;
+    }
+
+    .dashboard-subtitle {
+        font-size: 0.9rem;
+        opacity: 0.9;
+        margin: 0;
+        font-weight: 400;
+    }
+
+    /* Header con métricas integradas */
+    .section-header-with-metrics {
+        background: var(--regency-red-dark);
+        color: white;
+        padding: 1rem 1.25rem;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        flex-wrap: wrap;
+        gap: 1rem;
+    }
+
+    .section-title {
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+        font-weight: 600;
+        font-size: 1rem;
+    }
+
+    .section-icon {
+        font-size: 0.9rem;
+    }
+
+    /* Métricas en el header */
+    .header-metrics {
+        display: flex;
+        gap: 1.5rem;
+        align-items: center;
+    }
+
+    .header-metric {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        text-align: center;
+        min-width: 60px;
+    }
+
+    .metric-value {
+        font-size: 1.4rem;
+        font-weight: 700;
+        line-height: 1;
+        color: white;
+        display: block;
+    }
+
+    .metric-label {
+        font-size: 0.7rem;
+        font-weight: 500;
+        opacity: 0.9;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+        margin-top: 0.15rem;
+        display: block;
+    }
+
+    /* Sección de acciones principales */
+    .actions-section {
+        background: white;
+        border-radius: var(--border-radius);
+        padding: 1.25rem;
+        margin-bottom: 1.5rem;
+        box-shadow: var(--shadow-sm);
+        border: 1px solid #e5e7eb;
+    }
+
+    .actions-header {
+        color: var(--regency-red);
+        font-size: 1rem;
+        font-weight: 600;
+        margin-bottom: 1rem;
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+    }
+
+    .actions-header::before {
+        content: '🚀';
+        font-size: 0.9rem;
+    }
+
+    .actions-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+        gap: 0.75rem;
+    }
+
+    /* Botones consistentes */
+    .btn-regency {
+        background: var(--regency-red);
+        color: white;
+        border: none;
+        padding: 0.6rem 1rem;
+        border-radius: var(--border-radius);
+        font-weight: 500;
+        font-size: 0.85rem;
+        cursor: pointer;
+        transition: all 0.2s ease;
+        text-decoration: none;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        gap: 0.5rem;
+        box-shadow: var(--shadow-sm);
+        width: 100%;
+    }
+
+    .btn-regency:hover {
+        background: var(--regency-red-dark);
+        color: white;
+        text-decoration: none;
+        transform: translateY(-1px);
+        box-shadow: var(--shadow-md);
+    }
+
+    .btn-regency-outline {
+        background: transparent;
+        color: var(--regency-red);
+        border: 1px solid var(--regency-red);
+        padding: 0.6rem 1rem;
+        border-radius: var(--border-radius);
+        font-weight: 500;
+        font-size: 0.85rem;
+        cursor: pointer;
+        transition: all 0.2s ease;
+        text-decoration: none;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        gap: 0.5rem;
+        width: 100%;
+    }
+
+    .btn-regency-outline:hover {
+        background: var(--regency-red);
+        color: white;
+        text-decoration: none;
+        transform: translateY(-1px);
+    }
+
+    /* Layout principal */
+    .main-layout {
+        display: grid;
+        grid-template-columns: 2fr 1fr;
+        gap: 1.5rem;
+    }
+
+    /* Tabla de empresas */
+    .empresas-section {
+        background: white;
+        border-radius: var(--border-radius);
+        overflow: hidden;
+        box-shadow: var(--shadow-sm);
+        border: 1px solid #e5e7eb;
+    }
+
+    .table-wrapper {
+        overflow-x: auto;
+    }
+
+    .empresas-table {
+        width: 100%;
+        border-collapse: collapse;
+        font-size: 0.85rem;
+    }
+
+    .empresas-table th {
+        background: var(--regency-gray);
+        color: var(--regency-text);
+        font-weight: 600;
+        padding: 0.75rem 1rem;
+        text-align: left;
+        font-size: 0.8rem;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+        border-bottom: 2px solid var(--regency-red);
+    }
+
+    .empresas-table td {
+        padding: 0.75rem 1rem;
+        border-bottom: 1px solid #f3f4f6;
+        vertical-align: middle;
+    }
+
+    .empresas-table tr:hover {
+        background-color: #f8fafc;
+    }
+
+    .empresa-nombre {
+        font-weight: 600;
+        color: var(--regency-text);
+        font-size: 0.9rem;
+        margin-bottom: 2px;
+    }
+
+    .empresa-email {
+        font-size: 0.75rem;
+        color: var(--regency-gray-dark);
+    }
+
+    .empresa-nit {
+        font-family: 'SF Mono', 'Monaco', 'Inconsolata', 'Roboto Mono', monospace;
+        font-size: 0.8rem;
+        font-weight: 500;
+        color: var(--regency-text);
+    }
+
+    /* Estados */
+    .badge {
+        padding: 0.25rem 0.6rem;
+        border-radius: 12px;
+        font-size: 0.7rem;
+        font-weight: 600;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+    }
+
+    .badge-active {
+        background: #dcfce7;
+        color: #166534;
+        border: 1px solid #bbf7d0;
+    }
+
+    .badge-inactive {
+        background: #fee2e2;
+        color: #991b1b;
+        border: 1px solid #fecaca;
+    }
+
+    /* Botones de acción */
+    .action-buttons {
+        display: flex;
+        gap: 0.25rem;
+    }
+
+    .btn-action {
+        background: transparent;
+        color: var(--regency-red);
+        border: 1px solid var(--regency-red);
+        padding: 0.25rem 0.5rem;
+        border-radius: 4px;
+        font-size: 0.7rem;
+        cursor: pointer;
+        transition: all 0.2s ease;
+        text-decoration: none;
+    }
+
+    .btn-action:hover {
+        background: var(--regency-red);
+        color: white;
+        text-decoration: none;
+    }
+
+    /* Panel lateral */
+    .sidebar-panel {
+        display: flex;
+        flex-direction: column;
+        gap: 1rem;
+    }
+
+    .panel-card {
+        background: white;
+        border-radius: var(--border-radius);
+        overflow: hidden;
+        box-shadow: var(--shadow-sm);
+        border: 1px solid #e5e7eb;
+    }
+
+    .panel-header {
+        background: var(--regency-red);
+        color: white;
+        padding: 0.875rem 1rem;
+        font-weight: 600;
+        font-size: 0.9rem;
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+    }
+
+    .panel-header.secondary {
+        background: var(--regency-red-dark);
+    }
+
+    .panel-body {
+        padding: 1rem;
+    }
+
+    .panel-buttons {
+        display: flex;
+        flex-direction: column;
+        gap: 0.5rem;
+    }
+
+    .panel-buttons .btn-regency,
+    .panel-buttons .btn-regency-outline {
+        justify-content: flex-start;
+        font-size: 0.8rem;
+        padding: 0.5rem 0.75rem;
+    }
+
+    .panel-buttons hr {
+        margin: 0.5rem 0;
+        border-color: #e5e7eb;
+    }
+
+    /* Búsqueda */
+    .search-form {
+        display: flex;
+        flex-direction: column;
+        gap: 0.75rem;
+    }
+
+    .search-input {
+        width: 100%;
+        padding: 0.5rem 0.75rem;
+        border: 1px solid #d1d5db;
+        border-radius: var(--border-radius);
+        font-size: 0.85rem;
+        font-family: inherit;
+        transition: all 0.2s ease;
+    }
+
+    .search-input:focus {
+        outline: none;
+        border-color: var(--regency-red);
+        box-shadow: 0 0 0 2px rgba(135, 31, 27, 0.1);
+    }
+
+    /* Estado vacío */
+    .empty-state {
+        text-align: center;
+        padding: 2rem 1rem;
+        color: var(--regency-gray-dark);
+    }
+
+    .empty-state-icon {
+        font-size: 2.5rem;
+        margin-bottom: 1rem;
+        opacity: 0.5;
+    }
+
+    .empty-state h5 {
+        font-size: 1.1rem;
+        font-weight: 600;
+        margin-bottom: 0.5rem;
+        color: var(--regency-text);
+    }
+
+    .empty-state p {
+        font-size: 0.85rem;
+        margin-bottom: 1rem;
+        color: var(--regency-gray-dark);
+    }
+
+    /* Responsive para las métricas del header */
+    @media (max-width: 768px) {
+        .dashboard-container {
+            padding: 0.75rem 1rem;
         }
-        
-        body {
-            background-color: #F8FAFC;
+
+        .dashboard-header {
+            padding: 0.75rem 1rem;
         }
-        
-        .header-corporativo {
-            background: linear-gradient(135deg, var(--color-primary), var(--color-secondary));
-            color: white;
-            padding: 20px;
-            border-radius: 10px;
-            margin-bottom: 30px;
-            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+
+        .dashboard-header h1 {
+            font-size: 1.2rem;
         }
-        
-        .logo-empresa {
-            height: 60px;
-            margin-right: 20px;
-            background: white;
-            padding: 5px;
-            border-radius: 8px;
+
+        .main-layout {
+            grid-template-columns: 1fr;
+            gap: 1rem;
         }
-        
-        .card-metric-1 { 
-            background: linear-gradient(135deg, var(--color-primary), #DC2626);
-            color: white;
-            border: none;
-            transform: scale(0.6);  /* Makes the card 90% of original size */
-            margin: -10px;  /* Adjusts spacing to prevent gaps */
+
+        .section-header-with-metrics {
+            flex-direction: column;
+            align-items: stretch;
+            text-align: center;
+            gap: 0.75rem;
         }
-        .card-metric-2 { 
-            background: linear-gradient(135deg, var(--color-secondary), var(--color-primary));
-            color: white;
-            border: none;
-            transform: scale(0.6);  /* Makes the card 90% of original size */
-            margin: -10px;  /* Adjusts spacing to prevent gaps */
+
+        .header-metrics {
+            justify-content: center;
+            gap: 1rem;
         }
-        .card-metric-3 { 
-            background: linear-gradient(135deg, var(--color-accent), var(--color-secondary));
-            color: white;
-            border: none;
-            transform: scale(0.6);  /* Makes the card 90% of original size */
-            margin: -10px;  /* Adjusts spacing to prevent gaps */
+
+        .header-metric {
+            min-width: 50px;
         }
-        .card-metric-4 { 
-            background: linear-gradient(135deg, var(--color-dark), var(--color-accent));
-            color: white;
-            border: none;
-            transform: scale(0.6);  /* Makes the card 90% of original size */
-            margin: -10px;  /* Adjusts spacing to prevent gaps */
+
+        .metric-value {
+            font-size: 1.2rem;
         }
-        
-        .btn-regency {
-            background-color: var(--color-primary);
-            border-color: var(--color-primary);
-            color: white;
-            font-weight: 500;
+
+        .metric-label {
+            font-size: 0.65rem;
         }
-        
-        .btn-regency:hover {
-            background-color: var(--color-secondary);
-            border-color: var(--color-secondary);
-            color: white;
+
+        .actions-grid {
+            grid-template-columns: 1fr;
         }
-        
-        .btn-regency-outline {
-            border-color: var(--color-primary);
-            color: var(--color-primary);
-            font-weight: 500;
+
+        .empresas-table {
+            font-size: 0.8rem;
         }
-        
-        .btn-regency-outline:hover {
-            background-color: var(--color-primary);
-            border-color: var(--color-primary);
-            color: white;
+
+        .empresas-table th,
+        .empresas-table td {
+            padding: 0.5rem 0.75rem;
         }
-        
-        .card-header-regency {
-            background-color: var(--color-primary);
-            color: white;
-            font-weight: 600;
+    }
+
+    @media (max-width: 480px) {
+        .header-metrics {
+            flex-direction: column;
+            gap: 0.5rem;
         }
-        
-        .card-header-secondary {
-            background-color: var(--color-secondary);
-            color: white;
-            font-weight: 600;
+
+        .header-metric {
+            flex-direction: row;
+            gap: 0.5rem;
+            min-width: auto;
         }
-        
-        .table-header-regency {
-            background-color: var(--color-dark);
-            color: white;
+
+        .metric-value {
+            font-size: 1.1rem;
         }
-        
-        .badge-active {
-            background-color: #059669 !important;
+
+        .metric-label {
+            font-size: 0.75rem;
+            margin-top: 0;
         }
-        
-        .badge-inactive {
-            background-color: var(--color-primary) !important;
+    }
+
+    /* Animaciones */
+    .actions-section,
+    .empresas-section,
+    .panel-card {
+        animation: fadeInUp 0.3s ease forwards;
+    }
+
+    @keyframes fadeInUp {
+        from {
+            opacity: 0;
+            transform: translateY(10px);
         }
-        
-        .metric-icon {
-            font-size: 2.5rem;
-            margin-bottom: 10px;
+        to {
+            opacity: 1;
+            transform: translateY(0);
         }
-        
-        .shadow-regency {
-            box-shadow: 0 4px 6px rgba(185, 28, 28, 0.1);
-        }
-    </style>
-</head>
-<body>
-    <div class="container-fluid">
-        <div class="row">
-            <div class="col-12">
-                <!-- Header Corporativo con Logo REGENCY -->
-                <div class="header-corporativo">
-                    <div class="d-flex align-items-center">
-                        <img src="{% static '/img/logo_regency.png' %}" alt="REGENCY SERVICES" class="logo-empresa">
-                        <div>
-                            <h1 class="mb-1">🏢 Dashboard de Empresas</h1>
-                            <p class="mb-0 opacity-75">REGENCY SERVICES DE COLOMBIA S.A.S - Panel de Control y Gestión</p>
-                        </div>
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="dashboard-container">
+    <!-- Header del dashboard -->
+    <div class="dashboard-header">
+        <h1>Dashboard de Empresas</h1>
+        <p class="dashboard-subtitle">REGENCY SERVICES DE COLOMBIA S.A.S - Panel de Control y Gestión</p>
+    </div>
+
+    <!-- Acciones principales -->
+    <div class="actions-section">
+        <div class="actions-header">Acciones Principales</div>
+        <div class="actions-grid">
+            <a href="{% url 'empresas:empresa_create' %}" class="btn-regency">
+                ➕ Nueva Empresa
+            </a>
+            <a href="{% url 'empresas:empresas_list' %}" class="btn-regency-outline">
+                📋 Lista Completa
+            </a>
+            <a href="#" class="btn-regency-outline">
+                📊 Reportes
+            </a>
+        </div>
+    </div>
+
+    <!-- Layout principal con métricas integradas -->
+    <div class="main-layout">
+        <!-- Sección de empresas con métricas -->
+        <div class="empresas-section">
+            <!-- Métricas compactas en el header -->
+            <div class="section-header-with-metrics">
+                <div class="section-title">
+                    <span class="section-icon">📋</span>
+                    <span>Empresas Recientes</span>
+                </div>
+                <div class="header-metrics">
+                    <div class="header-metric">
+                        <span class="metric-value">{{ empresa_activa }}</span>
+                        <span class="metric-label">Activas</span>
+                    </div>
+                    <div class="header-metric">
+                        <span class="metric-value">{{ empresas_mes_actual }}</span>
+                        <span class="metric-label">Este Mes</span>
+                    </div>
+                    <div class="header-metric">
+                        <span class="metric-value">{{ total_empresas }}</span>
+                        <span class="metric-label">Total</span>
                     </div>
                 </div>
-                
-                <!-- Cards de Métricas Estilo REGENCY -->
-                <div class="row mb-1">
-                    <div class="col-md-3">
-                        <div class="card card-metric-1 shadow-regency">
-                            <div class="card-body text-center">
+            </div>
+            
+            <div class="table-wrapper">
+                <table class="empresas-table">
+                    <thead>
+                        <tr>
+                            <th>Empresa</th>
+                            <th>NIT</th>
+                            <th>Estado</th>
+                            <th>Fecha</th>
+                            <th>Acciones</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for empresa in empresas_recientes %}
+                        <tr>
+                            <td>
+                                <div class="empresa-nombre">{{ empresa.nombre }}</div>
+                                {% if empresa.email %}
+                                    <div class="empresa-email">{{ empresa.email }}</div>
+                                {% endif %}
+                            </td>
+                            <td class="empresa-nit">{{ empresa.nit }}</td>
+                            <td>
+                                {% if empresa.activo %}
+                                    <span class="badge badge-active">✅ Activa</span>
+                                {% else %}
+                                    <span class="badge badge-inactive">❌ Inactiva</span>
+                                {% endif %}
+                            </td>
+                            <td>{{ empresa.fecha_creacion|date:"d/m/Y" }}</td>
+                            <td>
+                                <div class="action-buttons">
+                                    <a href="{% url 'empresas:empresa_detail' empresa.pk %}" class="btn-action" title="Ver">👁️</a>
+                                    <a href="{% url 'empresas:empresa_update' empresa.pk %}" class="btn-action" title="Editar">✏️</a>
+                                </div>
+                            </td>
+                        </tr>
+                        {% empty %}
+                        <tr>
+                            <td colspan="5">
+                                <div class="empty-state">
+                                    <div class="empty-state-icon">🏢</div>
+                                    <h5>No hay empresas registradas</h5>
+                                    <p>Comienza creando tu primera empresa</p>
+                                    <a href="{% url 'empresas:empresa_create' %}" class="btn-regency">
+                                        ➕ Crear Primera Empresa
+                                    </a>
+                                </div>
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
 
-                                <h5 class="card-title mb-2">EMPRESAS ACTIVAS</h5>
-                                <h2 class="display-3 fw-bold">{{ empresa_activa }}</h2>
-                                <small class="opacity-75">de {{ total_empresas }} registradas</small>
-                            </div>
-                        </div>
-                    </div>
-                    
-                    
-                    <div class="col-md-3">
-                        <div class="card card-metric-4 shadow-regency">
-                            <div class="card-body text-center">
-                               
-                                <h5 class="card-title mb-2">NUEVAS ESTE MES</h5>
-                                <h2 class="display-3 fw-bold">{{ empresas_mes_actual }}</h2>
-                                <small class="opacity-75">últimos 30 días</small>
-                            </div>
-                        </div>
+        <!-- Panel lateral más compacto -->
+        <div class="sidebar-panel">
+            <!-- Menú rápido -->
+            <div class="panel-card">
+                <div class="panel-header">⚡ Menú Rápido</div>
+                <div class="panel-body">
+                    <div class="panel-buttons">
+                        <a href="{% url 'empresas:empresa_create' %}" class="btn-regency">
+                            ➕ Crear Empresa
+                        </a>
+                        <a href="{% url 'empresas:empresas_list' %}" class="btn-regency-outline">
+                            📋 Lista Completa
+                        </a>
+                        <hr>
+                        <a href="#" class="btn-regency-outline">
+                            📁 Proyectos
+                        </a>
+                        <a href="#" class="btn-regency-outline">
+                            🏭 Centros Operativos
+                        </a>
+                        <a href="#" class="btn-regency-outline">
+                            📊 Reportes
+                        </a>
                     </div>
                 </div>
+            </div>
 
-                <!-- Sección de Acciones Principales -->
-                <div class="row mb-4">
-                    <div class="col-12">
-                        <div class="card shadow-regency">
-                            <div class="card-header card-header-regency">
-                                <h5 class="mb-0">🚀 Acciones Principales</h5>
-                            </div>
-                            <div class="card-body">
-                                <div class="row g-3">
-                                    <div class="col-md-3">
-                                        <a href="{% url 'empresas:empresa_create' %}" class="btn btn-regency btn-lg w-100">
-                                            <div class="d-flex align-items-center justify-content-center">
-                                                <span class="me-2">➕</span>
-                                                <span>Nueva Empresa</span>
-                                            </div>
-                                        </a>
-                                    </div>
-                                    <div class="col-md-3">
-                                        <a href="{% url 'empresas:empresas_list' %}" class="btn btn-regency-outline btn-lg w-100">
-                                            <div class="d-flex align-items-center justify-content-center">
-                                                <span class="me-2">📋</span>
-                                                <span>Lista Completa</span>
-                                            </div>
-                                        </a>
-                                    </div>
-                                    <div class="col-md-3">
-                                        <a href="#" class="btn btn-regency-outline btn-lg w-100">
-                                            <div class="d-flex align-items-center justify-content-center">
-                                                <span class="me-2">📊</span>
-                                                <span>...</span>
-                                            </div>
-                                        </a>
-                                    </div>
-                                    
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-
-                <!-- Contenido Principal -->
-                <div class="row">
-                    <div class="col-md-8">
-                        <div class="card shadow-regency">
-                            <div class="card-header card-header-secondary">
-                                <h5 class="mb-0">📋 Empresas Recientes</h5>
-                            </div>
-                            <div class="card-body">
-                                <div class="table-responsive">
-                                    <table class="table table-hover mb-0">
-                                        <thead class="table-header-regency">
-                                            <tr>
-                                                <th>Empresa</th>
-                                                <th>NIT</th>
-                                                <th>Estado</th>
-                                                <th>Fecha Registro</th>
-                                                <th>Acciones</th>
-                                            </tr>
-                                        </thead>
-                                        <tbody>
-                                            {% for empresa in empresas_recientes %}
-                                            <tr>
-                                                <td>
-                                                    <div class="fw-bold text-dark">{{ empresa.nombre }}</div>
-                                                    {% if empresa.email %}
-                                                        <small class="text-muted">{{ empresa.email }}</small>
-                                                    {% endif %}
-                                                </td>
-                                                <td class="font-monospace">{{ empresa.nit }}</td>
-                                                <td>
-                                                    {% if empresa.activo %}
-                                                        <span class="badge badge-active px-3 py-2">✅ Activa</span>
-                                                    {% else %}
-                                                        <span class="badge badge-inactive px-3 py-2">❌ Inactiva</span>
-                                                    {% endif %}
-                                                </td>
-                                                <td>{{ empresa.fecha_creacion|date:"d/m/Y" }}</td>
-                                                <td>
-                                                    <div class="btn-group" role="group">
-                                                        <a href="{% url 'empresas:empresa_detail' empresa.pk %}" class="btn btn-sm btn-outline-warning" title=" Ver Detalle"> 👁️</a>
-                                                            
-                                                        <a href="{% url 'empresas:empresa_update' empresa.pk %}" class="btn btn-sm btn-outline-warning" title="Editar">✏️</a>
-                                                    </div>
-                                                </td>
-                                            </tr>
-                                            {% empty %}
-                                            <tr>
-                                                <td colspan="5" class="text-center py-5">
-                                                    <div class="text-muted">
-                                                        <div class="display-1 mb-3">🏢</div>
-                                                        <h5>No hay empresas registradas</h5>
-                                                        <p class="mb-3">Comienza creando tu primera empresa</p>
-                                                        <a href="{% url 'empresas:empresa_create' %}" class="btn btn-regency">
-                                                            ➕ Crear Primera Empresa
-                                                        </a>
-                                                    </div>
-                                                </td>
-                                            </tr>
-                                            {% endfor %}
-                                        </tbody>
-                                    </table>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                    
-                    <!-- Panel Lateral -->
-                    <div class="col-md-4">
-                        <!-- Menu Rápido -->
-                        <div class="card shadow-regency mb-3">
-                            <div class="card-header card-header-regency">
-                                <h5 class="mb-0">⚡ Menú Rápido</h5>
-                            </div>
-                            <div class="card-body">
-                                <div class="d-grid gap-2">
-                                    <a href="{% url 'empresas:empresa_create' %}" class="btn btn-regency">
-                                        <span class="me-2">➕</span> Crear Empresa
-                                    </a>
-                                    <a href="{% url 'empresas:empresas_list' %}" class="btn btn-regency-outline">
-                                        <span class="me-2">📋</span> Lista Completa
-                                    </a>
-                                    <hr class="my-2">
-                                    <a href="#" class="btn btn-outline-secondary">
-                                        <span class="me-2">📁</span> Proyectos
-                                    </a>
-                                    <a href="#" class="btn btn-outline-secondary">
-                                        <span class="me-2">🏭</span> Centros Operativos
-                                    </a>
-                                    <a href="#" class="btn btn-outline-secondary">
-                                        <span class="me-2">📊</span> ...
-                                    </a>
-                                </div>
-                            </div>
-                        </div>
-                        
-                        <!-- Búsqueda Rápida -->
-                        <div class="card shadow-regency">
-                            <div class="card-header card-header-secondary">
-                                <h5 class="mb-0">🔍 Búsqueda Rápida</h5>
-                            </div>
-                            <div class="card-body">
-                                <form method="get" action="{% url 'empresas:empresas_list' %}">
-                                    <div class="mb-3">
-                                        <input type="text" name="search" class="form-control" 
-                                               placeholder="Buscar por nombre o NIT..." 
-                                               style="border-color: var(--color-primary);">
-                                    </div>
-                                    <button type="submit" class="btn btn-regency w-100">
-                                        🔍 Buscar Empresa
-                                    </button>
-                                </form>
-                            </div>
-                        </div>
-                    </div>
+            <!-- Búsqueda rápida -->
+            <div class="panel-card">
+                <div class="panel-header secondary">🔍 Búsqueda Rápida</div>
+                <div class="panel-body">
+                    <form method="get" action="{% url 'empresas:empresas_list' %}" class="search-form">
+                        <input type="text" name="search" class="search-input" 
+                               placeholder="Buscar por nombre o NIT...">
+                        <button type="submit" class="btn-regency">
+                            🔍 Buscar Empresa
+                        </button>
+                    </form>
                 </div>
             </div>
         </div>
     </div>
-</body>
-</html>
+</div>
+{% endblock %}
