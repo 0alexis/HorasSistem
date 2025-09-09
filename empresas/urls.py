@@ -27,7 +27,7 @@ urlpatterns = [
     path('centros-operativos/<int:pk>/', views.centro_operativo_detail, name='centro_operativo_detail'),
     path('centros-operativos/<int:pk>/editar/', views.centro_operativo_update, name='centro_operativo_update'),
     path('centros-operativos/<int:pk>/eliminar/', views.centro_operativo_delete, name='centro_operativo_delete'),
-    
+
     # ========== CRUD DE UNIDADES DE NEGOCIO ==========
     path('unidades-negocio/', views.unidades_negocio_list, name='unidades_negocio_list'),
     path('unidades-negocio/nueva/', views.unidad_negocio_create, name='unidad_negocio_create'),

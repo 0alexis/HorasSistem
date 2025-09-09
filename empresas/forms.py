@@ -1,7 +1,9 @@
 from django import forms
 from django.core.exceptions import ValidationError
 import re
-from .models import Empresa, CargoPredefinido
+from .models import Empresa, CargoPredefinido, CentroOperativo, Proyecto
+
+
 
 class EmpresaForm(forms.ModelForm):
     """Formulario para crear y editar empresas"""
@@ -295,3 +297,105 @@ class CargoPredefinidoForm(forms.ModelForm):
                 raise ValidationError('El salario es demasiado alto.')
         return salario
 
+
+class CentroOperativoForm(forms.ModelForm):
+    """Formulario para crear y editar centros operativos"""
+    
+    class Meta:
+        model = CentroOperativo
+        fields = ['nombre', 'descripcion', 'direccion', 'ciudad', 'proyectos', 'promesa_valor', 'activo']
+        widgets = {
+            'nombre': forms.TextInput(attrs={
+                'class': 'form-control',
+                'placeholder': 'Nombre del centro operativo',
+                'maxlength': 200
+            }),
+            'descripcion': forms.Textarea(attrs={
+                'class': 'form-control',
+                'placeholder': 'Descripción del centro operativo y sus funciones',
+                'rows': 3,
+                'maxlength': 1000
+            }),
+            'direccion': forms.TextInput(attrs={
+                'class': 'form-control',
+                'placeholder': 'Dirección completa del centro',
+                'maxlength': 200
+            }),
+            'ciudad': forms.TextInput(attrs={
+                'class': 'form-control',
+                'placeholder': 'Ciudad donde se ubica el centro',
+                'maxlength': 100
+            }),
+            # ✅ CAMBIAR A CHECKBOXES MÚLTIPLES
+            'proyectos': forms.CheckboxSelectMultiple(attrs={
+                'class': 'proyecto-checkbox'
+            }),
+            'promesa_valor': forms.NumberInput(attrs={
+                'class': 'form-control',
+                'placeholder': 'Número de casetas',
+                'min': '0'
+            }),
+            'activo': forms.CheckboxInput(attrs={
+                'class': 'form-check-input'
+            })
+        }
+        labels = {
+            'nombre': 'Nombre del Centro Operativo',
+            'descripcion': 'Descripción',
+            'direccion': 'Dirección',
+            'ciudad': 'Ciudad',
+            'proyectos': 'Proyectos Asociados',
+            'promesa_valor': 'PV (Cantidad de Casetas)',
+            'activo': 'Centro Activo'
+        }
+        help_texts = {
+            'nombre': 'Nombre identificativo del centro operativo',
+            'descripcion': 'Descripción detallada del centro y sus funciones',
+            'direccion': 'Dirección física completa del centro operativo',
+            'ciudad': 'Ciudad donde se encuentra ubicado el centro',
+            'proyectos': 'Seleccione los proyectos que estarán asociados a este centro operativo',
+            'promesa_valor': 'Cantidad estimada de casetas o unidades',
+            'activo': 'Marque si el centro está operativo y disponible'
+        }
+
+
+    def __init__(self, *args, **kwargs):
+        # ✅ RECIBIR EL USUARIO EN EL CONSTRUCTOR
+        self.user = kwargs.pop('user', None)
+        super().__init__(*args, **kwargs)
+        
+        # Hacer obligatorios los campos necesarios
+        self.fields['nombre'].required = True
+        self.fields['direccion'].required = True
+        self.fields['ciudad'].required = True
+        self.fields['descripcion'].required = False
+        self.fields['proyectos'].required = False
+        self.fields['promesa_valor'].required = False
+        
+        # Para CREAR: establecer activo como True por defecto
+        if not self.instance.pk:
+            self.fields['activo'].initial = True
+            self.fields['activo'].widget = forms.HiddenInput()
+        else:
+            # Para EDITAR: mostrar el campo normalmente
+            self.fields['activo'].required = False
+        
+        # Filtrar proyectos activos
+        self.fields['proyectos'].queryset = Proyecto.objects.filter(activo=True).order_by('nombre')
+    
+    def save(self, commit=True):
+        """Sobrescribir save para asignar el usuario como responsable"""
+        centro = super().save(commit=False)
+        
+        # ✅ ASIGNAR EL USUARIO COMO RESPONSABLE
+        if self.user and not centro.responsable:
+            centro.responsable = self.user
+        
+        if commit:
+            centro.save()
+            # Guardar relaciones many-to-many
+            self.save_m2m()
+        
+        return centro
+
+# ...existing code...

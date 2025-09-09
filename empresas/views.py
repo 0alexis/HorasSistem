@@ -280,39 +280,173 @@ def proyecto_update(request, pk):
 def proyecto_delete(request, pk):
     return render(request, 'empresas/en_desarrollo.html', {'modulo': 'Proyectos'})
 
+
 # =======================
-#  CRUD DE CENTROS OPERATIVOS (EN DESARROLLO)
+#  CRUD DE CENTROS OPERATIVOS - IMPLEMENTACIÓN COMPLETA
 # =======================
 
 @login_required
 def centros_operativos_list(request):
-    """Lista de centros operativos"""
+    """Lista de centros operativos con filtros y búsqueda"""
     try:
-        from .models import CentroOperativo
-        centros = CentroOperativo.objects.all().order_by('-id')
-        paginator = Paginator(centros, 10)
+        centros = CentroOperativo.objects.all().order_by('-id_centro')
+        
+        # Filtros de búsqueda
+        search = request.GET.get('search', '')
+        if search:
+            centros = centros.filter(
+                Q(nombre__icontains=search) | 
+                Q(descripcion__icontains=search) |
+                Q(direccion__icontains=search) |
+                Q(ciudad__icontains=search)
+            )
+        
+        # Filtro por estado activo
+        activo = request.GET.get('activo', '')
+        if activo == 'true':
+            centros = centros.filter(activo=True)
+        elif activo == 'false':
+            centros = centros.filter(activo=False)
+        
+        # Filtro por ciudad
+        ciudad = request.GET.get('ciudad', '')
+        if ciudad:
+            centros = centros.filter(ciudad__icontains=ciudad)
+        
+        # Paginación
+        paginator = Paginator(centros, 15)
         page_number = request.GET.get('page')
         centros_page = paginator.get_page(page_number)
-        context = {'centros_operativos': centros_page}
-    except:
-        context = {'centros_operativos': [], 'mensaje': 'En desarrollo'}
-    return render(request, 'empresas/centros_operativos_list.html', context)
+        
+        # Ciudades disponibles para filtro
+        ciudades_disponibles = CentroOperativo.objects.values_list('ciudad', flat=True).distinct().order_by('ciudad')
+        
+        context = {
+            'centros': centros_page,
+            'ciudades_disponibles': ciudades_disponibles,
+            'search': search,
+            'ciudad': ciudad,
+            'activo': activo,
+            'total_centros': centros.count(),
+            'is_filtered': bool(search or ciudad or activo)
+        }
+        
+    except Exception as e:
+        messages.error(request, f'Error al cargar centros operativos: {str(e)}')
+        context = {
+            'centros': [],
+            'ciudades_disponibles': [],
+            'search': '',
+            'ciudad': '',
+            'activo': '',
+            'total_centros': 0,
+            'is_filtered': False
+        }
+    
+    return render(request, 'centro_operativo/centrooperativo_list.html', context)
+
 
 @login_required
 def centro_operativo_create(request):
-    return render(request, 'empresas/en_desarrollo.html', {'modulo': 'Centros Operativos'})
-
-@login_required
-def centro_operativo_detail(request, pk):
-    return render(request, 'empresas/en_desarrollo.html', {'modulo': 'Centros Operativos'})
+    """Crear nuevo centro operativo"""
+    try:
+        from .forms import CentroOperativoForm
+        
+        if request.method == 'POST':
+            # ✅ PASAR EL USUARIO AL FORMULARIO
+            form = CentroOperativoForm(request.POST, user=request.user)
+            if form.is_valid():
+                centro = form.save()
+                messages.success(request, f'✅ Centro Operativo "{centro.nombre}" creado exitosamente!')
+                return redirect('empresas:centro_operativo_detail', pk=centro.id_centro)
+            else:
+                messages.error(request, 'Por favor corrige los errores en el formulario.')
+        else:
+            # ✅ PASAR EL USUARIO AL FORMULARIO
+            form = CentroOperativoForm(user=request.user)
+        
+        context = {
+            'form': form,
+            'title': 'Nuevo Centro Operativo',
+            'action': 'Crear',
+            'centro': None,
+            'usuario_responsable': request.user  # ✅ AÑADIR USUARIO AL CONTEXTO
+        }
+        
+    except Exception as e:
+        messages.error(request, f'Error al crear centro operativo: {str(e)}')
+        return redirect('empresas:centros_operativos_list')
+    
+    return render(request, 'centro_operativo/centrooperativo_form.html', context)
 
 @login_required
 def centro_operativo_update(request, pk):
-    return render(request, 'empresas/en_desarrollo.html', {'modulo': 'Centros Operativos'})
+    """Editar centro operativo"""
+    try:
+        from .forms import CentroOperativoForm
+        
+        centro = get_object_or_404(CentroOperativo, pk=pk)
+        
+        if request.method == 'POST':
+            # ✅ PASAR EL USUARIO AL FORMULARIO
+            form = CentroOperativoForm(request.POST, instance=centro, user=request.user)
+            if form.is_valid():
+                centro = form.save()
+                messages.success(request, f'✅ Centro Operativo "{centro.nombre}" actualizado exitosamente!')
+                return redirect('empresas:centro_operativo_detail', pk=centro.id_centro)
+            else:
+                messages.error(request, 'Por favor corrige los errores en el formulario.')
+        else:
+            # ✅ PASAR EL USUARIO AL FORMULARIO
+            form = CentroOperativoForm(instance=centro, user=request.user)
+        
+        context = {
+            'form': form,
+            'title': f'Editar Centro: {centro.nombre}',
+            'action': 'Actualizar',
+            'centro': centro,
+            'usuario_responsable': request.user  # ✅ AÑADIR USUARIO AL CONTEXTO
+        }
+        
+    except Exception as e:
+        messages.error(request, f'Error al editar centro operativo: {str(e)}')
+        return redirect('empresas:centros_operativos_list')
+    
+    return render(request, 'centro_operativo/centrooperativo_form.html', context)
+
+@login_required
+def centro_operativo_detail(request, pk):
+    """Detalle de centro operativo"""
+    try:
+        centro = get_object_or_404(CentroOperativo, pk=pk)
+        context = {'centro': centro}
+    except Exception as e:
+        messages.error(request, f'Error al cargar centro operativo: {str(e)}')
+        return redirect('empresas:centros_operativos_list')
+    # ✅ CAMBIAR ESTA LÍNEA
+    return render(request, 'centro_operativo/centrooperativo_detail.html', context)
 
 @login_required
 def centro_operativo_delete(request, pk):
-    return render(request, 'empresas/en_desarrollo.html', {'modulo': 'Centros Operativos'})
+    """Eliminar centro operativo"""
+    try:
+        centro = get_object_or_404(CentroOperativo, pk=pk)
+        
+        if request.method == 'POST':
+            centro_nombre = centro.nombre
+            centro.delete()
+            messages.success(request, f'✅ Centro Operativo "{centro_nombre}" eliminado exitosamente!')
+            return redirect('empresas:centros_operativos_list')
+        
+        context = {'centro': centro}
+        
+    except Exception as e:
+        messages.error(request, f'Error al eliminar centro operativo: {str(e)}')
+        return redirect('empresas:centros_operativos_list')
+    
+    # ✅ CAMBIAR ESTA LÍNEA
+    return render(request, 'centro_operativo/centrooperativo_confirm_delete.html', context)
+
 
 # =======================
 #  CRUD DE UNIDADES DE NEGOCIO (EN DESARROLLO)

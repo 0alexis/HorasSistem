@@ -1,0 +1,977 @@
+{% extends "admin/base_site.html" %}
+{% load i18n static %}
+
+{% block extrastyle %}
+{{ block.super }}
+<style>
+    /* Variables empresariales REGENCY */
+    :root {
+        --regency-red: #871F1B;
+        --regency-red-dark: #6b191b;
+        --regency-red-light: #a13832;
+        --regency-gray: #f8f9fa;
+        --regency-gray-dark: #64748b;
+        --regency-text: #333;
+        --border-radius: 8px;
+        --shadow-sm: 0 1px 3px rgba(0, 0, 0, 0.1);
+        --shadow-md: 0 4px 6px rgba(0, 0, 0, 0.1);
+    }
+
+    /* ========== OCULTAR BREADCRUMB DJANGO ADMIN ========== */
+    .breadcrumbs,
+    div.breadcrumbs {
+        display: none !important;
+    }
+
+    /* Tipografía empresarial consistente */
+    body {
+        font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+        font-size: 14px;
+        line-height: 1.5;
+        color: var(--regency-text);
+        background: var(--regency-gray);
+    }
+
+    /* Container principal */
+    .form-container {
+        padding: 1rem 1.5rem;
+        max-width: 900px;
+        margin: 0 auto;
+    }
+
+    /* Header de la página */
+    .page-header {
+        background: var(--regency-red);
+        color: white;
+        padding: 1.25rem 1.5rem;
+        margin-bottom: 1.5rem;
+        border-radius: var(--border-radius);
+        box-shadow: var(--shadow-sm);
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        flex-wrap: wrap;
+        gap: 1rem;
+    }
+
+    .header-main {
+        flex: 1;
+        min-width: 0;
+    }
+
+    .page-header h1 {
+        font-size: 1.4rem;
+        font-weight: 600;
+        margin: 0 0 0.4rem 0;
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+        line-height: 1.2;
+    }
+
+    .page-subtitle {
+        font-size: 0.85rem;
+        opacity: 0.9;
+        margin: 0;
+        font-weight: 400;
+    }
+
+    .header-actions {
+        display: flex;
+        gap: 0.5rem;
+        flex-shrink: 0;
+    }
+
+    /* Breadcrumb personalizado */
+    .custom-breadcrumb {
+        background: white;
+        border: 1px solid #e5e7eb;
+        border-radius: var(--border-radius);
+        padding: 0.75rem 1rem;
+        margin-bottom: 1.5rem;
+        box-shadow: var(--shadow-sm);
+        font-size: 0.85rem;
+    }
+
+    .custom-breadcrumb a {
+        color: var(--regency-red);
+        text-decoration: none;
+        font-weight: 500;
+        transition: color 0.2s ease;
+    }
+
+    .custom-breadcrumb a:hover {
+        color: var(--regency-red-dark);
+        text-decoration: underline;
+    }
+
+    .breadcrumb-separator {
+        color: var(--regency-gray-dark);
+        margin: 0 0.5rem;
+    }
+
+    /* Card del formulario */
+    .form-card {
+        background: white;
+        border-radius: var(--border-radius);
+        overflow: hidden;
+        box-shadow: var(--shadow-sm);
+        border: 1px solid #e5e7eb;
+    }
+
+    .card-header-regency {
+        background: var(--regency-red);
+        color: white;
+        padding: 1rem 1.25rem;
+        font-weight: 600;
+        font-size: 1rem;
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+    }
+
+    .form-content {
+        padding: 1.5rem;
+    }
+
+    /* Secciones del formulario */
+    .form-section {
+        margin-bottom: 2rem;
+    }
+
+    .form-section:last-child {
+        margin-bottom: 0;
+    }
+
+    .section-title {
+        font-size: 1.1rem;
+        font-weight: 600;
+        color: var(--regency-text);
+        margin-bottom: 1rem;
+        padding-bottom: 0.5rem;
+        border-bottom: 2px solid var(--regency-red);
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+    }
+
+    /* Estilos del formulario */
+    .form-group {
+        margin-bottom: 1.5rem;
+    }
+
+    .form-group:last-child {
+        margin-bottom: 0;
+    }
+
+    .form-label {
+        display: block;
+        font-weight: 600;
+        color: var(--regency-text);
+        margin-bottom: 0.5rem;
+        font-size: 0.9rem;
+    }
+
+    .form-label.required::after {
+        content: ' *';
+        color: #dc2626;
+        font-weight: 600;
+    }
+
+    .form-control {
+        width: 100%;
+        padding: 0.75rem;
+        border: 1px solid #d1d5db;
+        border-radius: var(--border-radius);
+        font-size: 0.9rem;
+        transition: all 0.2s ease;
+        background: white;
+    }
+
+    .form-control:focus {
+        outline: none;
+        border-color: var(--regency-red);
+        box-shadow: 0 0 0 3px rgba(135, 31, 27, 0.1);
+    }
+
+    .form-select {
+        width: 100%;
+        padding: 0.75rem;
+        border: 1px solid #d1d5db;
+        border-radius: var(--border-radius);
+        font-size: 0.9rem;
+        background: white;
+        cursor: pointer;
+        transition: all 0.2s ease;
+    }
+
+    .form-select:focus {
+        outline: none;
+        border-color: var(--regency-red);
+        box-shadow: 0 0 0 3px rgba(135, 31, 27, 0.1);
+    }
+
+    /* Select múltiple especial */
+    .form-select[multiple] {
+        height: 120px;
+        padding: 0.5rem;
+    }
+
+    .form-select[multiple] option {
+        padding: 0.5rem;
+        margin-bottom: 0.25rem;
+        border-radius: 0.25rem;
+    }
+
+    .form-select[multiple] option:checked {
+        background: var(--regency-red);
+        color: white;
+    }
+
+    textarea.form-control {
+        resize: vertical;
+        min-height: 100px;
+    }
+
+    .form-check {
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+        margin-top: 0.5rem;
+    }
+
+    .form-check-input {
+        width: 18px;
+        height: 18px;
+        margin: 0;
+    }
+
+    .form-check-label {
+        font-weight: 500;
+        color: var(--regency-text);
+        font-size: 0.9rem;
+        margin: 0;
+        cursor: pointer;
+    }
+
+    .help-text {
+        font-size: 0.8rem;
+        color: var(--regency-gray-dark);
+        margin-top: 0.25rem;
+        font-style: italic;
+    }
+
+    /* Mensajes de error */
+    .error-message {
+        color: #dc2626;
+        font-size: 0.8rem;
+        margin-top: 0.25rem;
+        font-weight: 500;
+    }
+
+    .form-errors {
+        background: #fee2e2;
+        border: 1px solid #fecaca;
+        border-radius: var(--border-radius);
+        padding: 1rem;
+        margin-bottom: 1.5rem;
+    }
+
+    .form-errors h4 {
+        color: #991b1b;
+        font-size: 0.9rem;
+        font-weight: 600;
+        margin: 0 0 0.5rem 0;
+    }
+
+    .form-errors ul {
+        margin: 0;
+        padding-left: 1.25rem;
+        color: #991b1b;
+        font-size: 0.85rem;
+    }
+
+    /* Grid de campos */
+    .form-grid {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 1.5rem;
+    }
+
+    .form-grid-full {
+        grid-column: 1 / -1;
+    }
+
+    .form-grid-triple {
+        display: grid;
+        grid-template-columns: 1fr 1fr 1fr;
+        gap: 1.5rem;
+    }
+
+    /* Estado visual para campo activo */
+    .status-indicator {
+        background: #f0fdf4;
+        border: 1px solid #bbf7d0;
+        border-radius: var(--border-radius);
+        padding: 0.75rem;
+        color: #166534;
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+        font-size: 0.9rem;
+    }
+
+    .status-indicator.inactive {
+        background: #fef2f2;
+        border-color: #fecaca;
+        color: #991b1b;
+    }
+
+    /* Información de proyectos seleccionados */
+    .proyectos-info {
+        background: #f8fafc;
+        border: 1px solid #e2e8f0;
+        border-radius: var(--border-radius);
+        padding: 0.75rem;
+        margin-top: 0.5rem;
+        font-size: 0.85rem;
+        color: var(--regency-gray-dark);
+    }
+
+    /* Botones del formulario */
+    .form-actions {
+        padding: 1.25rem 1.5rem;
+        background: #f8fafc;
+        border-top: 1px solid #e5e7eb;
+        display: flex;
+        gap: 0.75rem;
+        justify-content: flex-end;
+        flex-wrap: wrap;
+    }
+
+    .btn-regency {
+        background: var(--regency-red);
+        color: white;
+        border: none;
+        padding: 0.75rem 1.5rem;
+        border-radius: var(--border-radius);
+        font-weight: 500;
+        font-size: 0.9rem;
+        cursor: pointer;
+        transition: all 0.2s ease;
+        text-decoration: none;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        gap: 0.5rem;
+        box-shadow: var(--shadow-sm);
+    }
+
+    .btn-regency:hover {
+        background: var(--regency-red-dark);
+        color: white;
+        text-decoration: none;
+        transform: translateY(-1px);
+        box-shadow: var(--shadow-md);
+    }
+
+    .btn-secondary {
+        background: #6b7280;
+        color: white;
+        border: 1px solid #6b7280;
+        padding: 0.75rem 1.5rem;
+        border-radius: var(--border-radius);
+        font-weight: 500;
+        font-size: 0.9rem;
+        cursor: pointer;
+        transition: all 0.2s ease;
+        text-decoration: none;
+        display: inline-flex;
+        align-items: center;
+        gap: 0.5rem;
+    }
+
+    .btn-secondary:hover {
+        background: #4b5563;
+        border-color: #4b5563;
+        color: white;
+        text-decoration: none;
+    }
+
+    .btn-outline {
+        background: transparent;
+        color: var(--regency-gray-dark);
+        border: 1px solid #d1d5db;
+        padding: 0.75rem 1.5rem;
+        border-radius: var(--border-radius);
+        font-weight: 500;
+        font-size: 0.9rem;
+        cursor: pointer;
+        transition: all 0.2s ease;
+        text-decoration: none;
+        display: inline-flex;
+        align-items: center;
+        gap: 0.5rem;
+    }
+
+    .btn-outline:hover {
+        background: var(--regency-gray);
+        border-color: #9ca3af;
+        color: var(--regency-text);
+        text-decoration: none;
+    }
+
+    /* Responsive */
+    @media (max-width: 768px) {
+        .form-container {
+            padding: 0.75rem 1rem;
+        }
+
+        .page-header {
+            padding: 1rem;
+            flex-direction: column;
+            align-items: stretch;
+            text-align: center;
+        }
+
+        .page-header h1 {
+            font-size: 1.2rem;
+            justify-content: center;
+        }
+
+        .header-actions {
+            justify-content: center;
+            margin-top: 0.5rem;
+        }
+
+        .form-content {
+            padding: 1rem;
+        }
+
+        .form-actions {
+            padding: 1rem;
+            flex-direction: column;
+        }
+
+        .form-grid,
+        .form-grid-triple {
+            grid-template-columns: 1fr;
+            gap: 1rem;
+        }
+    }
+
+    /* Animaciones */
+    .form-card {
+        animation: slideInUp 0.3s ease-out;
+    }
+
+    @keyframes slideInUp {
+        from {
+            opacity: 0;
+            transform: translateY(20px);
+        }
+        to {
+            opacity: 1;
+            transform: translateY(0);
+        }
+    }
+
+    /* Validación visual */
+    .form-control.is-valid {
+        border-color: #22c55e;
+    }
+
+    .form-control.is-invalid {
+        border-color: #dc2626;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="form-container">
+    <!-- Header de la página -->
+    <div class="page-header">
+        <div class="header-main">
+            <h1>
+                {% if centro %}
+                    ✏️ {{ title|default:"Editar Centro Operativo" }}
+                {% else %}
+                    🏭 {{ title|default:"Nuevo Centro Operativo" }}
+                {% endif %}
+            </h1>
+            <p class="page-subtitle">
+                {% if centro %}
+                    Modifica la información del centro operativo en el sistema REGENCY
+                {% else %}
+                    Complete la información para crear un nuevo centro operativo
+                {% endif %}
+            </p>
+        </div>
+        <div class="header-actions">
+            <a href="{% url 'empresas:centros_operativos_list' %}" class="btn-secondary">
+                📋 Ver Lista
+            </a>
+        </div>
+    </div>
+
+    <!-- Breadcrumb personalizado -->
+    <div class="custom-breadcrumb">
+        <a href="/">🏠 Dashboard</a>
+        <span class="breadcrumb-separator">→</span>
+        <a href="/empresas/">👔 Empresas</a>
+        <span class="breadcrumb-separator">→</span>
+        <a href="{% url 'empresas:centros_operativos_list' %}">🏭 Centros Operativos</a>
+        <span class="breadcrumb-separator">→</span>
+        <span style="color: var(--regency-gray-dark);">
+            {% if centro %}✏️ Editar{% else %}🏭 Nuevo{% endif %}
+        </span>
+    </div>
+
+    <!-- Formulario -->
+    <div class="form-card">
+        <div class="card-header-regency">
+            {% if centro %}
+                ✏️ Editar Centro: {{ centro.nombre }}
+            {% else %}
+                🏭 Crear Nuevo Centro Operativo
+            {% endif %}
+        </div>
+
+        <!-- Mostrar errores del formulario si existen -->
+        {% if form.errors %}
+        <div class="form-errors">
+            <h4>⚠️ Por favor corrige los siguientes errores:</h4>
+            <ul>
+                {% for field, errors in form.errors.items %}
+                    {% for error in errors %}
+                        <li>
+                            {% if field != '__all__' %}
+                                <strong>{{ form.field.label|default:field }}:</strong> 
+                            {% endif %}
+                            {{ error }}
+                        </li>
+                    {% endfor %}
+                {% endfor %}
+            </ul>
+        </div>
+        {% endif %}
+
+        <form method="post" class="centro-form">
+            {% csrf_token %}
+            
+            <div class="form-content">
+                <!-- SECCIÓN: INFORMACIÓN BÁSICA -->
+                <div class="form-section">
+                    <h3 class="section-title">
+                        📋 Información Básica
+                    </h3>
+                    
+                    <div class="form-grid">
+                        <!-- Nombre del centro -->
+                        <div class="form-group">
+                            <label for="{{ form.nombre.id_for_label }}" class="form-label required">
+                                {{ form.nombre.label }}
+                            </label>
+                            {{ form.nombre }}
+                            {% if form.nombre.help_text %}
+                                <div class="help-text">{{ form.nombre.help_text }}</div>
+                            {% endif %}
+                            {% if form.nombre.errors %}
+                                {% for error in form.nombre.errors %}
+                                    <div class="error-message">{{ error }}</div>
+                                {% endfor %}
+                            {% endif %}
+                        </div>
+
+                        <!-- Ciudad -->
+                        <div class="form-group">
+                            <label for="{{ form.ciudad.id_for_label }}" class="form-label required">
+                                {{ form.ciudad.label }}
+                            </label>
+                            {{ form.ciudad }}
+                            {% if form.ciudad.help_text %}
+                                <div class="help-text">{{ form.ciudad.help_text }}</div>
+                            {% endif %}
+                            {% if form.ciudad.errors %}
+                                {% for error in form.ciudad.errors %}
+                                    <div class="error-message">{{ error }}</div>
+                                {% endfor %}
+                            {% endif %}
+                        </div>
+                    </div>
+
+                    <!-- Dirección -->
+                    <div class="form-group">
+                        <label for="{{ form.direccion.id_for_label }}" class="form-label required">
+                            {{ form.direccion.label }}
+                        </label>
+                        {{ form.direccion }}
+                        {% if form.direccion.help_text %}
+                            <div class="help-text">{{ form.direccion.help_text }}</div>
+                        {% endif %}
+                        {% if form.direccion.errors %}
+                            {% for error in form.direccion.errors %}
+                                <div class="error-message">{{ error }}</div>
+                            {% endfor %}
+                        {% endif %}
+                    </div>
+
+                    <!-- Descripción -->
+                    <div class="form-group">
+                        <label for="{{ form.descripcion.id_for_label }}" class="form-label">
+                            {{ form.descripcion.label }}
+                        </label>
+                        {{ form.descripcion }}
+                        {% if form.descripcion.help_text %}
+                            <div class="help-text">{{ form.descripcion.help_text }}</div>
+                        {% endif %}
+                        {% if form.descripcion.errors %}
+                            {% for error in form.descripcion.errors %}
+                                <div class="error-message">{{ error }}</div>
+                            {% endfor %}
+                        {% endif %}
+                    </div>
+                </div>
+
+                <!-- SECCIÓN: GESTIÓN Y PROYECTOS -->
+                <div class="form-section">
+                    <h3 class="section-title">
+                        👤 Gestión y Proyectos
+                    </h3>
+                    
+                    <!-- Responsable (información automática) -->
+                    <div class="form-group">
+                        <label class="form-label">Responsable del Centro</label>
+                        <div class="status-indicator">
+                            <span>👤</span>
+                            <strong>Responsable:</strong> {{ usuario_responsable.get_full_name|default:usuario_responsable.username }}
+                            {% if centro %}
+                                {% if centro.responsable %}
+                                    (Asignado: {{ centro.responsable.get_full_name|default:centro.responsable.username }})
+                                {% endif %}
+                            {% else %}
+                                (Se asignará automáticamente al crear)
+                            {% endif %}
+                        </div>
+                        <div class="help-text">
+                            💡 El usuario que crea el centro operativo se asigna automáticamente como responsable
+                        </div>
+                    </div>
+
+                    <div class="form-grid">
+                        <!-- Promesa de Valor -->
+                        <div class="form-group">
+                            <label for="{{ form.promesa_valor.id_for_label }}" class="form-label">
+                                {{ form.promesa_valor.label }}
+                            </label>
+                            {{ form.promesa_valor }}
+                            {% if form.promesa_valor.help_text %}
+                                <div class="help-text">{{ form.promesa_valor.help_text }}</div>
+                            {% endif %}
+                            {% if form.promesa_valor.errors %}
+                                {% for error in form.promesa_valor.errors %}
+                                    <div class="error-message">{{ error }}</div>
+                                {% endfor %}
+                            {% endif %}
+                        </div>
+                    </div>
+
+                    <!-- Proyectos asociados con checklist -->
+                    <div class="form-group">
+                        <label class="form-label">
+                            {{ form.proyectos.label }}
+                        </label>
+                        {% if form.proyectos.help_text %}
+                            <div class="help-text">{{ form.proyectos.help_text }}</div>
+                        {% endif %}
+                        
+                        <!-- Container del checklist de proyectos -->
+                        <div class="proyectos-checklist">
+                            <div class="checklist-header">
+                                <div class="checklist-controls">
+                                    <button type="button" class="btn-checklist" id="selectAllProyectos">
+                                        ✅ Seleccionar Todos
+                                    </button>
+                                    <button type="button" class="btn-checklist" id="clearAllProyectos">
+                                        ❌ Limpiar Selección
+                                    </button>
+                                </div>
+                                <div class="checklist-counter">
+                                    <span id="proyectosSelected">0</span> proyecto(s) seleccionado(s)
+                                </div>
+                            </div>
+                            
+                            <div class="checklist-container">
+                                {% for choice in form.proyectos %}
+                                    <div class="checklist-item">
+                                        {{ choice.tag }}
+                                        <label for="{{ choice.id_for_label }}" class="checklist-label">
+                                            <span class="checklist-icon">📊</span>
+                                            <span class="checklist-text">{{ choice.choice_label }}</span>
+                                        </label>
+                                    </div>
+                                {% empty %}
+                                    <div class="checklist-empty">
+                                        <span class="empty-icon">📋</span>
+                                        <p>No hay proyectos disponibles.</p>
+                                        <small>Los proyectos deben estar marcados como activos para aparecer aquí.</small>
+                                    </div>
+                                {% endfor %}
+                            </div>
+                        </div>
+                        
+                        {% if form.proyectos.errors %}
+                            {% for error in form.proyectos.errors %}
+                                <div class="error-message">{{ error }}</div>
+                            {% endfor %}
+                        {% endif %}
+                        
+                        <div class="proyectos-info" id="proyectosInfo">
+                            💡 <strong>Tip:</strong> Seleccione los proyectos que se gestionarán desde este centro operativo
+                        </div>
+                    </div>
+                </div>
+
+                <!-- SECCIÓN: ESTADO DEL CENTRO -->
+                <div class="form-section">
+                    <h3 class="section-title">
+                        ⚙️ Estado del Centro
+                    </h3>
+
+                    <!-- Campo Activo - SOLO mostrar en EDICIÓN -->
+                    {% if centro %}
+                    <div class="form-group">
+                        <div class="form-check">
+                            {{ form.activo }}
+                            <label for="{{ form.activo.id_for_label }}" class="form-check-label">
+                                {{ form.activo.label }}
+                            </label>
+                        </div>
+                        {% if form.activo.help_text %}
+                            <div class="help-text">{{ form.activo.help_text }}</div>
+                        {% endif %}
+                        {% if form.activo.errors %}
+                            {% for error in form.activo.errors %}
+                                <div class="error-message">{{ error }}</div>
+                            {% endfor %}
+                        {% endif %}
+                        <div class="help-text">
+                            ⚠️ Desmarque esta opción para inactivar el centro operativo
+                        </div>
+                    </div>
+                    {% else %}
+                    <!-- Para crear - campo oculto y mensaje informativo -->
+                    {{ form.activo }}
+                    <div class="form-group">
+                        <div class="status-indicator">
+                            <span>✅</span>
+                            <strong>Estado:</strong> Este centro operativo se creará como <strong>ACTIVO</strong> por defecto
+                        </div>
+                    </div>
+                    {% endif %}
+                </div>
+            </div>
+
+            <!-- Acciones del formulario -->
+            <div class="form-actions">
+                <a href="{% url 'empresas:centros_operativos_list' %}" class="btn-outline">
+                    ❌ Cancelar
+                </a>
+                {% if centro %}
+                    <a href="{% url 'empresas:centro_operativo_detail' centro.id_centro %}" class="btn-secondary">
+                         Ver Detalle
+                    </a>
+                {% endif %}
+                <button type="submit" class="btn-regency">
+                    {% if centro %}
+                        💾 {{ action|default:"Actualizar" }} Centro
+                    {% else %}
+                         {{ action|default:"Crear" }} Centro
+                    {% endif %}
+                </button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<!-- Script para funcionalidades del formulario -->
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        // Enfocar el primer campo del formulario
+        const firstInput = document.querySelector('.form-control, .form-select');
+        if (firstInput) {
+            firstInput.focus();
+        }
+
+        // Validación en tiempo real del nombre
+        const nombreInput = document.getElementById('{{ form.nombre.id_for_label }}');
+        if (nombreInput) {
+            nombreInput.addEventListener('input', function() {
+                const value = this.value.trim();
+                const errorDiv = this.parentNode.querySelector('.error-message');
+                
+                // Remover errores previos
+                if (errorDiv) {
+                    errorDiv.remove();
+                }
+                
+                // Validar longitud mínima
+                if (value.length > 0 && value.length < 2) {
+                    const error = document.createElement('div');
+                    error.className = 'error-message';
+                    error.textContent = 'El nombre debe tener al menos 2 caracteres.';
+                    this.parentNode.appendChild(error);
+                    this.classList.add('is-invalid');
+                } else {
+                    this.classList.remove('is-invalid');
+                    if (value.length >= 2) {
+                        this.classList.add('is-valid');
+                    }
+                }
+            });
+        }
+
+        // Formatear campo ciudad (capitalizar)
+        const ciudadInput = document.getElementById('{{ form.ciudad.id_for_label }}');
+        if (ciudadInput) {
+            ciudadInput.addEventListener('blur', function() {
+                this.value = this.value.trim().replace(/\b\w/g, l => l.toUpperCase());
+            });
+        }
+
+        // Validación de promesa de valor
+        const promesaInput = document.getElementById('{{ form.promesa_valor.id_for_label }}');
+        if (promesaInput) {
+            promesaInput.addEventListener('input', function() {
+                let value = this.value.replace(/[^\d]/g, '');
+                this.value = value;
+                
+                // Validar rango
+                if (value && (parseInt(value) < 0 || parseInt(value) > 99999)) {
+                    this.classList.add('is-invalid');
+                } else {
+                    this.classList.remove('is-invalid');
+                    if (value) {
+                        this.classList.add('is-valid');
+                    }
+                }
+            });
+        }
+
+        // Información dinámica de proyectos seleccionados
+        const proyectosSelect = document.getElementById('{{ form.proyectos.id_for_label }}');
+        const proyectosInfo = document.querySelector('.proyectos-info');
+        if (proyectosSelect && proyectosInfo) {
+            proyectosSelect.addEventListener('change', function() {
+                const selectedCount = this.selectedOptions.length;
+                if (selectedCount > 0) {
+                    proyectosInfo.innerHTML = `
+                        📊 <strong>${selectedCount} proyecto${selectedCount > 1 ? 's' : ''} seleccionado${selectedCount > 1 ? 's' : ''}:</strong><br>
+                        ${Array.from(this.selectedOptions).map(option => '• ' + option.text).join('<br>')}
+                    `;
+                } else {
+                    proyectosInfo.innerHTML = '💡 <strong>Tip:</strong> Mantenga presionado Ctrl (Cmd en Mac) para seleccionar múltiples proyectos';
+                }
+            });
+        }
+
+        // Confirmación antes de cancelar si hay cambios
+        const form = document.querySelector('.centro-form');
+        const cancelBtn = document.querySelector('.btn-outline');
+        let formChanged = false;
+
+        if (form && cancelBtn) {
+            // Detectar cambios en el formulario
+            form.addEventListener('change', function() {
+                formChanged = true;
+            });
+
+            form.addEventListener('input', function() {
+                formChanged = true;
+            });
+
+            // Confirmar cancelación si hay cambios
+            cancelBtn.addEventListener('click', function(e) {
+                if (formChanged) {
+                    if (!confirm('¿Está seguro de cancelar? Se perderán los cambios no guardados.')) {
+                        e.preventDefault();
+                    }
+                }
+            });
+        }
+
+        // Validación del formulario antes del envío
+        if (form) {
+            form.addEventListener('submit', function(e) {
+                const nombre = document.getElementById('{{ form.nombre.id_for_label }}');
+                const ciudad = document.getElementById('{{ form.ciudad.id_for_label }}');
+                const direccion = document.getElementById('{{ form.direccion.id_for_label }}');
+                
+                let hasErrors = false;
+
+                // Validar campos obligatorios
+                if (nombre && nombre.value.trim().length < 2) {
+                    hasErrors = true;
+                    nombre.classList.add('is-invalid');
+                    alert('Por favor ingrese un nombre válido para el centro operativo (mínimo 2 caracteres).');
+                    nombre.focus();
+                    return false;
+                }
+
+                if (ciudad && ciudad.value.trim().length < 2) {
+                    hasErrors = true;
+                    ciudad.classList.add('is-invalid');
+                    alert('Por favor ingrese una ciudad válida (mínimo 2 caracteres).');
+                    ciudad.focus();
+                    return false;
+                }
+
+                if (direccion && direccion.value.trim().length < 5) {
+                    hasErrors = true;
+                    direccion.classList.add('is-invalid');
+                    alert('Por favor ingrese una dirección válida (mínimo 5 caracteres).');
+                    direccion.focus();
+                    return false;
+                }
+
+                if (hasErrors) {
+                    e.preventDefault();
+                    return false;
+                }
+            });
+        }
+
+        // Funcionalidades del checklist de proyectos
+        const proyectosChecklist = document.querySelector('.proyectos-checklist');
+        if (proyectosChecklist) {
+            const selectAllBtn = document.getElementById('selectAllProyectos');
+            const clearAllBtn = document.getElementById('clearAllProyectos');
+            const proyectosSelectedCounter = document.getElementById('proyectosSelected');
+            
+            // Seleccionar todos los proyectos
+            selectAllBtn.addEventListener('click', function() {
+                const allCheckboxes = proyectosChecklist.querySelectorAll('.checklist-item input[type="checkbox"]');
+                allCheckboxes.forEach(checkbox => {
+                    checkbox.checked = true;
+                    checkbox.dispatchEvent(new Event('change'));
+                });
+            });
+            
+            // Limpiar selección de proyectos
+            clearAllBtn.addEventListener('click', function() {
+                const allCheckboxes = proyectosChecklist.querySelectorAll('.checklist-item input[type="checkbox"]');
+                allCheckboxes.forEach(checkbox => {
+                    checkbox.checked = false;
+                    checkbox.dispatchEvent(new Event('change'));
+                });
+            });
+            
+            // Actualizar contador de proyectos seleccionados
+            proyectosChecklist.addEventListener('change', function() {
+                const selectedCount = proyectosChecklist.querySelectorAll('.checklist-item input[type="checkbox"]:checked').length;
+                proyectosSelectedCounter.textContent = selectedCount;
+            });
+        }
+    });
+</script>
+{% endblock %}
