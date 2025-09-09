@@ -1,0 +1,360 @@
+{% extends "admin/base_site.html" %}
+{% load i18n static %}
+
+{% block extrastyle %}
+{{ block.super }}
+<style>
+    /* Variables empresariales REGENCY */
+    :root {
+        --regency-red: #871F1B;
+        --regency-red-dark: #6b191b;
+        --regency-red-light: #a13832;
+        --regency-gray: #f8f9fa;
+        --regency-gray-dark: #64748b;
+        --regency-text: #333;
+        --border-radius: 8px;
+        --shadow-sm: 0 1px 3px rgba(0, 0, 0, 0.1);
+        --shadow-md: 0 4px 6px rgba(0, 0, 0, 0.1);
+    }
+
+    /* ========== OCULTAR BREADCRUMB DJANGO ADMIN ========== */
+    .breadcrumbs,
+    div.breadcrumbs {
+        display: none !important;
+    }
+
+    /* Tipografía empresarial consistente */
+    body {
+        font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+        font-size: 14px;
+        line-height: 1.5;
+        color: var(--regency-text);
+        background: var(--regency-gray);
+    }
+
+    /* Container principal */
+    .delete-container {
+        padding: 2rem 1.5rem;
+        max-width: 600px;
+        margin: 0 auto;
+        min-height: 70vh;
+        display: flex;
+        flex-direction: column;
+        justify-content: center;
+        align-items: center;
+    }
+
+    /* Card de confirmación */
+    .delete-card {
+        background: white;
+        border-radius: var(--border-radius);
+        overflow: hidden;
+        box-shadow: var(--shadow-md);
+        border: 1px solid #e5e7eb;
+        text-align: center;
+        max-width: 500px;
+        width: 100%;
+        animation: slideInUp 0.3s ease-out;
+    }
+
+    .card-header-danger {
+        background: #dc2626;
+        color: white;
+        padding: 1.5rem;
+        font-weight: 600;
+        font-size: 1.1rem;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 0.5rem;
+    }
+
+    .delete-content {
+        padding: 2rem 1.5rem;
+    }
+
+    .delete-icon {
+        font-size: 4rem;
+        color: #dc2626;
+        margin-bottom: 1rem;
+        display: block;
+    }
+
+    .delete-title {
+        font-size: 1.3rem;
+        font-weight: 600;
+        color: var(--regency-text);
+        margin-bottom: 1rem;
+    }
+
+    .delete-message {
+        font-size: 1rem;
+        color: var(--regency-gray-dark);
+        margin-bottom: 1.5rem;
+        line-height: 1.6;
+    }
+
+    .cargo-info {
+        background: #fef2f2;
+        border: 1px solid #fecaca;
+        border-radius: var(--border-radius);
+        padding: 1rem;
+        margin: 1.5rem 0;
+        color: #991b1b;
+    }
+
+    .cargo-info strong {
+        color: #7f1d1d;
+    }
+
+    /* Botones de acción */
+    .form-actions {
+        padding: 1.5rem;
+        background: #f8fafc;
+        border-top: 1px solid #e5e7eb;
+        display: flex;
+        gap: 1rem;
+        justify-content: center;
+        flex-wrap: wrap;
+    }
+
+    .btn-danger {
+        background: #dc2626;
+        color: white;
+        border: none;
+        padding: 0.75rem 2rem;
+        border-radius: var(--border-radius);
+        font-weight: 600;
+        font-size: 0.9rem;
+        cursor: pointer;
+        transition: all 0.2s ease;
+        text-decoration: none;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        gap: 0.5rem;
+        box-shadow: var(--shadow-sm);
+    }
+
+    .btn-danger:hover {
+        background: #b91c1c;
+        color: white;
+        text-decoration: none;
+        transform: translateY(-1px);
+        box-shadow: var(--shadow-md);
+    }
+
+    .btn-secondary {
+        background: #6b7280;
+        color: white;
+        border: 1px solid #6b7280;
+        padding: 0.75rem 2rem;
+        border-radius: var(--border-radius);
+        font-weight: 500;
+        font-size: 0.9rem;
+        cursor: pointer;
+        transition: all 0.2s ease;
+        text-decoration: none;
+        display: inline-flex;
+        align-items: center;
+        gap: 0.5rem;
+    }
+
+    .btn-secondary:hover {
+        background: #4b5563;
+        border-color: #4b5563;
+        color: white;
+        text-decoration: none;
+    }
+
+    /* Mensaje de éxito (oculto inicialmente) */
+    .success-message {
+        display: none;
+        background: #f0fdf4;
+        border: 2px solid #bbf7d0;
+        border-radius: var(--border-radius);
+        padding: 2rem;
+        color: #166534;
+        text-align: center;
+        margin-top: 1rem;
+        animation: fadeIn 0.5s ease-in;
+    }
+
+    .success-message.show {
+        display: block;
+    }
+
+    .success-icon {
+        font-size: 3rem;
+        color: #22c55e;
+        margin-bottom: 1rem;
+        display: block;
+    }
+
+    .success-title {
+        font-size: 1.2rem;
+        font-weight: 600;
+        margin-bottom: 0.5rem;
+    }
+
+    .redirect-info {
+        font-size: 0.9rem;
+        color: #15803d;
+        margin-top: 1rem;
+    }
+
+    /* Animaciones */
+    @keyframes slideInUp {
+        from {
+            opacity: 0;
+            transform: translateY(20px);
+        }
+        to {
+            opacity: 1;
+            transform: translateY(0);
+        }
+    }
+
+    @keyframes fadeIn {
+        from {
+            opacity: 0;
+        }
+        to {
+            opacity: 1;
+        }
+    }
+
+    /* Responsive */
+    @media (max-width: 768px) {
+        .delete-container {
+            padding: 1rem;
+        }
+
+        .delete-content {
+            padding: 1.5rem 1rem;
+        }
+
+        .form-actions {
+            padding: 1rem;
+            flex-direction: column;
+        }
+
+        .btn-danger,
+        .btn-secondary {
+            width: 100%;
+            justify-content: center;
+        }
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="delete-container">
+    <!-- Card de confirmación de eliminación -->
+    <div class="delete-card" id="deleteCard">
+        <div class="card-header-danger">
+            🗑️ Confirmar Eliminación
+        </div>
+
+        <div class="delete-content">
+            <span class="delete-icon">⚠️</span>
+            <h2 class="delete-title">¿Está seguro de eliminar este cargo?</h2>
+            <p class="delete-message">
+                Esta acción <strong>no se puede deshacer</strong>. El cargo predefinido será eliminado permanentemente del sistema.
+            </p>
+
+            <div class="cargo-info">
+                <strong>Cargo a eliminar:</strong><br>
+                <span style="font-size: 1.1rem;">{{ cargo.nombre }}</span>
+                {% if cargo.descripcion %}
+                    <br><small>{{ cargo.descripcion|truncatechars:100 }}</small>
+                {% endif %}
+            </div>
+        </div>
+
+        <form method="post" id="deleteForm">
+            {% csrf_token %}
+            <div class="form-actions">
+                <a href="{% url 'empresas:cargopredefinido_list' %}" class="btn-secondary">
+                    ❌ Cancelar
+                </a>
+                <button type="submit" class="btn-danger" id="confirmDeleteBtn">
+                    🗑️ Sí, Eliminar Cargo
+                </button>
+            </div>
+        </form>
+    </div>
+
+    <!-- Mensaje de éxito (oculto inicialmente) -->
+    <div class="success-message" id="successMessage">
+        <span class="success-icon">✅</span>
+        <h3 class="success-title">¡Cargo Eliminado Exitosamente!</h3>
+        <p>El cargo "<strong id="cargoName">{{ cargo.nombre }}</strong>" ha sido eliminado del sistema.</p>
+        <div class="redirect-info">
+            <strong>Redirigiendo a la lista de cargos...</strong>
+        </div>
+    </div>
+</div>
+
+<!-- Script para manejar la eliminación y redirección -->
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        const deleteForm = document.getElementById('deleteForm');
+        const deleteCard = document.getElementById('deleteCard');
+        const successMessage = document.getElementById('successMessage');
+        const confirmDeleteBtn = document.getElementById('confirmDeleteBtn');
+        
+        deleteForm.addEventListener('submit', function(e) {
+            e.preventDefault();
+            
+            // Deshabilitar el botón para evitar doble envío
+            confirmDeleteBtn.disabled = true;
+            confirmDeleteBtn.innerHTML = '⏳ Eliminando...';
+            
+            // Crear FormData para enviar el formulario
+            const formData = new FormData(deleteForm);
+            
+            // Enviar petición POST para eliminar
+            fetch(deleteForm.action || window.location.href, {
+                method: 'POST',
+                body: formData,
+                headers: {
+                    'X-Requested-With': 'XMLHttpRequest',
+                }
+            })
+            .then(response => {
+                if (response.ok) {
+                    // Ocultar card de confirmación
+                    deleteCard.style.display = 'none';
+                    
+                    // Mostrar mensaje de éxito
+                    successMessage.classList.add('show');
+                    
+                    // Redirigir después de 2 segundos
+                    setTimeout(function() {
+                        window.location.href = "{% url 'empresas:cargopredefinido_list' %}";
+                    }, 2000);
+                } else {
+                    // Error en la eliminación
+                    alert('Error al eliminar el cargo. Por favor, inténtelo de nuevo.');
+                    confirmDeleteBtn.disabled = false;
+                    confirmDeleteBtn.innerHTML = '🗑️ Sí, Eliminar Cargo';
+                }
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                alert('Error de conexión. Por favor, inténtelo de nuevo.');
+                confirmDeleteBtn.disabled = false;
+                confirmDeleteBtn.innerHTML = '🗑️ Sí, Eliminar Cargo';
+            });
+        });
+
+        // Confirmación adicional con teclado
+        document.addEventListener('keydown', function(e) {
+            if (e.key === 'Escape') {
+                window.location.href = "{% url 'empresas:cargopredefinido_list' %}";
+            }
+        });
+    });
+</script>
+{% endblock %}

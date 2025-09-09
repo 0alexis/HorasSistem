@@ -1,0 +1,679 @@
+{% extends "admin/base_site.html" %}
+{% load i18n static %}
+
+{% block extrastyle %}
+{{ block.super }}
+<style>
+    /* Variables empresariales REGENCY */
+    :root {
+        --regency-red: #871F1B;
+        --regency-red-dark: #6b191b;
+        --regency-red-light: #a13832;
+        --regency-gray: #f8f9fa;
+        --regency-gray-dark: #64748b;
+        --regency-text: #333;
+        --border-radius: 8px;
+        --shadow-sm: 0 1px 3px rgba(0, 0, 0, 0.1);
+        --shadow-md: 0 4px 6px rgba(0, 0, 0, 0.1);
+    }
+
+    /* ========== OCULTAR BREADCRUMB DJANGO ADMIN ========== */
+    .breadcrumbs,
+    div.breadcrumbs {
+        display: none !important;
+    }
+
+    /* Tipografía empresarial consistente */
+    body {
+        font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+        font-size: 14px;
+        line-height: 1.5;
+        color: var(--regency-text);
+        background: var(--regency-gray);
+    }
+
+    /* Container principal */
+    .list-container {
+        padding: 1rem 1.5rem;
+        max-width: 1200px;
+        margin: 0 auto;
+    }
+
+    /* Header de la página */
+    .page-header {
+        background: var(--regency-red);
+        color: white;
+        padding: 1.25rem 1.5rem;
+        margin-bottom: 1.5rem;
+        border-radius: var(--border-radius);
+        box-shadow: var(--shadow-sm);
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        flex-wrap: wrap;
+        gap: 1rem;
+    }
+
+    .header-main {
+        flex: 1;
+        min-width: 0;
+    }
+
+    .page-header h1 {
+        font-size: 1.4rem;
+        font-weight: 600;
+        margin: 0 0 0.4rem 0;
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+        line-height: 1.2;
+    }
+
+    .page-subtitle {
+        font-size: 0.85rem;
+        opacity: 0.9;
+        margin: 0;
+        font-weight: 400;
+    }
+
+    .header-actions {
+        display: flex;
+        gap: 0.5rem;
+        flex-shrink: 0;
+    }
+
+    /* Stats rápidas */
+    .stats-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
+        gap: 1rem;
+        margin-bottom: 1rem;
+    }
+
+    .stat-item {
+        background: rgba(255, 255, 255, 0.1);
+        padding: 0.75rem;
+        border-radius: var(--border-radius);
+        text-align: center;
+    }
+
+    .stat-number {
+        font-size: 1.5rem;
+        font-weight: 700;
+        display: block;
+        line-height: 1;
+    }
+
+    .stat-label {
+        font-size: 0.75rem;
+        opacity: 0.8;
+        margin-top: 0.25rem;
+    }
+
+    /* Breadcrumb personalizado */
+    .custom-breadcrumb {
+        background: white;
+        border: 1px solid #e5e7eb;
+        border-radius: var(--border-radius);
+        padding: 0.75rem 1rem;
+        margin-bottom: 1.5rem;
+        box-shadow: var(--shadow-sm);
+        font-size: 0.85rem;
+    }
+
+    .custom-breadcrumb a {
+        color: var(--regency-red);
+        text-decoration: none;
+        font-weight: 500;
+        transition: color 0.2s ease;
+    }
+
+    .custom-breadcrumb a:hover {
+        color: var(--regency-red-dark);
+        text-decoration: underline;
+    }
+
+    .breadcrumb-separator {
+        color: var(--regency-gray-dark);
+        margin: 0 0.5rem;
+    }
+
+    /* Toolbar de herramientas */
+    .toolbar {
+        background: white;
+        border: 1px solid #e5e7eb;
+        border-radius: var(--border-radius);
+        padding: 1rem 1.25rem;
+        margin-bottom: 1.5rem;
+        box-shadow: var(--shadow-sm);
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        flex-wrap: wrap;
+        gap: 1rem;
+    }
+
+    .toolbar-left {
+        display: flex;
+        align-items: center;
+        gap: 1rem;
+        flex: 1;
+    }
+
+    .toolbar-right {
+        display: flex;
+        gap: 0.75rem;
+    }
+
+    .search-box {
+        display: flex;
+        align-items: center;
+        background: var(--regency-gray);
+        border: 1px solid #e5e7eb;
+        border-radius: var(--border-radius);
+        padding: 0.5rem 0.75rem;
+        min-width: 250px;
+    }
+
+    .search-box input {
+        border: none;
+        background: transparent;
+        outline: none;
+        flex: 1;
+        padding: 0.25rem;
+        font-size: 0.9rem;
+    }
+
+    .search-box .search-icon {
+        color: var(--regency-gray-dark);
+        margin-right: 0.5rem;
+    }
+
+    /* Botones empresariales */
+    .btn-regency {
+        background: var(--regency-red);
+        color: white;
+        border: none;
+        padding: 0.75rem 1.25rem;
+        border-radius: var(--border-radius);
+        font-weight: 500;
+        font-size: 0.9rem;
+        cursor: pointer;
+        transition: all 0.2s ease;
+        text-decoration: none;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        gap: 0.5rem;
+        box-shadow: var(--shadow-sm);
+    }
+
+    .btn-regency:hover {
+        background: var(--regency-red-dark);
+        color: white;
+        text-decoration: none;
+        transform: translateY(-1px);
+        box-shadow: var(--shadow-md);
+    }
+
+    .btn-secondary {
+        background: #6b7280;
+        color: white;
+        border: 1px solid #6b7280;
+        padding: 0.75rem 1.25rem;
+        border-radius: var(--border-radius);
+        font-weight: 500;
+        font-size: 0.9rem;
+        cursor: pointer;
+        transition: all 0.2s ease;
+        text-decoration: none;
+        display: inline-flex;
+        align-items: center;
+        gap: 0.5rem;
+    }
+
+    .btn-secondary:hover {
+        background: #4b5563;
+        border-color: #4b5563;
+        color: white;
+        text-decoration: none;
+    }
+
+    .btn-sm {
+        padding: 0.4rem 0.75rem;
+        font-size: 0.8rem;
+    }
+
+    .btn-info {
+        background: #0ea5e9;
+        color: white;
+        border: 1px solid #0ea5e9;
+    }
+
+    .btn-info:hover {
+        background: #0284c7;
+        border-color: #0284c7;
+        color: white;
+    }
+
+    .btn-warning {
+        background: #f59e0b;
+        color: white;
+        border: 1px solid #f59e0b;
+    }
+
+    .btn-warning:hover {
+        background: #d97706;
+        border-color: #d97706;
+        color: white;
+    }
+
+    .btn-danger {
+        background: #dc2626;
+        color: white;
+        border: 1px solid #dc2626;
+    }
+
+    .btn-danger:hover {
+        background: #b91c1c;
+        border-color: #b91c1c;
+        color: white;
+    }
+
+    /* Card de la tabla */
+    .table-card {
+        background: white;
+        border-radius: var(--border-radius);
+        overflow: hidden;
+        box-shadow: var(--shadow-sm);
+        border: 1px solid #e5e7eb;
+    }
+
+    .card-header-regency {
+        background: var(--regency-red);
+        color: white;
+        padding: 1rem 1.25rem;
+        font-weight: 600;
+        font-size: 1rem;
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+    }
+
+    .card-header-left {
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+    }
+
+    .card-header-right {
+        font-size: 0.85rem;
+        opacity: 0.9;
+    }
+
+    /* Tabla empresarial */
+    .table-regency {
+        width: 100%;
+        border-collapse: collapse;
+        margin: 0;
+        font-size: 0.9rem;
+    }
+
+    .table-regency th {
+        background: #f8fafc;
+        color: var(--regency-text);
+        font-weight: 600;
+        padding: 0.75rem 1rem;
+        text-align: left;
+        border-bottom: 1px solid #e5e7eb;
+        border-right: 1px solid #e5e7eb;
+        font-size: 0.85rem;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+    }
+
+    .table-regency th:last-child {
+        border-right: none;
+    }
+
+    .table-regency td {
+        padding: 0.75rem 1rem;
+        border-bottom: 1px solid #f1f5f9;
+        border-right: 1px solid #f1f5f9;
+        vertical-align: middle;
+    }
+
+    .table-regency td:last-child {
+        border-right: none;
+    }
+
+    .table-regency tbody tr {
+        transition: background-color 0.2s ease;
+    }
+
+    .table-regency tbody tr:hover {
+        background: #f8fafc;
+    }
+
+    .table-regency tbody tr:nth-child(even) {
+        background: #fefefe;
+    }
+
+    .table-regency tbody tr:nth-child(even):hover {
+        background: #f8fafc;
+    }
+
+    /* Columnas específicas */
+    .col-nombre {
+        font-weight: 600;
+        color: var(--regency-red);
+        min-width: 200px;
+    }
+
+    .col-descripcion {
+        color: var(--regency-gray-dark);
+        font-size: 0.85rem;
+        max-width: 300px;
+    }
+
+    .col-departamento {
+        font-weight: 500;
+        min-width: 150px;
+    }
+
+    .col-activo {
+        text-align: center;
+        min-width: 100px;
+    }
+
+    .col-fecha {
+        font-family: 'SF Mono', 'Monaco', 'Inconsolata', 'Roboto Mono', monospace;
+        font-weight: 600;
+        font-size: 0.85rem;
+        color: var(--regency-gray-dark);
+        text-align: center;
+        min-width: 140px;
+    }
+
+    .col-acciones {
+        text-align: center;
+        min-width: 200px;
+    }
+
+    /* Badge de estado */
+    .badge-activo {
+        background: #dcfce7;
+        color: #166534;
+        padding: 0.25rem 0.5rem;
+        border-radius: 12px;
+        font-size: 0.75rem;
+        font-weight: 500;
+        border: 1px solid #bbf7d0;
+    }
+
+    .badge-inactivo {
+        background: #fee2e2;
+        color: #991b1b;
+        padding: 0.25rem 0.5rem;
+        border-radius: 12px;
+        font-size: 0.75rem;
+        font-weight: 500;
+        border: 1px solid #fecaca;
+    }
+
+    /* Estado vacío */
+    .empty-state {
+        text-align: center;
+        padding: 3rem 2rem;
+        color: var(--regency-gray-dark);
+    }
+
+    .empty-state-icon {
+        font-size: 3rem;
+        margin-bottom: 1rem;
+        opacity: 0.5;
+    }
+
+    .empty-state h3 {
+        font-size: 1.1rem;
+        font-weight: 600;
+        margin-bottom: 0.5rem;
+        color: var(--regency-text);
+    }
+
+    .empty-state p {
+        font-size: 0.9rem;
+        margin-bottom: 1.5rem;
+    }
+
+    /* Responsive */
+    @media (max-width: 768px) {
+        .list-container {
+            padding: 0.75rem 1rem;
+        }
+
+        .page-header {
+            padding: 1rem;
+            flex-direction: column;
+            align-items: stretch;
+            text-align: center;
+        }
+
+        .page-header h1 {
+            font-size: 1.2rem;
+            justify-content: center;
+        }
+
+        .header-actions {
+            justify-content: center;
+            margin-top: 0.5rem;
+        }
+
+        .toolbar {
+            padding: 0.75rem;
+            flex-direction: column;
+            align-items: stretch;
+        }
+
+        .toolbar-left,
+        .toolbar-right {
+            justify-content: center;
+        }
+
+        .search-box {
+            min-width: 100%;
+        }
+
+        .table-regency {
+            font-size: 0.8rem;
+        }
+
+        .table-regency th,
+        .table-regency td {
+            padding: 0.5rem 0.75rem;
+        }
+
+        .stats-grid {
+            grid-template-columns: repeat(2, 1fr);
+        }
+    }
+
+    /* Efectos de carga */
+    .table-regency tbody tr {
+        animation: fadeInRow 0.3s ease-in-out;
+    }
+
+    @keyframes fadeInRow {
+        from {
+            opacity: 0;
+            transform: translateY(10px);
+        }
+        to {
+            opacity: 1;
+            transform: translateY(0);
+        }
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="list-container">
+    <!-- Header de la página -->
+    <div class="page-header">
+        <div class="header-main">
+            <h1>👔 Lista de Cargos Predefinidos</h1>
+            <p class="page-subtitle">Gestión y administración de cargos predefinidos del sistema REGENCY</p>
+            
+
+        </div>
+
+    </div>
+
+
+    <!-- Toolbar de herramientas -->
+    <div class="toolbar">
+        <div class="toolbar-left">
+            <div class="search-box">
+                <span class="search-icon">🔍</span>
+                <input type="text" placeholder="Buscar cargos predefinidos..." id="searchInput">
+            </div>
+        </div>
+        <div class="toolbar-right">
+            <a href="{% url 'empresas:cargopredefinido_create' %}" class="btn-regency">
+                ➕ Nuevo Cargo Predefinido
+            </a>
+        </div>
+    </div>
+
+    <!-- Tabla de cargos -->
+    <div class="table-card">
+        <div class="card-header-regency">
+            <div class="card-header-left">
+                👔 Cargos Predefinidos Registrados
+            </div>
+            <div class="card-header-right">
+                Total: {{ cargos|length }} cargos
+            </div>
+        </div>
+        
+        {% if cargos %}
+        
+        <table class="table-regency" id="cargosTable">
+            <thead>
+                <tr>
+                    <th class="col-nombre">Nombre del Cargo</th>
+                    <th class="col-descripcion">Descripción</th>
+                    <th class="col-salario">Salario Base</th>
+                    <th class="col-estado">Estado</th>
+                    <th class="col-activo">Activo</th>
+                    <th class="col-fecha">Fecha Creación</th>
+                    <th class="col-acciones">Acciones</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for cargo in cargos %}
+                <tr>
+                    <td class="col-nombre">
+                        <div style="display: flex; align-items: center; gap: 0.5rem;">
+                            <span style="color: var(--regency-red); font-size: 1.1rem;">👔</span>
+                            {{ cargo.nombre }}
+                        </div>
+                    </td>
+                    <td class="col-descripcion">
+                        {% if cargo.descripcion %}
+                            {{ cargo.descripcion|truncatechars:100 }}
+                        {% else %}
+                            <span style="color: var(--regency-gray-dark); font-style: italic;">Sin descripción</span>
+                        {% endif %}
+                    </td>
+                    <td class="col-salario">
+                        {% if cargo.salario %}
+                            <span style="font-family: monospace; font-weight: 600; color: var(--regency-red);">
+                                ${{ cargo.salario|floatformat:0 }}
+                            </span>
+                        {% else %}
+                            <span style="color: var(--regency-gray-dark); font-style: italic;">No definido</span>
+                        {% endif %}
+                    </td>
+                    <td class="col-estado">
+                        {% if cargo.estado_cargo %}
+                            <span class="badge-tipo">{{ cargo.estado_cargo }}</span>
+                        {% else %}
+                            <span style="color: var(--regency-gray-dark);">--</span>
+                        {% endif %}
+                    </td>
+                    <td class="col-activo">
+                        {% if cargo.activo %}
+                            <span class="badge-activo">✅ Activo</span>
+                        {% else %}
+                            <span class="badge-inactivo">❌ Inactivo</span>
+                        {% endif %}
+                    </td>
+                    <td class="col-fecha">
+                        {% if cargo.creado_en %}
+                            {{ cargo.creado_en|date:"d/m/Y H:i" }}
+                        {% else %}
+                            <span style="color: var(--regency-gray-dark);">--</span>
+                        {% endif %}
+                    </td>
+                    <td class="col-acciones">
+                        <a href="{% url 'empresas:cargopredefinido_detail' cargo.id_cargo_predefinido %}" 
+                           class="btn-info btn-sm" title="Ver detalles">
+                             Ver
+                        </a>
+                        <a href="{% url 'empresas:cargopredefinido_update' cargo.id_cargo_predefinido %}" 
+                           class="btn-warning btn-sm" title="Editar cargo">
+                             Editar
+                        </a>
+                        <a href="{% url 'empresas:cargopredefinido_delete' cargo.id_cargo_predefinido %}" 
+                           class="btn-danger btn-sm" title="Eliminar cargo"
+                           onclick="return confirm('¿Está seguro de eliminar este cargo predefinido?')">
+                             Eliminar
+                        </a>
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+        
+        
+        {% else %}
+        <div class="empty-state">
+            <div class="empty-state-icon">👔</div>
+            <h3>No hay cargos predefinidos registrados</h3>
+            <p>Comience creando su primer cargo predefinido para el sistema.</p>
+            <a href="{% url 'empresas:cargopredefinido_create' %}" class="btn-regency">
+                ➕ Crear Primer Cargo Predefinido
+            </a>
+        </div>
+        {% endif %}
+    </div>
+</div>
+
+<!-- Script para funcionalidades -->
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        // Búsqueda en tiempo real
+        const searchInput = document.getElementById('searchInput');
+        const table = document.getElementById('cargosTable');
+        
+        if (searchInput && table) {
+            searchInput.addEventListener('input', function() {
+                const searchTerm = this.value.toLowerCase();
+                const rows = table.querySelectorAll('tbody tr');
+                
+                rows.forEach(row => {
+                    const text = row.textContent.toLowerCase();
+                    row.style.display = text.includes(searchTerm) ? '' : 'none';
+                });
+            });
+        }
+
+        // Animación de entrada para las filas
+        const rows = document.querySelectorAll('.table-regency tbody tr');
+        rows.forEach((row, index) => {
+            row.style.animationDelay = `${index * 0.05}s`;
+        });
+    });
+</script>
+{% endblock %}

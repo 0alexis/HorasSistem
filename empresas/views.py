@@ -13,7 +13,7 @@ from django.core.paginator import Paginator
 from django.db.models import Q
 from django.db import OperationalError
 from django.utils import timezone
-from django.views.generic import CreateView, UpdateView, DetailView, ListView
+from django.views.generic import CreateView, UpdateView, DetailView, ListView, DeleteView
 from django.urls import reverse_lazy
 
 from datetime import datetime, timedelta
@@ -348,39 +348,9 @@ def unidad_negocio_update(request, pk):
 def unidad_negocio_delete(request, pk):
     return render(request, 'empresas/en_desarrollo.html', {'modulo': 'Unidades de Negocio'})
 
-# =======================
-#       CRUD DE CARGOS (EN DESARROLLO)
-# =======================
 
-@login_required
-def cargos_list(request):
-    """Lista de cargos predefinidos"""
-    try:
-        from .models import CargoPredefinido
-        cargos = CargoPredefinido.objects.all().order_by('-id')
-        paginator = Paginator(cargos, 10)
-        page_number = request.GET.get('page')
-        cargos_page = paginator.get_page(page_number)
-        context = {'cargos': cargos_page}
-    except:
-        context = {'cargos': [], 'mensaje': 'En desarrollo'}
-    return render(request, 'empresas/cargos_list.html', context)
 
-@login_required
-def cargo_create(request):
-    return render(request, 'empresas/en_desarrollo.html', {'modulo': 'Cargos'})
 
-@login_required
-def cargo_detail(request, pk):
-    return render(request, 'empresas/en_desarrollo.html', {'modulo': 'Cargos'})
-
-@login_required
-def cargo_update(request, pk):
-    return render(request, 'empresas/en_desarrollo.html', {'modulo': 'Cargos'})
-
-@login_required
-def cargo_delete(request, pk):
-    return render(request, 'empresas/en_desarrollo.html', {'modulo': 'Cargos'})
 
 class EmpresaDetailView(DetailView):
     model = Empresa
@@ -412,3 +382,287 @@ class EmpresaUpdateView(UpdateView):
     def get_success_url(self):
         # Redirige al detalle de la empresa editada
         return reverse_lazy('empresas:empresa_detail', kwargs={'pk': self.object.pk})
+    
+
+# =======================
+#  CRUD DE CARGOS PREDEFINIDOS - IMPLEMENTACIÓN COMPLETA
+# =======================
+# Vista para listar, crear, editar y eliminar cargos predefinidos
+
+@login_required
+def cargopredefinido_list(request):
+    """Lista de cargos predefinidos con filtros y búsqueda"""
+    try:
+        from .models import CargoPredefinido
+        cargos = CargoPredefinido.objects.all().order_by('-id_cargo_predefinido')
+        
+        # Filtros de búsqueda
+        search = request.GET.get('search', '')
+        if search:
+            cargos = cargos.filter(
+                Q(nombre__icontains=search) | 
+                Q(descripcion__icontains=search) |
+                Q(estado_cargo__icontains=search)
+            )
+        
+        # Filtro por estado activo
+        activo = request.GET.get('activo', '')
+        if activo == 'true':
+            cargos = cargos.filter(activo=True)
+        elif activo == 'false':
+            cargos = cargos.filter(activo=False)
+        
+        # Paginación
+        paginator = Paginator(cargos, 15)
+        page_number = request.GET.get('page')
+        cargos_page = paginator.get_page(page_number)
+        
+        # Cargos activos para estadísticas
+        cargos_activos = CargoPredefinido.objects.filter(activo=True)
+        
+        context = {
+            'cargos': cargos_page,
+            'cargos_activos': cargos_activos,
+            'search': search,
+            'activo': activo,
+            'total_cargos': cargos.count(),
+            'is_filtered': bool(search or activo)
+        }
+    except Exception as e:
+        messages.error(request, f'Error al cargar cargos predefinidos: {str(e)}')
+        context = {
+            'cargos': [],
+            'cargos_activos': [],
+            'search': '',
+            'activo': '',
+            'total_cargos': 0,
+            'is_filtered': False
+        }
+    
+    return render(request, 'cargo/cargopredefinido_list.html', context)
+
+
+@login_required
+def cargopredefinido_detail(request, pk):
+    """Detalle de cargo predefinido"""
+    try:
+        from .models import CargoPredefinido
+        cargo = get_object_or_404(CargoPredefinido, pk=pk)
+        context = {'cargo': cargo}
+    except Exception as e:
+        messages.error(request, f'Error al cargar cargo predefinido: {str(e)}')
+        return redirect('empresas:cargopredefinido_list')
+    return render(request, 'cargo/cargopredefinido_detail.html', context)
+
+@login_required
+def cargopredefinido_create(request):
+    """Crear nuevo cargo predefinido"""
+    try:
+        from .models import CargoPredefinido
+        from .forms import CargoPredefinidoForm
+        
+        if request.method == 'POST':
+            form = CargoPredefinidoForm(request.POST)
+            if form.is_valid():
+                cargo = form.save()
+                messages.success(request, f'✅ Cargo "{cargo.nombre}" creado exitosamente!')
+                return redirect('empresas:cargopredefinido_detail', pk=cargo.id_cargo_predefinido)
+            else:
+                messages.error(request, 'Por favor corrige los errores en el formulario.')
+        else:
+            form = CargoPredefinidoForm()
+        
+        context = {
+            'form': form,
+            'title': 'Nuevo Cargo Predefinido',
+            'action': 'Crear',
+            'cargo': None
+        }
+        
+    except Exception as e:
+        messages.error(request, f'Error al crear cargo predefinido: {str(e)}')
+        return redirect('empresas:cargopredefinido_list')
+    
+    return render(request, 'cargo/cargopredefinido_form.html', context)
+
+@login_required
+def cargopredefinido_update(request, pk):
+    """Editar cargo predefinido"""
+    try:
+        from .models import CargoPredefinido
+        from .forms import CargoPredefinidoForm
+        
+        cargo = get_object_or_404(CargoPredefinido, pk=pk)
+        
+        if request.method == 'POST':
+            form = CargoPredefinidoForm(request.POST, instance=cargo)
+            if form.is_valid():
+                cargo = form.save()
+                messages.success(request, f'✅ Cargo "{cargo.nombre}" actualizado exitosamente!')
+                return redirect('empresas:cargopredefinido_detail', pk=cargo.id_cargo_predefinido)
+            else:
+                messages.error(request, 'Por favor corrige los errores en el formulario.')
+        else:
+            form = CargoPredefinidoForm(instance=cargo)
+        
+        context = {
+            'form': form,
+            'title': f'Editar Cargo: {cargo.nombre}',
+            'action': 'Actualizar',
+            'cargo': cargo
+        }
+        
+    except Exception as e:
+        messages.error(request, f'Error al editar cargo predefinido: {str(e)}')
+        return redirect('empresas:cargopredefinido_list')
+    
+    return render(request, 'cargo/cargopredefinido_form.html', context)
+
+@login_required
+def cargopredefinido_delete(request, pk):
+    """Eliminar cargo predefinido"""
+    try:
+        from .models import CargoPredefinido
+        cargo = get_object_or_404(CargoPredefinido, pk=pk)
+        
+        if request.method == 'POST':
+            cargo_nombre = cargo.nombre
+            cargo.delete()
+            messages.success(request, f'✅ Cargo "{cargo_nombre}" eliminado exitosamente!')
+            return redirect('empresas:cargopredefinido_list')
+        
+        context = {'cargo': cargo}
+        
+    except Exception as e:
+        messages.error(request, f'Error al eliminar cargo predefinido: {str(e)}')
+        return redirect('empresas:cargopredefinido_list')
+    
+    return render(request, 'cargo/cargopredefinido_confirm_delete.html', context)
+
+
+        
+# Vistas basadas en clases para CargoPredefinido (alternativa)
+class CargoPredefinidoListView(ListView):
+    template_name = 'cargo/cargopredefinido_list.html'
+    context_object_name = 'cargos'
+    paginate_by = 15
+    
+    def get_queryset(self):
+        from .models import CargoPredefinido
+        queryset = CargoPredefinido.objects.all().order_by('-id_cargo_predefinido')
+        
+        # Filtros de búsqueda
+        search = self.request.GET.get('search', '')
+        if search:
+            queryset = queryset.filter(
+                Q(nombre__icontains=search) | 
+                Q(descripcion__icontains=search) |
+                Q(estado_cargo__icontains=search)
+            )
+        
+        # Filtro por estado activo
+        activo = self.request.GET.get('activo', '')
+        if activo == 'true':
+            queryset = queryset.filter(activo=True)
+        elif activo == 'false':
+            queryset = queryset.filter(activo=False)
+        
+        return queryset
+    
+    def get_context_data(self, **kwargs):
+        from .models import CargoPredefinido
+        context = super().get_context_data(**kwargs)
+        context['cargos_activos'] = CargoPredefinido.objects.filter(activo=True)
+        context['search'] = self.request.GET.get('search', '')
+        context['activo'] = self.request.GET.get('activo', '')
+        context['total_cargos'] = self.get_queryset().count()
+        context['is_filtered'] = bool(context['search'] or context['activo'])
+        return context
+
+class CargoPredefinidoDetailView(DetailView):
+    template_name = 'cargo/cargopredefinido_detail.html'
+    context_object_name = 'cargo'
+    
+    def get_queryset(self):
+        from .models import CargoPredefinido
+        return CargoPredefinido.objects.all()
+
+class CargoPredefinidoCreateView(CreateView):
+    template_name = 'cargo/cargopredefinido_form.html'
+    
+    def get_form_class(self):
+        from .forms import CargoPredefinidoForm
+        return CargoPredefinidoForm
+    
+    def get_queryset(self):
+        from .models import CargoPredefinido
+        return CargoPredefinido.objects.all()
+    
+    def form_valid(self, form):
+        messages.success(self.request, f'✅ Cargo "{form.instance.nombre}" creado exitosamente!')
+        return super().form_valid(form)
+    
+    def get_success_url(self):
+        return reverse_lazy('empresas:cargopredefinido_detail', kwargs={'pk': self.object.id_cargo_predefinido})
+    
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        context['title'] = 'Nuevo Cargo Predefinido'
+        context['action'] = 'Crear'
+        context['cargo'] = None
+        return context
+
+class CargoPredefinidoUpdateView(UpdateView):
+    template_name = 'cargo/cargopredefinido_form.html'
+    context_object_name = 'cargo'
+    
+    def get_form_class(self):
+        from .forms import CargoPredefinidoForm
+        return CargoPredefinidoForm
+    
+    def get_queryset(self):
+        from .models import CargoPredefinido
+        return CargoPredefinido.objects.all()
+    
+    def form_valid(self, form):
+        messages.success(self.request, f'✅ Cargo "{form.instance.nombre}" actualizado exitosamente!')
+        return super().form_valid(form)
+    
+    def get_success_url(self):
+        return reverse_lazy('empresas:cargopredefinido_detail', kwargs={'pk': self.object.id_cargo_predefinido})
+    
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        context['title'] = f'Editar Cargo: {self.object.nombre}'
+        context['action'] = 'Actualizar'
+        return context
+
+class CargoPredefinidoDeleteView(DeleteView):
+    template_name = 'cargo/cargopredefinido_confirm_delete.html'
+    context_object_name = 'cargo'
+    
+    def get_queryset(self):
+        from .models import CargoPredefinido
+        return CargoPredefinido.objects.all()
+    
+    def delete(self, request, *args, **kwargs):
+        cargo = self.get_object()
+        messages.success(request, f'✅ Cargo "{cargo.nombre}" eliminado exitosamente!')
+        return super().delete(request, *args, **kwargs)
+    
+    def get_success_url(self):
+        return reverse_lazy('empresas:cargopredefinido_list')
+
+
+# =======================
+#  API PARA CARGOS PREDEFINIDOS
+# =======================
+@login_required
+def cargos_activos_api(request):
+    """API para obtener cargos predefinidos activos"""
+    try:
+        from .models import CargoPredefinido
+        cargos = CargoPredefinido.objects.filter(activo=True).values('id_cargo_predefinido', 'nombre', 'estado_cargo')
+        return JsonResponse({'cargos': list(cargos)})
+    except Exception as e:
+        return JsonResponse({'error': str(e)}, status=500)

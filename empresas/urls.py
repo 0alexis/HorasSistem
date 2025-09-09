@@ -36,11 +36,11 @@ urlpatterns = [
     path('unidades-negocio/<int:pk>/eliminar/', views.unidad_negocio_delete, name='unidad_negocio_delete'),
     
     # ========== CRUD DE CARGOS PREDEFINIDOS ==========
-    path('cargos/', views.cargos_list, name='cargos_list'),
-    path('cargos/nuevo/', views.cargo_create, name='cargo_create'),
-    path('cargos/<int:pk>/', views.cargo_detail, name='cargo_detail'),
-    path('cargos/<int:pk>/editar/', views.cargo_update, name='cargo_update'),
-    path('cargos/<int:pk>/eliminar/', views.cargo_delete, name='cargo_delete'),
+    path('cargos/', views.CargoPredefinidoListView.as_view(), name='cargopredefinido_list'),
+    path('cargos/crear/', views.CargoPredefinidoCreateView.as_view(), name='cargopredefinido_create'),
+    path('cargos/<int:pk>/', views.CargoPredefinidoDetailView.as_view(), name='cargopredefinido_detail'),
+    path('cargos/<int:pk>/editar/', views.CargoPredefinidoUpdateView.as_view(), name='cargopredefinido_update'),
+    path('cargos/<int:pk>/eliminar/', views.CargoPredefinidoDeleteView.as_view(), name='cargopredefinido_delete'),
     
     # ========== APIs BÁSICAS ==========
     path('api/health/', views.database_health_check, name='api_health_check'),

@@ -1,0 +1,695 @@
+{% extends "admin/base_site.html" %}
+{% load i18n static %}
+
+{% block extrastyle %}
+{{ block.super }}
+<style>
+    /* Variables empresariales REGENCY */
+    :root {
+        --regency-red: #871F1B;
+        --regency-red-dark: #6b191b;
+        --regency-red-light: #a13832;
+        --regency-gray: #f8f9fa;
+        --regency-gray-dark: #64748b;
+        --regency-text: #333;
+        --border-radius: 8px;
+        --shadow-sm: 0 1px 3px rgba(0, 0, 0, 0.1);
+        --shadow-md: 0 4px 6px rgba(0, 0, 0, 0.1);
+    }
+
+    /* ========== OCULTAR BREADCRUMB DJANGO ADMIN ========== */
+    .breadcrumbs,
+    div.breadcrumbs {
+        display: none !important;
+    }
+
+    /* Tipografía empresarial consistente */
+    body {
+        font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+        font-size: 14px;
+        line-height: 1.5;
+        color: var(--regency-text);
+        background: var(--regency-gray);
+    }
+
+    /* Container principal */
+    .form-container {
+        padding: 1rem 1.5rem;
+        max-width: 800px;
+        margin: 0 auto;
+    }
+
+    /* Header de la página */
+    .page-header {
+        background: var(--regency-red);
+        color: white;
+        padding: 1.25rem 1.5rem;
+        margin-bottom: 1.5rem;
+        border-radius: var(--border-radius);
+        box-shadow: var(--shadow-sm);
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        flex-wrap: wrap;
+        gap: 1rem;
+    }
+
+    .header-main {
+        flex: 1;
+        min-width: 0;
+    }
+
+    .page-header h1 {
+        font-size: 1.4rem;
+        font-weight: 600;
+        margin: 0 0 0.4rem 0;
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+        line-height: 1.2;
+    }
+
+    .page-subtitle {
+        font-size: 0.85rem;
+        opacity: 0.9;
+        margin: 0;
+        font-weight: 400;
+    }
+
+    .header-actions {
+        display: flex;
+        gap: 0.5rem;
+        flex-shrink: 0;
+    }
+
+    /* Breadcrumb personalizado */
+    .custom-breadcrumb {
+        background: white;
+        border: 1px solid #e5e7eb;
+        border-radius: var(--border-radius);
+        padding: 0.75rem 1rem;
+        margin-bottom: 1.5rem;
+        box-shadow: var(--shadow-sm);
+        font-size: 0.85rem;
+    }
+
+    .custom-breadcrumb a {
+        color: var(--regency-red);
+        text-decoration: none;
+        font-weight: 500;
+        transition: color 0.2s ease;
+    }
+
+    .custom-breadcrumb a:hover {
+        color: var(--regency-red-dark);
+        text-decoration: underline;
+    }
+
+    .breadcrumb-separator {
+        color: var(--regency-gray-dark);
+        margin: 0 0.5rem;
+    }
+
+    /* Card del formulario */
+    .form-card {
+        background: white;
+        border-radius: var(--border-radius);
+        overflow: hidden;
+        box-shadow: var(--shadow-sm);
+        border: 1px solid #e5e7eb;
+    }
+
+    .card-header-regency {
+        background: var(--regency-red);
+        color: white;
+        padding: 1rem 1.25rem;
+        font-weight: 600;
+        font-size: 1rem;
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+    }
+
+    .form-content {
+        padding: 1.5rem;
+    }
+
+    /* Estilos del formulario */
+    .form-group {
+        margin-bottom: 1.5rem;
+    }
+
+    .form-group:last-child {
+        margin-bottom: 0;
+    }
+
+    .form-label {
+        display: block;
+        font-weight: 600;
+        color: var(--regency-text);
+        margin-bottom: 0.5rem;
+        font-size: 0.9rem;
+    }
+
+    .form-label.required::after {
+        content: ' *';
+        color: #dc2626;
+        font-weight: 600;
+    }
+
+    .form-control {
+        width: 100%;
+        padding: 0.75rem;
+        border: 1px solid #d1d5db;
+        border-radius: var(--border-radius);
+        font-size: 0.9rem;
+        transition: all 0.2s ease;
+        background: white;
+    }
+
+    .form-control:focus {
+        outline: none;
+        border-color: var(--regency-red);
+        box-shadow: 0 0 0 3px rgba(135, 31, 27, 0.1);
+    }
+
+    .form-select {
+        width: 100%;
+        padding: 0.75rem;
+        border: 1px solid #d1d5db;
+        border-radius: var(--border-radius);
+        font-size: 0.9rem;
+        background: white;
+        cursor: pointer;
+        transition: all 0.2s ease;
+    }
+
+    .form-select:focus {
+        outline: none;
+        border-color: var(--regency-red);
+        box-shadow: 0 0 0 3px rgba(135, 31, 27, 0.1);
+    }
+
+    textarea.form-control {
+        resize: vertical;
+        min-height: 100px;
+    }
+
+    .form-check {
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+        margin-top: 0.5rem;
+    }
+
+    .form-check-input {
+        width: 18px;
+        height: 18px;
+        margin: 0;
+    }
+
+    .form-check-label {
+        font-weight: 500;
+        color: var(--regency-text);
+        font-size: 0.9rem;
+        margin: 0;
+        cursor: pointer;
+    }
+
+    .help-text {
+        font-size: 0.8rem;
+        color: var(--regency-gray-dark);
+        margin-top: 0.25rem;
+        font-style: italic;
+    }
+
+    /* Mensajes de error */
+    .error-message {
+        color: #dc2626;
+        font-size: 0.8rem;
+        margin-top: 0.25rem;
+        font-weight: 500;
+    }
+
+    .form-errors {
+        background: #fee2e2;
+        border: 1px solid #fecaca;
+        border-radius: var(--border-radius);
+        padding: 1rem;
+        margin-bottom: 1.5rem;
+    }
+
+    .form-errors h4 {
+        color: #991b1b;
+        font-size: 0.9rem;
+        font-weight: 600;
+        margin: 0 0 0.5rem 0;
+    }
+
+    .form-errors ul {
+        margin: 0;
+        padding-left: 1.25rem;
+        color: #991b1b;
+        font-size: 0.85rem;
+    }
+
+    /* Botones del formulario */
+    .form-actions {
+        padding: 1.25rem 1.5rem;
+        background: #f8fafc;
+        border-top: 1px solid #e5e7eb;
+        display: flex;
+        gap: 0.75rem;
+        justify-content: flex-end;
+        flex-wrap: wrap;
+    }
+
+    .btn-regency {
+        background: var(--regency-red);
+        color: white;
+        border: none;
+        padding: 0.75rem 1.5rem;
+        border-radius: var(--border-radius);
+        font-weight: 500;
+        font-size: 0.9rem;
+        cursor: pointer;
+        transition: all 0.2s ease;
+        text-decoration: none;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        gap: 0.5rem;
+        box-shadow: var(--shadow-sm);
+    }
+
+    .btn-regency:hover {
+        background: var(--regency-red-dark);
+        color: white;
+        text-decoration: none;
+        transform: translateY(-1px);
+        box-shadow: var(--shadow-md);
+    }
+
+    .btn-secondary {
+        background: #6b7280;
+        color: white;
+        border: 1px solid #6b7280;
+        padding: 0.75rem 1.5rem;
+        border-radius: var(--border-radius);
+        font-weight: 500;
+        font-size: 0.9rem;
+        cursor: pointer;
+        transition: all 0.2s ease;
+        text-decoration: none;
+        display: inline-flex;
+        align-items: center;
+        gap: 0.5rem;
+    }
+
+    .btn-secondary:hover {
+        background: #4b5563;
+        border-color: #4b5563;
+        color: white;
+        text-decoration: none;
+    }
+
+    .btn-outline {
+        background: transparent;
+        color: var(--regency-gray-dark);
+        border: 1px solid #d1d5db;
+        padding: 0.75rem 1.5rem;
+        border-radius: var(--border-radius);
+        font-weight: 500;
+        font-size: 0.9rem;
+        cursor: pointer;
+        transition: all 0.2s ease;
+        text-decoration: none;
+        display: inline-flex;
+        align-items: center;
+        gap: 0.5rem;
+    }
+
+    .btn-outline:hover {
+        background: var(--regency-gray);
+        border-color: #9ca3af;
+        color: var(--regency-text);
+        text-decoration: none;
+    }
+
+    /* Grid de campos */
+    .form-grid {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 1.5rem;
+    }
+
+    .form-grid-full {
+        grid-column: 1 / -1;
+    }
+
+    /* Estado visual para campo activo */
+    .status-indicator {
+        background: #f0fdf4;
+        border: 1px solid #bbf7d0;
+        border-radius: var(--border-radius);
+        padding: 0.75rem;
+        color: #166534;
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+        font-size: 0.9rem;
+    }
+
+    .status-indicator.inactive {
+        background: #fef2f2;
+        border-color: #fecaca;
+        color: #991b1b;
+    }
+
+    /* Responsive */
+    @media (max-width: 768px) {
+        .form-container {
+            padding: 0.75rem 1rem;
+        }
+
+        .page-header {
+            padding: 1rem;
+            flex-direction: column;
+            align-items: stretch;
+            text-align: center;
+        }
+
+        .page-header h1 {
+            font-size: 1.2rem;
+            justify-content: center;
+        }
+
+        .header-actions {
+            justify-content: center;
+            margin-top: 0.5rem;
+        }
+
+        .form-content {
+            padding: 1rem;
+        }
+
+        .form-actions {
+            padding: 1rem;
+            flex-direction: column;
+        }
+
+        .form-grid {
+            grid-template-columns: 1fr;
+            gap: 1rem;
+        }
+    }
+
+    /* Animaciones */
+    .form-card {
+        animation: slideInUp 0.3s ease-out;
+    }
+
+    @keyframes slideInUp {
+        from {
+            opacity: 0;
+            transform: translateY(20px);
+        }
+        to {
+            opacity: 1;
+            transform: translateY(0);
+        }
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="form-container">
+    <!-- Header de la página -->
+    <div class="page-header">
+        <div class="header-main">
+            <h1>
+                {% if cargo %}
+                    ✏️ {{ title|default:"Editar Cargo Predefinido" }}
+                {% else %}
+                    ➕ {{ title|default:"Nuevo Cargo Predefinido" }}
+                {% endif %}
+            </h1>
+            <p class="page-subtitle">
+                {% if cargo %}
+                    Modifica la información del cargo predefinido en el sistema REGENCY
+                {% else %}
+                    Complete la información para crear un nuevo cargo predefinido en el sistema
+                {% endif %}
+            </p>
+        </div>
+        <div class="header-actions">
+            <a href="{% url 'empresas:cargopredefinido_list' %}" class="btn-secondary">
+                📋 Ver Lista
+            </a>
+        </div>
+    </div>
+
+
+
+    <!-- Formulario -->
+    <div class="form-card">
+        <div class="card-header-regency">
+            {% if cargo %}
+                ✏️ Editar Cargo: {{ cargo.nombre }}
+            {% else %}
+                ➕ Crear Nuevo Cargo Predefinido
+            {% endif %}
+        </div>
+
+        <!-- Mostrar errores del formulario si existen -->
+        {% if form.errors %}
+        <div class="form-errors">
+            <h4>⚠️ Por favor corrige los siguientes errores:</h4>
+            <ul>
+                {% for field, errors in form.errors.items %}
+                    {% for error in errors %}
+                        <li>
+                            {% if field != '__all__' %}
+                                <strong>{{ form.field.label|default:field }}:</strong> 
+                            {% endif %}
+                            {{ error }}
+                        </li>
+                    {% endfor %}
+                {% endfor %}
+            </ul>
+        </div>
+        {% endif %}
+
+        <form method="post" class="cargo-form">
+            {% csrf_token %}
+            
+            <div class="form-content">
+                <div class="form-grid">
+                    <!-- Nombre del cargo -->
+                    <div class="form-group form-grid-full">
+                        <label for="{{ form.nombre.id_for_label }}" class="form-label required">
+                            {{ form.nombre.label }}
+                        </label>
+                        {{ form.nombre }}
+                        {% if form.nombre.help_text %}
+                            <div class="help-text">{{ form.nombre.help_text }}</div>
+                        {% endif %}
+                        {% if form.nombre.errors %}
+                            {% for error in form.nombre.errors %}
+                                <div class="error-message">{{ error }}</div>
+                            {% endfor %}
+                        {% endif %}
+                    </div>
+
+                    <!-- Salario base -->
+                    <div class="form-group">
+                        <label for="{{ form.salario.id_for_label }}" class="form-label">
+                            {{ form.salario.label }}
+                        </label>
+                        {{ form.salario }}
+                        {% if form.salario.help_text %}
+                            <div class="help-text">{{ form.salario.help_text }}</div>
+                        {% endif %}
+                        {% if form.salario.errors %}
+                            {% for error in form.salario.errors %}
+                                <div class="error-message">{{ error }}</div>
+                            {% endfor %}
+                        {% endif %}
+                    </div>
+
+                    <!-- Estado del cargo -->
+                    <div class="form-group">
+                        <label for="{{ form.estado_cargo.id_for_label }}" class="form-label">
+                            {{ form.estado_cargo.label }}
+                        </label>
+                        {{ form.estado_cargo }}
+                        {% if form.estado_cargo.help_text %}
+                            <div class="help-text">{{ form.estado_cargo.help_text }}</div>
+                        {% endif %}
+                        {% if form.estado_cargo.errors %}
+                            {% for error in form.estado_cargo.errors %}
+                                <div class="error-message">{{ error }}</div>
+                            {% endfor %}
+                        {% endif %}
+                    </div>
+
+                    <!-- Descripción -->
+                    <div class="form-group form-grid-full">
+                        <label for="{{ form.descripcion.id_for_label }}" class="form-label">
+                            {{ form.descripcion.label }}
+                        </label>
+                        {{ form.descripcion }}
+                        {% if form.descripcion.help_text %}
+                            <div class="help-text">{{ form.descripcion.help_text }}</div>
+                        {% endif %}
+                        {% if form.descripcion.errors %}
+                            {% for error in form.descripcion.errors %}
+                                <div class="error-message">{{ error }}</div>
+                            {% endfor %}
+                        {% endif %}
+                    </div>
+
+                    <!-- Campo Activo - SOLO mostrar en EDICIÓN -->
+                    {% if cargo %}
+                    <div class="form-group form-grid-full">
+                        <div class="form-check">
+                            {{ form.activo }}
+                            <label for="{{ form.activo.id_for_label }}" class="form-check-label">
+                                {{ form.activo.label }}
+                            </label>
+                        </div>
+                        {% if form.activo.help_text %}
+                            <div class="help-text">{{ form.activo.help_text }}</div>
+                        {% endif %}
+                        {% if form.activo.errors %}
+                            {% for error in form.activo.errors %}
+                                <div class="error-message">{{ error }}</div>
+                            {% endfor %}
+                        {% endif %}
+                        <div class="help-text">
+                            ⚠️ Desmarque esta opción para inactivar el cargo predefinido
+                        </div>
+                    </div>
+                    {% else %}
+                    <!-- Para crear - campo oculto y mensaje informativo -->
+                    {{ form.activo }}
+                    <div class="form-group form-grid-full">
+                        <div class="status-indicator">
+                            <span>✅</span>
+                            <strong>Estado:</strong> Este cargo se creará como <strong>ACTIVO</strong> por defecto
+                        </div>
+                    </div>
+                    {% endif %}
+                </div>
+            </div>
+
+            <!-- Acciones del formulario -->
+            <div class="form-actions">
+                <a href="{% url 'empresas:cargopredefinido_list' %}" class="btn-outline">
+                    ❌ Cancelar
+                </a>
+                {% if cargo %}
+                    <a href="{% url 'empresas:cargopredefinido_detail' cargo.id_cargo_predefinido %}" class="btn-secondary">
+                        👁️ Ver Detalle
+                    </a>
+                {% endif %}
+                <button type="submit" class="btn-regency">
+                    {% if cargo %}
+                        💾 {{ action|default:"Actualizar" }} Cargo
+                    {% else %}
+                        ➕ {{ action|default:"Crear" }} Cargo
+                    {% endif %}
+                </button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<!-- Script para funcionalidades del formulario -->
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        // Enfocar el primer campo del formulario
+        const firstInput = document.querySelector('.form-control, .form-select');
+        if (firstInput) {
+            firstInput.focus();
+        }
+
+        // Validación en tiempo real del nombre
+        const nombreInput = document.getElementById('{{ form.nombre.id_for_label }}');
+        if (nombreInput) {
+            nombreInput.addEventListener('input', function() {
+                const value = this.value.trim();
+                const errorDiv = this.parentNode.querySelector('.error-message');
+                
+                // Remover errores previos
+                if (errorDiv) {
+                    errorDiv.remove();
+                }
+                
+                // Validar longitud mínima
+                if (value.length > 0 && value.length < 2) {
+                    const error = document.createElement('div');
+                    error.className = 'error-message';
+                    error.textContent = 'El nombre debe tener al menos 2 caracteres.';
+                    this.parentNode.appendChild(error);
+                }
+            });
+        }
+
+        // Formatear campo de salario
+        const salarioInput = document.getElementById('{{ form.salario.id_for_label }}');
+        if (salarioInput) {
+            salarioInput.addEventListener('input', function() {
+                let value = this.value.replace(/[^\d.]/g, '');
+                
+                // Permitir solo un punto decimal
+                const parts = value.split('.');
+                if (parts.length > 2) {
+                    value = parts[0] + '.' + parts.slice(1).join('');
+                }
+                
+                this.value = value;
+            });
+        }
+
+        // Confirmación antes de cancelar si hay cambios
+        const form = document.querySelector('.cargo-form');
+        const cancelBtn = document.querySelector('.btn-outline');
+        let formChanged = false;
+
+        if (form && cancelBtn) {
+            // Detectar cambios en el formulario
+            form.addEventListener('change', function() {
+                formChanged = true;
+            });
+
+            form.addEventListener('input', function() {
+                formChanged = true;
+            });
+
+            // Confirmar cancelación si hay cambios
+            cancelBtn.addEventListener('click', function(e) {
+                if (formChanged) {
+                    if (!confirm('¿Está seguro de cancelar? Se perderán los cambios no guardados.')) {
+                        e.preventDefault();
+                    }
+                }
+            });
+        }
+
+        // Validación del formulario antes del envío
+        if (form) {
+            form.addEventListener('submit', function(e) {
+                const nombre = document.getElementById('{{ form.nombre.id_for_label }}');
+                
+                if (nombre && nombre.value.trim().length < 2) {
+                    e.preventDefault();
+                    alert('Por favor ingrese un nombre válido para el cargo (mínimo 2 caracteres).');
+                    nombre.focus();
+                    return false;
+                }
+            });
+        }
+    });
+</script>
+{% endblock %}

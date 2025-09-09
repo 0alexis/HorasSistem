@@ -1,7 +1,7 @@
 from django import forms
 from django.core.exceptions import ValidationError
 import re
-from .models import Empresa
+from .models import Empresa, CargoPredefinido
 
 class EmpresaForm(forms.ModelForm):
     """Formulario para crear y editar empresas"""
@@ -193,3 +193,105 @@ class EmpresaFiltroForm(forms.Form):
             except Empresa.DoesNotExist:
                 return None
         return None
+    
+
+
+
+class CargoPredefinidoForm(forms.ModelForm):
+    """Formulario para crear y editar cargos predefinidos"""
+    
+    class Meta:
+        model = CargoPredefinido
+        fields = ['nombre', 'descripcion', 'salario', 'activo', 'estado_cargo']
+        widgets = {
+            'nombre': forms.TextInput(attrs={
+                'class': 'form-control',
+                'placeholder': 'Nombre del cargo',
+                'maxlength': 100
+            }),
+            'descripcion': forms.Textarea(attrs={
+                'class': 'form-control',
+                'placeholder': 'Descripción del cargo y sus responsabilidades',
+                'rows': 3,
+                'maxlength': 500
+            }),
+            'salario': forms.NumberInput(attrs={
+                'class': 'form-control',
+                'placeholder': '0.00',
+                'step': '0.01',
+                'min': '0'
+            }),
+            'activo': forms.CheckboxInput(attrs={
+                'class': 'form-check-input'
+            }),
+            'estado_cargo': forms.Select(attrs={
+                'class': 'form-select'
+            })
+        }
+        labels = {
+            'nombre': 'Nombre del Cargo',
+            'descripcion': 'Descripción',
+            'salario': 'Salario Base',
+            'activo': 'Mantener Cargo Activo',
+            'estado_cargo': 'Estado del Cargo'
+        }
+        help_texts = {
+            'nombre': 'Nombre identificativo del cargo predefinido',
+            'descripcion': 'Descripción detallada del cargo y sus responsabilidades principales',
+            'salario': 'Salario base asignado al cargo',
+            'activo': 'Desmarque para inactivar este cargo predefinido',
+            'estado_cargo': 'Estado actual del cargo en el sistema'
+        }
+    
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        # Hacer obligatorios los campos necesarios
+        self.fields['nombre'].required = True
+        self.fields['descripcion'].required = False
+        self.fields['salario'].required = False
+        self.fields['estado_cargo'].required = False
+        
+        # Para CREAR: establecer activo como True por defecto y ocultarlo
+        if not self.instance.pk:
+            self.fields['activo'].initial = True
+            self.fields['activo'].widget = forms.HiddenInput()
+        else:
+            # Para EDITAR: mostrar el campo normalmente
+            self.fields['activo'].required = False
+    
+    def clean_nombre(self):
+        """Validar nombre del cargo"""
+        nombre = self.cleaned_data.get('nombre')
+        if nombre:
+            nombre = ' '.join(nombre.split())  # Limpiar espacios extra
+            if len(nombre) < 2:
+                raise ValidationError('El nombre debe tener al menos 2 caracteres.')
+            
+            # Verificar duplicados excluyendo la instancia actual
+            if self.instance.pk:
+                if CargoPredefinido.objects.filter(nombre__iexact=nombre).exclude(pk=self.instance.pk).exists():
+                    raise ValidationError('Ya existe un cargo con este nombre.')
+            else:
+                if CargoPredefinido.objects.filter(nombre__iexact=nombre).exists():
+                    raise ValidationError('Ya existe un cargo con este nombre.')
+        return nombre
+    
+    def clean_descripcion(self):
+        """Validar descripción si se proporciona"""
+        descripcion = self.cleaned_data.get('descripcion')
+        if descripcion:
+            descripcion = descripcion.strip()
+            if len(descripcion) > 500:
+                raise ValidationError('La descripción no puede exceder 500 caracteres.')
+        return descripcion
+    
+    def clean_salario(self):
+        """Validar salario si se proporciona"""
+        salario = self.cleaned_data.get('salario')
+        if salario is not None:
+            if salario < 0:
+                raise ValidationError('El salario no puede ser negativo.')
+            if salario > 999999999.99:
+                raise ValidationError('El salario es demasiado alto.')
+        return salario
+
