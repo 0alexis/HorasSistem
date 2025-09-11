@@ -1,7 +1,7 @@
 from django import forms
 from django.core.exceptions import ValidationError
 import re
-from .models import Empresa, CargoPredefinido, CentroOperativo, Proyecto
+from .models import Empresa, Proyecto, CentroOperativo, CargoPredefinido
 
 
 
@@ -398,4 +398,131 @@ class CentroOperativoForm(forms.ModelForm):
         
         return centro
 
-# ...existing code...
+# =======================
+#    FORMULARIO DE PROYECTO
+# =======================
+
+class ProyectoForm(forms.ModelForm):
+    # ✅ CAMPO PERSONALIZADO CON CHECKBOXES
+    centros_operativos = forms.ModelMultipleChoiceField(
+        queryset=CentroOperativo.objects.none(),
+        widget=forms.CheckboxSelectMultiple(attrs={
+            'class': 'centro-checkbox-list'
+        }),
+        required=False,
+        label='Centros Operativos Asociados'
+    )
+
+    class Meta:
+        model = Proyecto
+        fields = ['nombre', 'descripcion', 'id_empresa_proyecto', 'fecha_inicio', 'fecha_fin', 'activo']
+        
+        widgets = {
+            'nombre': forms.TextInput(attrs={
+                'placeholder': 'Ej: Modernización Sistema de Seguridad',
+                'maxlength': 200,
+                'class': 'form-control'
+            }),
+            'descripcion': forms.Textarea(attrs={
+                'placeholder': 'Descripción detallada del proyecto, objetivos y alcance...',
+                'rows': 4,
+                'maxlength': 1000,
+                'class': 'form-textarea'
+            }),
+            'id_empresa_proyecto': forms.Select(attrs={
+                'class': 'form-select'
+            }),
+            'fecha_inicio': forms.DateInput(attrs={
+                'type': 'date',
+                'class': 'form-control',
+                'placeholder': 'dd/mm/aaaa'
+            }),
+            'fecha_fin': forms.DateInput(attrs={
+                'type': 'date',
+                'class': 'form-control',
+                'placeholder': 'dd/mm/aaaa'
+            }),
+            'activo': forms.CheckboxInput(attrs={
+                'class': 'form-check-input'
+            })
+        }
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        
+        # Configurar queryset de empresas
+        self.fields['id_empresa_proyecto'].queryset = Empresa.objects.filter(activo=True).order_by('nombre')
+        self.fields['id_empresa_proyecto'].empty_label = "Seleccione una empresa..."
+        
+        # ✅ CONFIGURAR CENTROS OPERATIVOS
+        self.fields['centros_operativos'].queryset = CentroOperativo.objects.filter(activo=True).order_by('nombre')
+        
+        # ✅ VALIDACIÓN ADICIONAL PARA FECHAS EN EL FRONTEND
+        if self.instance and self.instance.pk:
+            # Si estamos editando, preservar los valores
+            if self.instance.fecha_inicio:
+                self.fields['fecha_inicio'].initial = self.instance.fecha_inicio
+            if self.instance.fecha_fin:
+                self.fields['fecha_fin'].initial = self.instance.fecha_fin
+
+        # ✅ SI ESTAMOS EDITANDO, CARGAR CENTROS ASOCIADOS
+        if self.instance.pk:
+            # Buscar centros que tienen este proyecto asociado
+            centros_asociados = CentroOperativo.objects.filter(proyectos=self.instance)
+            self.fields['centros_operativos'].initial = centros_asociados
+        
+        # Campos requeridos
+        self.fields['nombre'].required = True
+        self.fields['id_empresa_proyecto'].required = True
+        
+        # Activo por defecto
+        if not self.instance.pk:
+            self.fields['activo'].initial = True
+
+    def save(self, commit=True):
+        # ✅ GUARDAR EL PROYECTO PRIMERO
+        proyecto = super().save(commit=commit)
+        
+        if commit:
+            # ✅ MANEJAR CENTROS OPERATIVOS
+            centros_seleccionados = self.cleaned_data.get('centros_operativos', [])
+            
+            # Obtener centros actualmente asociados
+            centros_actuales = CentroOperativo.objects.filter(proyectos=proyecto)
+            
+            # Remover proyecto de centros que ya no están seleccionados
+            for centro in centros_actuales:
+                if centro not in centros_seleccionados:
+                    centro.proyectos.remove(proyecto)
+            
+            # Agregar proyecto a centros recién seleccionados
+            for centro in centros_seleccionados:
+                if centro not in centros_actuales:
+                    centro.proyectos.add(proyecto)
+        
+        return proyecto
+
+    def clean(self):
+        cleaned_data = super().clean()
+        fecha_inicio = cleaned_data.get('fecha_inicio')
+        fecha_fin = cleaned_data.get('fecha_fin')
+
+        if fecha_inicio and fecha_fin and fecha_fin <= fecha_inicio:
+            raise forms.ValidationError({
+                'fecha_fin': 'La fecha de finalización debe ser posterior a la fecha de inicio.'
+            })
+
+        return cleaned_data
+
+    def clean_nombre(self):
+        nombre = self.cleaned_data.get('nombre')
+        if nombre:
+            queryset = Proyecto.objects.filter(nombre__iexact=nombre)
+            if self.instance.pk:
+                queryset = queryset.exclude(pk=self.instance.pk)
+            
+            if queryset.exists():
+                raise forms.ValidationError('Ya existe un proyecto con este nombre.')
+        
+        return nombre
+

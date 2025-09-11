@@ -1,0 +1,969 @@
+{% extends "admin/base_site.html" %}
+{% load i18n static %}
+
+{% block extrastyle %}
+{{ block.super }}
+<style>
+    /* Variables empresariales REGENCY */
+    :root {
+        --regency-red: #871F1B;
+        --regency-red-dark: #6b191b;
+        --regency-red-light: #a13832;
+        --regency-gray: #f8f9fa;
+        --regency-gray-dark: #64748b;
+        --regency-text: #333;
+        --border-radius: 8px;
+        --shadow-sm: 0 1px 3px rgba(0, 0, 0, 0.1);
+        --shadow-md: 0 4px 6px rgba(0, 0, 0, 0.1);
+    }
+
+    /* ========== OCULTAR BREADCRUMB DJANGO ADMIN ========== */
+    .breadcrumbs,
+    div.breadcrumbs {
+        display: none !important;
+    }
+
+    /* Tipografía empresarial consistente */
+    body {
+        font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+        font-size: 14px;
+        line-height: 1.5;
+        color: var(--regency-text);
+        background: var(--regency-gray);
+    }
+
+    /* Container principal */
+    .form-container {
+        padding: 1.5rem 2rem;
+        max-width: 1000px;
+        margin: 0 auto;
+        position: relative;
+    }
+
+    /* Header de la página */
+    .page-header {
+        background: var(--regency-red);
+        color: white;
+        padding: 1.5rem 2rem;
+        margin-bottom: 2rem;
+        border-radius: var(--border-radius);
+        box-shadow: var(--shadow-md);
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        flex-wrap: wrap;
+        gap: 1rem;
+    }
+
+    .header-main {
+        flex: 1;
+        min-width: 0;
+    }
+
+    .page-header h1 {
+        font-size: 1.6rem;
+        font-weight: 700;
+        margin: 0 0 0.5rem 0;
+        display: flex;
+        align-items: center;
+        gap: 0.75rem;
+        line-height: 1.2;
+    }
+
+    .page-subtitle {
+        font-size: 1rem;
+        opacity: 0.9;
+        margin: 0;
+        font-weight: 400;
+    }
+
+    .header-actions {
+        display: flex;
+        gap: 0.75rem;
+        flex-shrink: 0;
+    }
+
+    /* Breadcrumb personalizado */
+    .custom-breadcrumb {
+        background: white;
+        border: 1px solid #e5e7eb;
+        border-radius: var(--border-radius);
+        padding: 0.75rem 1rem;
+        margin-bottom: 2rem;
+        box-shadow: var(--shadow-sm);
+        font-size: 0.9rem;
+    }
+
+    .custom-breadcrumb a {
+        color: var(--regency-red);
+        text-decoration: none;
+        font-weight: 500;
+        transition: color 0.2s ease;
+    }
+
+    .custom-breadcrumb a:hover {
+        color: var(--regency-red-dark);
+        text-decoration: underline;
+    }
+
+    .breadcrumb-separator {
+        color: var(--regency-gray-dark);
+        margin: 0 0.5rem;
+    }
+
+    /* Card principal del formulario */
+    .form-card {
+        background: white;
+        border-radius: var(--border-radius);
+        box-shadow: var(--shadow-md);
+        border: 1px solid #e5e7eb;
+        overflow: hidden;
+        margin-bottom: 2rem;
+    }
+
+    .form-header {
+        background: var(--regency-red);
+        color: white;
+        padding: 1.25rem 1.5rem;
+        font-weight: 600;
+        font-size: 1.1rem;
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+    }
+
+    .form-content {
+        padding: 2rem;
+    }
+
+    /* Grid del formulario */
+    .form-grid {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 1.5rem 2rem;
+        margin-bottom: 2rem;
+    }
+
+    .form-grid-full {
+        grid-column: 1 / -1;
+    }
+
+    /* Grupos de campos */
+    .field-group {
+        display: flex;
+        flex-direction: column;
+        gap: 0.5rem;
+    }
+
+    .field-label {
+        font-weight: 600;
+        color: var(--regency-text);
+        font-size: 0.95rem;
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+    }
+
+    .field-required {
+        color: var(--regency-red);
+        font-weight: 700;
+    }
+
+    .field-help {
+        font-size: 0.8rem;
+        color: var(--regency-gray-dark);
+        margin-top: 0.25rem;
+        line-height: 1.4;
+    }
+
+    /* Controles de formulario */
+    .form-control,
+    .form-select,
+    .form-textarea {
+        padding: 0.75rem;
+        border: 2px solid #e5e7eb;
+        border-radius: var(--border-radius);
+        font-size: 0.95rem;
+        transition: all 0.2s ease;
+        font-family: inherit;
+        background: white;
+        color: var(--regency-text);
+        min-height: 48px;
+    }
+
+    .form-control:focus,
+    .form-select:focus,
+    .form-textarea:focus {
+        outline: none;
+        border-color: var(--regency-red);
+        box-shadow: 0 0 0 3px rgba(135, 31, 27, 0.1);
+        background: #fefefe;
+    }
+
+    .form-textarea {
+        min-height: 120px;
+        resize: vertical;
+        line-height: 1.5;
+    }
+
+    /* Estados de error */
+    .field-error .form-control,
+    .field-error .form-select,
+    .field-error .form-textarea {
+        border-color: #dc2626;
+        background: #fef2f2;
+    }
+
+    .error-message {
+        color: #dc2626;
+        font-size: 0.85rem;
+        margin-top: 0.25rem;
+        font-weight: 500;
+        display: flex;
+        align-items: center;
+        gap: 0.25rem;
+    }
+
+    /* Checkbox personalizado */
+    .checkbox-group {
+        display: flex;
+        align-items: center;
+        gap: 0.75rem;
+        padding: 0.75rem;
+        border: 2px solid #e5e7eb;
+        border-radius: var(--border-radius);
+        background: white;
+        transition: all 0.2s ease;
+    }
+
+    .checkbox-group:hover {
+        border-color: var(--regency-red-light);
+        background: #fefefe;
+    }
+
+    .checkbox-group input[type="checkbox"] {
+        width: 20px;
+        height: 20px;
+        accent-color: var(--regency-red);
+        cursor: pointer;
+    }
+
+    .checkbox-label {
+        font-weight: 500;
+        color: var(--regency-text);
+        cursor: pointer;
+        flex: 1;
+        font-size: 0.95rem;
+    }
+
+    /* Sección de fechas */
+    .date-section {
+        background: #f8fafc;
+        border: 1px solid #e2e8f0;
+        border-radius: var(--border-radius);
+        padding: 1.5rem;
+        margin-bottom: 1.5rem;
+    }
+
+    .date-section-title {
+        font-weight: 600;
+        color: var(--regency-text);
+        margin-bottom: 1rem;
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+        font-size: 1rem;
+    }
+
+    /* Botones */
+    .btn-regency {
+        background: var(--regency-red);
+        color: white;
+        border: none;
+        padding: 0.9rem 2rem;
+        border-radius: var(--border-radius);
+        font-weight: 600;
+        font-size: 1rem;
+        cursor: pointer;
+        transition: all 0.2s ease;
+        text-decoration: none;
+        display: inline-flex;
+        align-items: center;
+        gap: 0.75rem;
+        min-height: 48px;
+        justify-content: center;
+    }
+
+    .btn-regency:hover {
+        background: var(--regency-red-dark);
+        color: white;
+        text-decoration: none;
+        transform: translateY(-1px);
+        box-shadow: var(--shadow-md);
+    }
+
+    .btn-secondary {
+        background: #6b7280;
+        color: white;
+        border: none;
+        padding: 0.9rem 2rem;
+        border-radius: var(--border-radius);
+        font-weight: 500;
+        font-size: 1rem;
+        cursor: pointer;
+        transition: all 0.2s ease;
+        text-decoration: none;
+        display: inline-flex;
+        align-items: center;
+        gap: 0.75rem;
+        min-height: 48px;
+        justify-content: center;
+    }
+
+    .btn-secondary:hover {
+        background: #4b5563;
+        color: white;
+        text-decoration: none;
+        transform: translateY(-1px);
+    }
+
+    /* Contenedor de botones */
+    .form-actions {
+        background: #f8fafc;
+        border-top: 1px solid #e5e7eb;
+        padding: 1.5rem 2rem;
+        display: flex;
+        gap: 1rem;
+        justify-content: flex-end;
+        flex-wrap: wrap;
+    }
+
+    /* Indicadores de estado */
+    .status-indicator {
+        display: inline-flex;
+        align-items: center;
+        gap: 0.5rem;
+        padding: 0.5rem 1rem;
+        border-radius: var(--border-radius);
+        font-size: 0.85rem;
+        font-weight: 500;
+        margin-bottom: 1rem;
+    }
+
+    .status-draft {
+        background: #fef3c7;
+        color: #92400e;
+        border: 1px solid #fbbf24;
+    }
+
+    .status-edit {
+        background: #dbeafe;
+        color: #1e40af;
+        border: 1px solid #60a5fa;
+    }
+
+    /* ========== ESTILOS COMPACTOS PARA CENTROS OPERATIVOS ========== */
+.centros-operativos-section {
+    background: #f8fafc;
+    border: 1px solid #e2e8f0;
+    border-radius: var(--border-radius);
+    padding: 1rem;
+    margin-bottom: 1rem;
+}
+
+.centros-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 0.75rem;
+    flex-wrap: wrap;
+    gap: 0.5rem;
+}
+
+.centros-counter-compact {
+    background: #6b7280;
+    color: white;
+    padding: 0.4rem 0.8rem;
+    border-radius: 20px;
+    font-size: 0.8rem;
+    font-weight: 600;
+    display: inline-flex;
+    align-items: center;
+    gap: 0.4rem;
+    transition: background 0.2s ease;
+}
+
+.centros-actions-compact {
+    display: flex;
+    gap: 0.4rem;
+}
+
+.action-btn-compact {
+    background: #6b7280;
+    color: white;
+    border: none;
+    padding: 0.4rem 0.8rem;
+    border-radius: 16px;
+    font-size: 0.75rem;
+    font-weight: 500;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    display: flex;
+    align-items: center;
+    gap: 0.3rem;
+}
+
+.action-btn-compact:hover {
+    background: #4b5563;
+    transform: translateY(-1px);
+}
+
+.action-btn-compact.select-all {
+    background: var(--regency-red);
+}
+
+.action-btn-compact.select-all:hover {
+    background: var(--regency-red-dark);
+}
+
+.centros-search-compact {
+    margin-bottom: 0.75rem;
+}
+
+.centros-search-compact input {
+    width: 100%;
+    padding: 0.6rem 0.75rem;
+    border: 1px solid #d1d5db;
+    border-radius: var(--border-radius);
+    font-size: 0.85rem;
+    transition: border-color 0.2s ease;
+    background: white;
+}
+
+.centros-search-compact input:focus {
+    outline: none;
+    border-color: var(--regency-red);
+    box-shadow: 0 0 0 2px rgba(135, 31, 27, 0.1);
+}
+
+.centros-list-compact {
+    max-height: 280px;
+    overflow-y: auto;
+    border: 1px solid #e5e7eb;
+    border-radius: var(--border-radius);
+    background: white;
+    padding: 0.5rem;
+}
+
+.centro-item-compact {
+    display: flex;
+    align-items: center;
+    gap: 0.6rem;
+    padding: 0.5rem 0.7rem;
+    border-radius: 6px;
+    transition: all 0.15s ease;
+    cursor: pointer;
+    margin-bottom: 0.3rem;
+    border: 1px solid transparent;
+}
+
+.centro-item-compact:hover {
+    background: #f8fafc;
+    border-color: #e5e7eb;
+}
+
+.centro-item-compact.selected {
+    background: rgba(135, 31, 27, 0.05);
+    border-color: var(--regency-red);
+}
+
+.centro-item-compact input[type="checkbox"] {
+    width: 16px;
+    height: 16px;
+    accent-color: var(--regency-red);
+    cursor: pointer;
+    margin: 0;
+    flex-shrink: 0;
+}
+
+.centro-label-compact {
+    flex: 1;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    cursor: pointer;
+    font-size: 0.85rem;
+    line-height: 1.2;
+    min-width: 0;
+}
+
+.centro-name-compact {
+    font-weight: 500;
+    color: var(--regency-text);
+    flex: 1;
+    min-width: 0;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    margin-right: 0.5rem;
+}
+
+.centro-status-compact {
+    font-size: 0.7rem;
+    flex-shrink: 0;
+    opacity: 0.8;
+}
+
+.centro-status-compact.activo {
+    color: #059669;
+}
+
+.centro-status-compact.inactivo {
+    color: #dc2626;
+}
+
+.no-centros-message {
+    text-align: center;
+    padding: 2rem;
+    color: var(--regency-gray-dark);
+    font-size: 0.9rem;
+}
+
+/* Scrollbar personalizado para la lista */
+.centros-list-compact::-webkit-scrollbar {
+    width: 6px;
+}
+
+.centros-list-compact::-webkit-scrollbar-track {
+    background: #f1f5f9;
+    border-radius: 3px;
+}
+
+.centros-list-compact::-webkit-scrollbar-thumb {
+    background: #cbd5e1;
+    border-radius: 3px;
+}
+
+.centros-list-compact::-webkit-scrollbar-thumb:hover {
+    background: #94a3b8;
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+    .centros-header {
+        flex-direction: column;
+        align-items: stretch;
+    }
+    
+    .centros-actions-compact {
+        justify-content: center;
+    }
+    
+    .centros-list-compact {
+        max-height: 200px;
+    }
+    
+    .centro-item-compact {
+        padding: 0.6rem 0.5rem;
+    }
+}
+
+/* Animación suave para la selección */
+.centro-item-compact {
+    animation: fadeInItem 0.2s ease-out;
+}
+
+@keyframes fadeInItem {
+    from {
+        opacity: 0;
+        transform: translateY(2px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="form-container">
+    <!-- Header de la página -->
+    <div class="page-header">
+        <div class="header-main">
+            <h1>
+                {% if form.instance.pk %}
+                    ✏️ Editar Proyecto
+                {% else %}
+                    ➕ Nuevo Proyecto
+                {% endif %}
+            </h1>
+            <p class="page-subtitle">
+                {% if form.instance.pk %}
+                    Modificar información del proyecto existente
+                {% else %}
+                    Crear un nuevo proyecto empresarial REGENCY
+                {% endif %}
+            </p>
+        </div>
+        <div class="header-actions">
+            <a href="{% url 'empresas:proyectos_list' %}" class="btn-secondary">
+                ← Volver a Lista
+            </a>
+        </div>
+    </div>
+
+    <!-- Indicador de estado -->
+    {% if form.instance.pk %}
+        <div class="status-edit status-indicator">
+            ✏️ Modo de edición - Proyecto: {{ form.instance.nombre }}
+        </div>
+    {% else %}
+        <div class="status-draft status-indicator">
+            📝 Creando nuevo proyecto
+        </div>
+    {% endif %}
+
+    <!-- Formulario principal -->
+    <form method="post" novalidate>
+        {% csrf_token %}
+        
+        <div class="form-card">
+            <div class="form-header">
+                📋 Información Básica del Proyecto
+            </div>
+
+            
+                        <div class="form-content">
+                            <div class="form-grid">
+                                <!-- Nombre del proyecto -->
+                                <div class="field-group {% if form.nombre.errors %}field-error{% endif %}">
+                                    <label for="{{ form.nombre.id_for_label }}" class="field-label">
+                                        📊 Nombre del Proyecto
+                                        <span class="field-required"></span>
+                                    </label>
+                                    {{ form.nombre }}
+                                    {% if form.nombre.errors %}
+                                        {% for error in form.nombre.errors %}
+                                            <div class="error-message">⚠️ {{ error }}</div>
+                                        {% endfor %}
+                                    {% endif %}
+                                    <div class="field-help">
+                                        Ingrese un nombre descriptivo para el proyecto
+                                    </div>
+                                </div>
+            
+                                <!-- Empresa -->
+                                <div class="field-group {% if form.id_empresa_proyecto.errors %}field-error{% endif %}">
+                                    <label for="{{ form.id_empresa_proyecto.id_for_label }}" class="field-label">
+                                        🏢 Empresa
+                                        <span class="field-required"></span>
+                                    </label>
+                                    {{ form.id_empresa_proyecto }}
+                                    {% if form.id_empresa_proyecto.errors %}
+                                        {% for error in form.id_empresa_proyecto.errors %}
+                                            <div class="error-message">⚠️ {{ error }}</div>
+                                        {% endfor %}
+                                    {% endif %}
+                                    <div class="field-help">
+                                        Seleccione la empresa responsable del proyecto
+                                    </div>
+                                </div>
+            
+                                <!-- Descripción -->
+                                <div class="field-group form-grid-full {% if form.descripcion.errors %}field-error{% endif %}">
+                                    <label for="{{ form.descripcion.id_for_label }}" class="field-label">
+                                        📝 Descripción del Proyecto
+                                    </label>
+                                    {{ form.descripcion }}
+                                    {% if form.descripcion.errors %}
+                                        {% for error in form.descripcion.errors %}
+                                            <div class="error-message">⚠️ {{ error }}</div>
+                                        {% endfor %}
+                                    {% endif %}
+                                    <div class="field-help">
+                                        Proporcione una descripción detallada del proyecto, objetivos y alcance
+                                    </div>
+                                </div>
+            
+                                <!-- ✅ MOVER AQUÍ: Centros Operativos dentro del grid -->
+                                <div class="field-group form-grid-full {% if form.centros_operativos.errors %}field-error{% endif %}">
+                                    <label class="field-label">
+                                         Centros Operativos Asociados
+                                    </label>
+                                    
+                                    <div class="centros-operativos-section">
+                                        <!-- Header compacto con contador y acciones -->
+                                        <div class="centros-header">
+                                            <div class="centros-counter-compact" id="centros-counter">
+                                                � <span id="counter-text">0 seleccionados</span>
+                                            </div>
+                                            <div class="centros-actions-compact">
+                                                <button type="button" class="action-btn-compact select-all" id="select-all-btn">
+                                                    ✅ Todos
+                                                </button>
+                                                <button type="button" class="action-btn-compact" id="deselect-all-btn">
+                                                    ❌ Ninguno
+                                                </button>
+                                            </div>
+                                        </div>
+                                        
+                                        <!-- Búsqueda compacta -->
+                                        <div class="centros-search-compact">
+                                            <input type="text" 
+                                                   id="centros-search" 
+                                                   placeholder="🔍 Buscar centros..."
+                                                   autocomplete="off">
+                                        </div>
+                                        
+                                        <!-- Lista compacta de checkboxes -->
+                                        <div class="centros-list-compact" id="centros-container">
+                                            {% for choice in form.centros_operativos %}
+                                                <div class="centro-item-compact" data-centro-name="{{ choice.choice_label|lower }}">
+                                                    {{ choice.tag }}
+                                                    <label for="{{ choice.id_for_label }}" class="centro-label-compact">
+                                                        <span class="centro-name-compact">{{ choice.choice_label }}</span>
+                                                        <span class="centro-status-compact {% if choice.choice_value.activo %}activo{% else %}inactivo{% endif %}">
+                                                            {% if choice.choice_value.activo %}✅{% else %}❌{% endif %}
+                                                        </span>
+                                                    </label>
+                                                </div>
+                                            {% empty %}
+                                                <div class="no-centros-message">
+                                                    📭 No hay centros operativos disponibles
+                                                </div>
+                                            {% endfor %}
+                                        </div>
+                                    </div>
+                                    
+                                    {% if form.centros_operativos.errors %}
+                                        {% for error in form.centros_operativos.errors %}
+                                            <div class="error-message">⚠️ {{ error }}</div>
+                                        {% endfor %}
+                                    {% endif %}
+                                    
+                                    <div class="field-help">
+                                        Seleccione los centros operativos que participarán en este proyecto
+                                    </div>
+                                </div>
+                            </div>
+            
+                            <!-- Sección de fechas -->
+                            <div class="date-section">
+                                <div class="date-section-title">
+                                    📅 Cronograma del Proyecto
+                                </div>
+                                
+                                <div class="form-grid">
+                                    
+                                                                    <!-- Fecha de inicio -->
+                                                                    <div class="field-group {% if form.fecha_inicio.errors %}field-error{% endif %}">
+                                                                        <label for="{{ form.fecha_inicio.id_for_label }}" class="field-label">
+                                                                            🚀 Fecha de Inicio
+                                                                        </label>
+                                                                        {{ form.fecha_inicio }}
+                                                                        {% if form.fecha_inicio.errors %}
+                                                                            {% for error in form.fecha_inicio.errors %}
+                                                                                <div class="error-message">⚠️ {{ error }}</div>
+                                                                            {% endfor %}
+                                                                        {% endif %}
+                                                                        <div class="field-help">
+                                                                            {{ form.fecha_inicio.help_text }}
+                                                                        </div>
+                                                                    </div>
+                                                
+                                                                    <!-- Fecha de fin -->
+                                                                    <div class="field-group {% if form.fecha_fin.errors %}field-error{% endif %}">
+                                                                        <label for="{{ form.fecha_fin.id_for_label }}" class="field-label">
+                                                                            🏁 Fecha de Finalización
+                                                                        </label>
+                                                                        {{ form.fecha_fin }}
+                                                                        {% if form.fecha_fin.errors %}
+                                                                            {% for error in form.fecha_fin.errors %}
+                                                                                <div class="error-message">⚠️ {{ error }}</div>
+                                                                            {% endfor %}
+                                                                        {% endif %}
+                                                                        <div class="field-help">
+                                                                            {{ form.fecha_fin.help_text }}
+                                                                        </div>
+                                                                    </div>
+                                </div>
+                            </div>
+            
+                            <!-- Estado del proyecto -->
+                            <div class="field-group {% if form.activo.errors %}field-error{% endif %}">
+                                <label class="field-label">
+                                    ⚙️ Estado del Proyecto
+                                </label>
+                                <div class="checkbox-group">
+                                    {{ form.activo }}
+                                    <label for="{{ form.activo.id_for_label }}" class="checkbox-label">
+                                        Proyecto activo y en ejecución
+                                    </label>
+                                </div>
+                                {% if form.activo.errors %}
+                                    {% for error in form.activo.errors %}
+                                        <div class="error-message">⚠️ {{ error }}</div>
+                                    {% endfor %}
+                                {% endif %}
+                                <div class="field-help">
+                                    Marque si el proyecto está actualmente activo y en desarrollo
+                                </div>
+                            </div>
+                        </div>
+            
+                        <!-- ❌ ELIMINAR LA SECCIÓN DUPLICADA DE CENTROS OPERATIVOS QUE ESTABA AQUÍ -->
+            
+                        <!-- Acciones del formulario -->
+                        <div class="form-actions">
+                            <a href="{% url 'empresas:proyectos_list' %}" class="btn-secondary">
+                                ❌ Cancelar
+                            </a>
+                            <button type="submit" class="btn-regency">
+                                {% if form.instance.pk %}
+                                    💾 Actualizar Proyecto
+                                {% else %}
+                                    ➕ Crear Proyecto
+                                {% endif %}
+                            </button>
+                        </div>
+                    </div>
+                </form>
+            </div>
+            
+
+
+<!-- JavaScript para mejorar la UX -->
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // Validación de fechas
+    const fechaInicio = document.querySelector('input[name="fecha_inicio"]');
+    const fechaFin = document.querySelector('input[name="fecha_fin"]');
+    
+    if (fechaInicio && fechaFin) {
+        fechaInicio.addEventListener('change', function() {
+            if (fechaFin.value && fechaInicio.value > fechaFin.value) {
+                fechaFin.value = '';
+                alert('⚠️ La fecha de fin debe ser posterior a la fecha de inicio');
+            }
+        });
+        
+        fechaFin.addEventListener('change', function() {
+            if (fechaInicio.value && fechaFin.value < fechaInicio.value) {
+                fechaFin.value = '';
+                alert('⚠️ La fecha de fin debe ser posterior a la fecha de inicio');
+            }
+        });
+    }
+    
+    // Auto-focus en el primer campo con error
+    const firstError = document.querySelector('.field-error .form-control, .field-error .form-select, .field-error .form-textarea');
+    if (firstError) {
+        firstError.focus();
+        firstError.scrollIntoView({ behavior: 'smooth', block: 'center' });
+    }
+    
+    // Confirmación antes de cancelar si hay cambios
+    const form = document.querySelector('form');
+    const cancelBtn = document.querySelector('.btn-secondary');
+    let formChanged = false;
+    
+    // Detectar cambios en el formulario
+    form.addEventListener('input', function() {
+        formChanged = true;
+    });
+    
+    cancelBtn.addEventListener('click', function(e) {
+        if (formChanged) {
+            if (!confirm('⚠️ ¿Está seguro de cancelar? Se perderán los cambios no guardados.')) {
+                e.preventDefault();
+            }
+        }
+    });
+
+    
+    // ========== FUNCIONALIDAD COMPACTA DE CENTROS OPERATIVOS ==========
+    
+    const centrosContainer = document.getElementById('centros-container');
+    const centrosSearch = document.getElementById('centros-search');
+    const counterText = document.getElementById('counter-text');
+    const selectAllBtn = document.getElementById('select-all-btn');
+    const deselectAllBtn = document.getElementById('deselect-all-btn');
+    
+    // Actualizar contador de forma eficiente
+    function updateCounter() {
+        const checked = centrosContainer.querySelectorAll('input[type="checkbox"]:checked').length;
+        const total = centrosContainer.querySelectorAll('input[type="checkbox"]').length;
+        counterText.textContent = `${checked}/${total} seleccionados`;
+        
+        // Cambiar color del contador
+        const counter = document.getElementById('centros-counter');
+        counter.style.background = checked > 0 ? 'var(--regency-red)' : '#6b7280';
+    }
+    
+    // Actualizar apariencia visual
+    function updateItemAppearance() {
+        const items = centrosContainer.querySelectorAll('.centro-item-compact');
+        items.forEach(item => {
+            const checkbox = item.querySelector('input[type="checkbox"]');
+            item.classList.toggle('selected', checkbox.checked);
+        });
+    }
+    
+    // Event delegation para mejor performance
+    centrosContainer.addEventListener('change', function(e) {
+        if (e.target.type === 'checkbox') {
+            updateCounter();
+            updateItemAppearance();
+        }
+    });
+    
+    // Click en todo el item
+    centrosContainer.addEventListener('click', function(e) {
+        const item = e.target.closest('.centro-item-compact');
+        if (item && e.target.type !== 'checkbox') {
+            const checkbox = item.querySelector('input[type="checkbox"]');
+            checkbox.checked = !checkbox.checked;
+            updateCounter();
+            updateItemAppearance();
+        }
+    });
+    
+    // Búsqueda optimizada con debounce
+    let searchTimeout;
+    centrosSearch.addEventListener('input', function() {
+        clearTimeout(searchTimeout);
+        searchTimeout = setTimeout(() => {
+            const searchTerm = this.value.toLowerCase();
+            const items = centrosContainer.querySelectorAll('.centro-item-compact');
+            
+            items.forEach(item => {
+                const centroName = item.dataset.centroName;
+                item.style.display = centroName.includes(searchTerm) ? 'flex' : 'none';
+            });
+        }, 150);
+    });
+    
+    // Seleccionar todos los visibles
+    selectAllBtn.addEventListener('click', function() {
+        const visibleCheckboxes = centrosContainer.querySelectorAll('.centro-item-compact:not([style*="display: none"]) input[type="checkbox"]');
+        visibleCheckboxes.forEach(checkbox => checkbox.checked = true);
+        updateCounter();
+        updateItemAppearance();
+    });
+    
+    // Deseleccionar todos
+    deselectAllBtn.addEventListener('click', function() {
+        const checkboxes = centrosContainer.querySelectorAll('input[type="checkbox"]');
+        checkboxes.forEach(checkbox => checkbox.checked = false);
+        updateCounter();
+        updateItemAppearance();
+    });
+    
+    // Inicializar
+    updateCounter();
+    updateItemAppearance();
+
+});
+</script>
+{% endblock %}

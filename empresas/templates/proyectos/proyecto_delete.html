@@ -1,0 +1,553 @@
+{% extends "admin/base_site.html" %}
+{% load i18n static %}
+
+{% block extrastyle %}
+{{ block.super }}
+<style>
+    /* Variables empresariales REGENCY */
+    :root {
+        --regency-red: #871F1B;
+        --regency-red-dark: #6b191b;
+        --regency-red-light: #a13832;
+        --regency-gray: #f8f9fa;
+        --regency-gray-dark: #64748b;
+        --regency-text: #333;
+        --border-radius: 8px;
+        --shadow-sm: 0 1px 3px rgba(0, 0, 0, 0.1);
+        --shadow-md: 0 4px 6px rgba(0, 0, 0, 0.1);
+        --shadow-lg: 0 10px 25px rgba(0, 0, 0, 0.15);
+    }
+
+    /* ========== OCULTAR BREADCRUMB DJANGO ADMIN ========== */
+    .breadcrumbs,
+    div.breadcrumbs {
+        display: none !important;
+    }
+
+    /* Tipografía empresarial consistente */
+    body {
+        font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+        font-size: 14px;
+        line-height: 1.5;
+        color: var(--regency-text);
+        background: var(--regency-gray);
+    }
+
+    /* Container principal */
+    .delete-container {
+        padding: 1.5rem 2rem;
+        max-width: 900px;
+        margin: 0 auto;
+        position: relative;
+    }
+
+    /* Header de confirmación */
+    .danger-header {
+        background: linear-gradient(135deg, #dc2626 0%, #b91c1c 100%);
+        color: white;
+        padding: 2rem 2.5rem;
+        margin-bottom: 2rem;
+        border-radius: var(--border-radius);
+        box-shadow: var(--shadow-lg);
+        position: relative;
+        overflow: hidden;
+        text-align: center;
+    }
+
+    .danger-header::before {
+        content: '';
+        position: absolute;
+        top: 0;
+        right: 0;
+        width: 200px;
+        height: 200px;
+        background: rgba(255, 255, 255, 0.1);
+        border-radius: 50%;
+        transform: translate(25%, -25%);
+    }
+
+    .danger-header h1 {
+        font-size: 2rem;
+        font-weight: 700;
+        margin: 0 0 0.5rem 0;
+        position: relative;
+        z-index: 2;
+    }
+
+    .danger-subtitle {
+        font-size: 1.1rem;
+        opacity: 0.9;
+        margin: 0;
+        position: relative;
+        z-index: 2;
+    }
+
+    /* Card de información del proyecto */
+    .project-info-card {
+        background: white;
+        border-radius: var(--border-radius);
+        box-shadow: var(--shadow-md);
+        border: 1px solid #e5e7eb;
+        overflow: hidden;
+        margin-bottom: 2rem;
+    }
+
+    .card-header {
+        background: var(--regency-red);
+        color: white;
+        padding: 1.25rem 1.5rem;
+        font-weight: 600;
+        font-size: 1.1rem;
+        display: flex;
+        align-items: center;
+        gap: 0.75rem;
+    }
+
+    .card-content {
+        padding: 1.5rem;
+    }
+
+    .project-summary {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 1.5rem;
+        margin-bottom: 1.5rem;
+    }
+
+    .summary-item {
+        display: flex;
+        flex-direction: column;
+    }
+
+    .summary-label {
+        font-weight: 600;
+        color: var(--regency-gray-dark);
+        font-size: 0.85rem;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+        margin-bottom: 0.5rem;
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+    }
+
+    .summary-value {
+        font-size: 1rem;
+        color: var(--regency-text);
+        font-weight: 500;
+        line-height: 1.4;
+    }
+
+    .summary-value.large {
+        font-size: 1.25rem;
+        font-weight: 600;
+        color: var(--regency-red);
+    }
+
+    /* Advertencias de eliminación */
+    .warning-section {
+        background: #fef3c7;
+        border: 1px solid #f59e0b;
+        border-radius: var(--border-radius);
+        padding: 1.5rem;
+        margin-bottom: 2rem;
+    }
+
+    .warning-header {
+        display: flex;
+        align-items: center;
+        gap: 0.75rem;
+        margin-bottom: 1rem;
+        font-weight: 600;
+        color: #92400e;
+        font-size: 1.1rem;
+    }
+
+    .warning-list {
+        list-style: none;
+        padding: 0;
+        margin: 0;
+    }
+
+    .warning-item {
+        display: flex;
+        align-items: flex-start;
+        gap: 0.75rem;
+        margin-bottom: 0.75rem;
+        color: #92400e;
+        font-size: 0.95rem;
+        line-height: 1.4;
+    }
+
+    .warning-item:last-child {
+        margin-bottom: 0;
+    }
+
+    /* Sección de centros asociados */
+    .associated-centers {
+        background: white;
+        border-radius: var(--border-radius);
+        box-shadow: var(--shadow-md);
+        border: 1px solid #e5e7eb;
+        overflow: hidden;
+        margin-bottom: 2rem;
+    }
+
+    .centers-header {
+        background: #f59e0b;
+        color: white;
+        padding: 1rem 1.5rem;
+        font-weight: 600;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+    }
+
+    .centers-count {
+        background: rgba(255, 255, 255, 0.2);
+        color: white;
+        padding: 0.25rem 0.75rem;
+        border-radius: 15px;
+        font-size: 0.8rem;
+        font-weight: 600;
+    }
+
+    .centers-list {
+        padding: 1rem 1.5rem;
+        max-height: 200px;
+        overflow-y: auto;
+    }
+
+    .center-item {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        padding: 0.75rem;
+        background: #fef3c7;
+        border: 1px solid #f59e0b;
+        border-radius: var(--border-radius);
+        margin-bottom: 0.5rem;
+    }
+
+    .center-item:last-child {
+        margin-bottom: 0;
+    }
+
+    .center-name {
+        font-weight: 500;
+        color: var(--regency-text);
+    }
+
+    .center-status {
+        font-size: 0.8rem;
+        padding: 0.25rem 0.5rem;
+        border-radius: 12px;
+        font-weight: 500;
+    }
+
+    .center-status.activo {
+        background: #dcfce7;
+        color: #166534;
+    }
+
+    .center-status.inactivo {
+        background: #fef2f2;
+        color: #dc2626;
+    }
+
+    /* Formulario de confirmación */
+    .confirmation-form {
+        background: white;
+        border-radius: var(--border-radius);
+        box-shadow: var(--shadow-md);
+        border: 1px solid #e5e7eb;
+        padding: 2rem;
+        text-align: center;
+    }
+
+    .confirmation-text {
+        font-size: 1.1rem;
+        color: var(--regency-text);
+        margin-bottom: 2rem;
+        line-height: 1.6;
+    }
+
+    .form-actions {
+        display: flex;
+        gap: 1rem;
+        justify-content: center;
+        flex-wrap: wrap;
+    }
+
+    /* Botones */
+    .btn-danger {
+        background: #dc2626;
+        color: white;
+        border: none;
+        padding: 1rem 2.5rem;
+        border-radius: var(--border-radius);
+        font-weight: 600;
+        font-size: 1rem;
+        cursor: pointer;
+        transition: all 0.2s ease;
+        text-decoration: none;
+        display: inline-flex;
+        align-items: center;
+        gap: 0.75rem;
+        min-height: 48px;
+        justify-content: center;
+    }
+
+    .btn-danger:hover {
+        background: #b91c1c;
+        color: white;
+        text-decoration: none;
+        transform: translateY(-1px);
+        box-shadow: var(--shadow-md);
+    }
+
+    .btn-secondary {
+        background: #6b7280;
+        color: white;
+        border: none;
+        padding: 1rem 2.5rem;
+        border-radius: var(--border-radius);
+        font-weight: 500;
+        font-size: 1rem;
+        cursor: pointer;
+        transition: all 0.2s ease;
+        text-decoration: none;
+        display: inline-flex;
+        align-items: center;
+        gap: 0.75rem;
+        min-height: 48px;
+        justify-content: center;
+    }
+
+    .btn-secondary:hover {
+        background: #4b5563;
+        color: white;
+        text-decoration: none;
+        transform: translateY(-1px);
+    }
+
+    /* Empty state para centros */
+    .no-centers {
+        text-align: center;
+        padding: 2rem;
+        color: var(--regency-gray-dark);
+        font-style: italic;
+    }
+
+    /* Responsive */
+    @media (max-width: 768px) {
+        .delete-container {
+            padding: 1rem;
+        }
+        
+        .danger-header {
+            padding: 1.5rem;
+        }
+        
+        .danger-header h1 {
+            font-size: 1.5rem;
+        }
+        
+        .project-summary {
+            grid-template-columns: 1fr;
+            gap: 1rem;
+        }
+        
+        .form-actions {
+            flex-direction: column;
+        }
+        
+        .btn-danger,
+        .btn-secondary {
+            width: 100%;
+        }
+    }
+
+    /* Animación de entrada */
+    .delete-container {
+        animation: fadeIn 0.3s ease-out;
+    }
+
+    @keyframes fadeIn {
+        from {
+            opacity: 0;
+            transform: translateY(20px);
+        }
+        to {
+            opacity: 1;
+            transform: translateY(0);
+        }
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="delete-container">
+    <!-- Header de peligro -->
+    <div class="danger-header">
+        <h1>🗑️ Confirmar Eliminación de Proyecto</h1>
+        <p class="danger-subtitle">
+            Esta acción no se puede deshacer. Por favor, revise la información antes de continuar.
+        </p>
+    </div>
+
+    <!-- Información del proyecto -->
+    <div class="project-info-card">
+        <div class="card-header">
+            📋 Información del Proyecto a Eliminar
+        </div>
+        <div class="card-content">
+            <div class="project-summary">
+                <div class="summary-item">
+                    <div class="summary-label">
+                        📊 Nombre del Proyecto
+                    </div>
+                    <div class="summary-value large">
+                        {{ object.nombre }}
+                    </div>
+                </div>
+
+                <div class="summary-item">
+                    <div class="summary-label">
+                        🏢 Empresa
+                    </div>
+                    <div class="summary-value">
+                        {{ object.id_empresa_proyecto.nombre }}
+                    </div>
+                </div>
+
+                <div class="summary-item">
+                    <div class="summary-label">
+                        📅 Fecha de Creación
+                    </div>
+                    <div class="summary-value">
+                        {{ object.creado_en|date:"d M Y - H:i" }}
+                    </div>
+                </div>
+
+                <div class="summary-item">
+                    <div class="summary-label">
+                        ⚙️ Estado
+                    </div>
+                    <div class="summary-value">
+                        {% if object.activo %}
+                            ✅ Activo
+                        {% else %}
+                            ⏸️ Inactivo
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+
+            {% if object.descripcion %}
+                <div class="summary-item">
+                    <div class="summary-label">
+                        📝 Descripción
+                    </div>
+                    <div class="summary-value">
+                        {{ object.descripcion|truncatewords:30 }}
+                    </div>
+                </div>
+            {% endif %}
+        </div>
+    </div>
+
+    <!-- Advertencias -->
+    <div class="warning-section">
+        <div class="warning-header">
+            ⚠️ Advertencias Importantes
+        </div>
+        <ul class="warning-list">
+            <li class="warning-item">
+                🚫 <strong>Esta acción es irreversible:</strong> El proyecto será eliminado permanentemente de la base de datos.
+            </li>
+            <li class="warning-item">
+                🔗 <strong>Relaciones afectadas:</strong> Las asociaciones con centros operativos se eliminarán automáticamente.
+            </li>
+            <li class="warning-item">
+                📊 <strong>Datos relacionados:</strong> Cualquier información asociada al proyecto podría verse afectada.
+            </li>
+            <li class="warning-item">
+                💾 <strong>Sin respaldo automático:</strong> Asegúrese de tener respaldos si los datos son importantes.
+            </li>
+        </ul>
+    </div>
+
+    <!-- Centros operativos asociados -->
+    <div class="associated-centers">
+        <div class="centers-header">
+            <span>🏭 Centros Operativos que se Desasociarán</span>
+            <div class="centers-count">
+                {{ centros_count }} centro{{ centros_count|pluralize }}
+            </div>
+        </div>
+        
+        {% if centros_operativos %}
+            <div class="centers-list">
+                {% for centro in centros_operativos %}
+                    <div class="center-item">
+                        <span class="center-name">{{ centro.nombre }}</span>
+                        <span class="center-status {% if centro.activo %}activo{% else %}inactivo{% endif %}">
+                            {% if centro.activo %}✅ Activo{% else %}❌ Inactivo{% endif %}
+                        </span>
+                    </div>
+                {% endfor %}
+            </div>
+        {% else %}
+            <div class="no-centers">
+                📭 No hay centros operativos asociados a este proyecto
+            </div>
+        {% endif %}
+    </div>
+
+    <!-- Formulario de confirmación -->
+    <div class="confirmation-form">
+        <p class="confirmation-text">
+            ¿Está completamente seguro de que desea eliminar el proyecto 
+            <strong>"{{ object.nombre }}"</strong>?
+            <br><br>
+            <span style="color: #dc2626; font-weight: 600;">
+                ⚠️ Esta acción no se puede deshacer
+            </span>
+        </p>
+
+        <form method="post" id="delete-form">
+            {% csrf_token %}
+            
+            <div class="form-actions">
+                <a href="{% url 'empresas:proyecto_detail' object.pk %}" class="btn-secondary">
+                    ← Cancelar
+                </a>
+                <button type="submit" class="btn-danger" id="delete-button">
+                    🗑️ Eliminar Proyecto Definitivamente
+                </button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // Solo una confirmación con JavaScript confirm()
+    document.getElementById('delete-form').addEventListener('submit', function(e) {
+        // Confirmación única y clara
+        const confirmed = confirm(
+            '⚠️ ¿Está absolutamente seguro?\n\n' +
+            'El proyecto "{{ object.nombre }}" será eliminado permanentemente.\n' +
+            'Esta acción NO se puede deshacer.\n\n' +
+            '¿Continuar con la eliminación?'
+        );
+        
+        if (!confirmed) {
+            e.preventDefault();
+            return false;
+        }
+    });
+});
+</script>
+{% endblock %}

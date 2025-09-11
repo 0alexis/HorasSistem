@@ -164,6 +164,14 @@ class CentroOperativo(models.Model):
     def __str__(self):
         return f"{self.nombre} - {self.ciudad}"
 
+    def get_proyectos_activos_count(self):
+        """Retorna el número de proyectos activos asociados"""
+        return self.proyectos.filter(activo=True).count()
+    
+    def get_proyectos_activos(self):
+        """Retorna los proyectos activos asociados"""
+        return self.proyectos.filter(activo=True)
+
 # Modelo para CargoPredefinido
 class CargoPredefinido(models.Model):
 

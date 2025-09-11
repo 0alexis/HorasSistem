@@ -1,0 +1,928 @@
+{% extends "admin/base_site.html" %}
+{% load i18n static %}
+
+{% block extrastyle %}
+{{ block.super }}
+<style>
+    /* Variables empresariales REGENCY */
+    :root {
+        --regency-red: #871F1B;
+        --regency-red-dark: #6b191b;
+        --regency-red-light: #a13832;
+        --regency-gray: #f8f9fa;
+        --regency-gray-dark: #64748b;
+        --regency-text: #333;
+        --border-radius: 8px;
+        --shadow-sm: 0 1px 3px rgba(0, 0, 0, 0.1);
+        --shadow-md: 0 4px 6px rgba(0, 0, 0, 0.1);
+    }
+
+    /* ========== OCULTAR BREADCRUMB DJANGO ADMIN ========== */
+    .breadcrumbs,
+    div.breadcrumbs {
+        display: none !important;
+    }
+
+    /* Tipografía empresarial consistente */
+    body {
+        font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+        font-size: 14px;
+        line-height: 1.5;
+        color: var(--regency-text);
+        background: var(--regency-gray);
+    }
+
+    /* Container principal */
+    .list-container {
+        padding: 1rem 1.5rem;
+        max-width: 1400px;
+        margin: 0 auto;
+        position: relative;
+    }
+
+    /* Header de la página */
+    .page-header {
+        background: var(--regency-red);
+        color: white;
+        padding: 1.25rem 1.5rem;
+        margin-bottom: 1.5rem;
+        border-radius: var(--border-radius);
+        box-shadow: var(--shadow-sm);
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        flex-wrap: wrap;
+        gap: 1rem;
+    }
+
+    .header-main {
+        flex: 1;
+        min-width: 0;
+    }
+
+    .page-header h1 {
+        font-size: 1.4rem;
+        font-weight: 600;
+        margin: 0 0 0.4rem 0;
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+        line-height: 1.2;
+    }
+
+    .page-subtitle {
+        font-size: 0.85rem;
+        opacity: 0.9;
+        margin: 0;
+        font-weight: 400;
+    }
+
+    .header-actions {
+        display: flex;
+        gap: 0.5rem;
+        flex-shrink: 0;
+    }
+
+    /* Estadísticas COMPACTAS en esquina */
+    .stats-compact {
+        position: absolute;
+        top: 0;
+        right: 20px;
+        display: flex;
+        gap: 0.5rem;
+        z-index: 10;
+    }
+
+    .stat-mini {
+        background: white;
+        border: 1px solid #e5e7eb;
+        border-radius: 6px;
+        padding: 0.5rem 0.75rem;
+        box-shadow: var(--shadow-sm);
+        text-align: center;
+        min-width: 80px;
+        font-size: 0.75rem;
+    }
+
+    .stat-mini-value {
+        font-size: 1.2rem;
+        font-weight: 600;
+        color: var(--regency-red);
+        margin-bottom: 0.1rem;
+        line-height: 1;
+    }
+
+    .stat-mini-label {
+        font-size: 0.7rem;
+        color: var(--regency-gray-dark);
+        font-weight: 500;
+        text-transform: uppercase;
+        letter-spacing: 0.3px;
+    }
+
+    /* Card de filtros y búsqueda */
+    .filters-card {
+        background: white;
+        border-radius: var(--border-radius);
+        box-shadow: var(--shadow-sm);
+        border: 1px solid #e5e7eb;
+        margin-bottom: 1.5rem;
+        margin-top: 2.5rem; /* Espacio para estadísticas */
+        overflow: hidden;
+    }
+
+    .filters-header {
+        background: var(--regency-red);
+        color: white;
+        padding: 0.75rem 1rem;
+        font-weight: 600;
+        font-size: 0.9rem;
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+    }
+
+    .filters-content {
+        padding: 1rem;
+    }
+
+    .filters-form {
+        display: grid;
+        grid-template-columns: 2fr 1fr auto auto;
+        gap: 1rem;
+        align-items: end;
+    }
+
+    .form-group {
+        display: flex;
+        flex-direction: column;
+        gap: 0.25rem;
+    }
+
+    .form-label {
+        font-weight: 600;
+        color: var(--regency-text);
+        font-size: 0.85rem;
+    }
+
+    .form-control,
+    .form-select {
+        padding: 0.5rem;
+        border: 1px solid #d1d5db;
+        border-radius: var(--border-radius);
+        font-size: 0.85rem;
+        transition: border-color 0.2s ease;
+    }
+
+    .form-control:focus,
+    .form-select:focus {
+        outline: none;
+        border-color: var(--regency-red);
+        box-shadow: 0 0 0 3px rgba(135, 31, 27, 0.1);
+    }
+
+    /* Card de tabla */
+    .table-card {
+        background: white;
+        border-radius: var(--border-radius);
+        overflow: hidden;
+        box-shadow: var(--shadow-sm);
+        border: 1px solid #e5e7eb;
+    }
+
+    .card-header-regency {
+        background: var(--regency-red);
+        color: white;
+        padding: 1rem 1.25rem;
+        font-weight: 600;
+        font-size: 1rem;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+    }
+
+    /* Tabla responsive */
+    .table-container {
+        overflow-x: auto;
+    }
+
+    .data-table {
+        width: 100%;
+        border-collapse: collapse;
+        font-size: 0.85rem; /* Más compacto */
+    }
+
+    .data-table th {
+        background: #f8fafc;
+        padding: 0.75rem 0.5rem; /* Más compacto */
+        text-align: left;
+        font-weight: 600;
+        color: var(--regency-text);
+        border-bottom: 2px solid #e5e7eb;
+        white-space: nowrap;
+        font-size: 0.8rem;
+    }
+
+    .data-table td {
+        padding: 0.75rem 0.5rem; /* Más compacto */
+        border-bottom: 1px solid #f1f5f9;
+        vertical-align: middle;
+    }
+
+    .data-table tbody tr:hover {
+        background: #fafbfc;
+    }
+
+    .data-table tbody tr:nth-child(even) {
+        background: #fefefe;
+    }
+
+    .data-table tbody tr:nth-child(even):hover {
+        background: #f8fafc;
+    }
+
+    /* Estilos de contenido de tabla - COMPACTOS */
+    .project-info {
+        min-width: 220px; /* Reducido */
+    }
+
+    .project-name {
+        font-weight: 600;
+        color: var(--regency-text);
+        margin-bottom: 0.3rem;
+        font-size: 0.9rem;
+        line-height: 1.2;
+    }
+
+    .project-description {
+        font-size: 0.75rem;
+        color: var(--regency-gray-dark);
+        line-height: 1.3;
+        margin-bottom: 0.3rem;
+    }
+
+    /* Empresa COMPACTA - solo nombre principal */
+    .empresa-compact {
+        font-size: 0.8rem;
+        color: var(--regency-text);
+        font-weight: 500;
+        max-width: 120px; /* Limitar ancho */
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+        background: #f8fafc;
+        padding: 0.3rem 0.5rem;
+        border-radius: 4px;
+        border: 1px solid #e2e8f0;
+    }
+
+    .dates-info {
+        min-width: 140px; /* Reducido */
+    }
+
+    .date-item {
+        display: flex;
+        align-items: center;
+        gap: 0.3rem;
+        margin-bottom: 0.3rem;
+        font-size: 0.75rem;
+    }
+
+    .date-label {
+        font-weight: 600;
+        color: var(--regency-text);
+        min-width: 35px;
+        font-size: 0.7rem;
+    }
+
+    .date-value {
+        color: var(--regency-gray-dark);
+        background: #f1f5f9;
+        padding: 0.2rem 0.4rem;
+        border-radius: 3px;
+        font-weight: 500;
+        font-size: 0.7rem;
+    }
+
+    /* Centros Operativos COMPACTOS */
+    .centros-info {
+        min-width: 100px; /* Muy reducido */
+    }
+
+    .centros-badge {
+        background: linear-gradient(135deg, #f0fdf4 0%, #dcfce7 100%);
+        color: #166534;
+        padding: 0.3rem 0.5rem;
+        border-radius: 4px;
+        font-weight: 600;
+        font-size: 0.7rem;
+        border: 1px solid #bbf7d0;
+        display: inline-flex;
+        align-items: center;
+        gap: 0.3rem;
+    }
+
+    .centros-list {
+        font-size: 0.65rem;
+        color: var(--regency-gray-dark);
+        line-height: 1.2;
+        margin-top: 0.2rem;
+    }
+
+    .centro-item {
+        background: #f8fafc;
+        padding: 0.15rem 0.3rem;
+        border-radius: 3px;
+        margin-bottom: 0.15rem;
+        display: inline-block;
+        margin-right: 0.15rem;
+        border: 1px solid #e2e8f0;
+        font-size: 0.65rem;
+    }
+
+    /* Badges de estado COMPACTOS */
+    .badge {
+        padding: 0.3rem 0.6rem; /* Más pequeño */
+        border-radius: 12px;
+        font-size: 0.7rem;
+        font-weight: 600;
+        text-transform: uppercase;
+        letter-spacing: 0.3px;
+        display: inline-flex;
+        align-items: center;
+        gap: 0.3rem;
+    }
+
+    .badge-success {
+        background: #dcfce7;
+        color: #166534;
+        border: 1px solid #a7f3d0;
+    }
+
+    .badge-danger {
+        background: #fee2e2;
+        color: #991b1b;
+        border: 1px solid #fca5a5;
+    }
+
+    /* Botones de acción COMPACTOS HORIZONTALES */
+    .btn-actions {
+        display: flex;
+        gap: 0.25rem; /* Espacio mínimo */
+        flex-wrap: nowrap; /* Sin wrap */
+        justify-content: flex-start;
+        min-width: 160px;
+    }
+
+    .btn-sm {
+        padding: 0.3rem 0.5rem; /* Muy compacto */
+        font-size: 0.7rem;
+        border-radius: 4px;
+        text-decoration: none;
+        font-weight: 500;
+        transition: all 0.2s ease;
+        display: inline-flex;
+        align-items: center;
+        gap: 0.2rem;
+        border: none;
+        cursor: pointer;
+        min-width: 45px; /* Muy pequeño */
+        justify-content: center;
+        white-space: nowrap;
+    }
+
+    .btn-primary {
+        background: var(--regency-red);
+        color: white;
+    }
+
+    .btn-primary:hover {
+        background: var(--regency-red-dark);
+        color: white;
+        text-decoration: none;
+        transform: translateY(-1px);
+    }
+
+    .btn-info {
+        background: #0ea5e9;
+        color: white;
+    }
+
+    .btn-info:hover {
+        background: #0284c7;
+        color: white;
+        text-decoration: none;
+        transform: translateY(-1px);
+    }
+
+    .btn-warning {
+        background: #f59e0b;
+        color: white;
+    }
+
+    .btn-warning:hover {
+        background: #d97706;
+        color: white;
+        text-decoration: none;
+        transform: translateY(-1px);
+    }
+
+    .btn-danger {
+        background: #dc2626;
+        color: white;
+    }
+
+    .btn-danger:hover {
+        background: #b91c1c;
+        color: white;
+        text-decoration: none;
+        transform: translateY(-1px);
+    }
+
+    .btn-regency {
+        background: var(--regency-red);
+        color: white;
+        border: none;
+        padding: 0.75rem 1.5rem;
+        border-radius: var(--border-radius);
+        font-weight: 500;
+        font-size: 0.9rem;
+        cursor: pointer;
+        transition: all 0.2s ease;
+        text-decoration: none;
+        display: inline-flex;
+        align-items: center;
+        gap: 0.5rem;
+    }
+
+    .btn-regency:hover {
+        background: var(--regency-red-dark);
+        color: white;
+        text-decoration: none;
+        transform: translateY(-1px);
+    }
+
+    /* Estado vacío */
+    .empty-state {
+        text-align: center;
+        padding: 3rem 1rem;
+        color: var(--regency-gray-dark);
+    }
+
+    .empty-icon {
+        font-size: 3rem;
+        margin-bottom: 1rem;
+        opacity: 0.5;
+    }
+
+    .empty-title {
+        font-size: 1.2rem;
+        font-weight: 600;
+        margin-bottom: 0.5rem;
+        color: var(--regency-text);
+    }
+
+    .empty-description {
+        margin-bottom: 1.5rem;
+        line-height: 1.5;
+    }
+
+    /* Paginación */
+    .pagination-container {
+        background: white;
+        padding: 1rem 1.25rem;
+        border-top: 1px solid #e5e7eb;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        flex-wrap: wrap;
+        gap: 1rem;
+    }
+
+    .pagination-info {
+        font-size: 0.85rem;
+        color: var(--regency-gray-dark);
+    }
+
+    .pagination {
+        display: flex;
+        gap: 0.25rem;
+        list-style: none;
+        margin: 0;
+        padding: 0;
+    }
+
+    .pagination a, .pagination span {
+        padding: 0.5rem 0.75rem;
+        border: 1px solid #d1d5db;
+        color: var(--regency-text);
+        text-decoration: none;
+        border-radius: 0.25rem;
+        font-size: 0.85rem;
+    }
+
+    .pagination a:hover {
+        background: var(--regency-gray);
+    }
+
+    .pagination .current {
+        background: var(--regency-red);
+        color: white;
+        border-color: var(--regency-red);
+    }
+
+    /* Filtros activos */
+    .active-filters {
+        background: #fef2f2;
+        border: 1px solid #fca5a5;
+        border-radius: var(--border-radius);
+        padding: 0.75rem 1rem;
+        margin-top: 1rem;
+        font-size: 0.85rem;
+        color: var(--regency-red);
+    }
+
+    .filter-tag {
+        background: var(--regency-red);
+        color: white;
+        padding: 0.25rem 0.5rem;
+        border-radius: 0.25rem;
+        font-size: 0.75rem;
+        margin: 0 0.25rem;
+        font-weight: 500;
+    }
+
+    /* Responsive */
+    @media (max-width: 1024px) {
+        .filters-form {
+            grid-template-columns: 1fr 1fr auto;
+            gap: 0.75rem;
+        }
+
+        .stats-compact {
+            position: static;
+            justify-content: flex-end;
+            margin-bottom: 1rem;
+        }
+
+        .filters-card {
+            margin-top: 0;
+        }
+    }
+
+    @media (max-width: 768px) {
+        .list-container {
+            padding: 0.75rem 1rem;
+        }
+
+        .page-header {
+            padding: 1rem;
+            flex-direction: column;
+            align-items: stretch;
+            text-align: center;
+        }
+
+        .page-header h1 {
+            font-size: 1.2rem;
+            justify-content: center;
+        }
+
+        .header-actions {
+            justify-content: center;
+            margin-top: 0.5rem;
+        }
+
+        .filters-form {
+            grid-template-columns: 1fr;
+        }
+
+        .stats-compact {
+            justify-content: center;
+        }
+
+        .data-table {
+            font-size: 0.75rem;
+        }
+
+        .data-table th,
+        .data-table td {
+            padding: 0.4rem 0.2rem;
+        }
+
+        .btn-actions {
+            flex-direction: column;
+            gap: 0.15rem;
+        }
+
+        .btn-sm {
+            min-width: 35px;
+            font-size: 0.65rem;
+        }
+
+        .pagination-container {
+            flex-direction: column;
+            text-align: center;
+        }
+    }
+
+    /* Animaciones */
+    .table-card,
+    .filters-card,
+    .stat-mini {
+        animation: slideInUp 0.3s ease-out;
+    }
+
+    @keyframes slideInUp {
+        from {
+            opacity: 0;
+            transform: translateY(20px);
+        }
+        to {
+            opacity: 1;
+            transform: translateY(0);
+        }
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="list-container">
+
+
+    <!-- Header de la página -->
+    <div class="page-header">
+        <div class="header-main">
+            <h1>
+                📊 Gestión de Proyectos
+            </h1>
+            <p class="page-subtitle">
+                Administración de proyectos empresariales REGENCY
+            </p>
+        </div>
+        <div class="header-actions">
+            <a href="{% url 'empresas:proyecto_create' %}" class="btn-regency">
+                ➕ Nuevo Proyecto
+            </a>
+        </div>
+    </div>
+
+    <!-- Filtros de búsqueda -->
+    <div class="filters-card">
+        <div class="filters-header">
+            🔍 Filtros de Búsqueda
+        </div>
+        <div class="filters-content">
+            <form method="get" class="filters-form" id="filtersForm">
+                <div class="form-group">
+                    <label class="form-label">Búsqueda General</label>
+                    <input type="text" 
+                           name="search" 
+                           value="{{ search }}" 
+                           placeholder="Nombre del proyecto, descripción..."
+                           class="form-control">
+                </div>
+                
+                <div class="form-group">
+                    <label class="form-label">Estado</label>
+                    <select name="activo" class="form-select">
+                        <option value="">Todos los estados</option>
+                        <option value="true" {% if activo == 'true' %}selected{% endif %}>✅ Solo activos</option>
+                        <option value="false" {% if activo == 'false' %}selected{% endif %}>❌ Solo inactivos</option>
+                    </select>
+                </div>
+                
+                <div class="form-group">
+                    <button type="submit" class="btn-regency">🔍 Buscar</button>
+                </div>
+                
+                {% if is_filtered %}
+                <div class="form-group">
+                    <a href="{% url 'empresas:proyectos_list' %}" class="btn-sm btn-info">
+                        ❌ Limpiar
+                    </a>
+                </div>
+                {% endif %}
+            </form>
+            
+            {% if is_filtered %}
+            <div class="active-filters">
+                <strong>🏷️ Filtros activos:</strong>
+                {% if search %}<span class="filter-tag">Búsqueda: {{ search }}</span>{% endif %}
+                {% if activo == 'true' %}<span class="filter-tag">Estado: Activo</span>{% endif %}
+                {% if activo == 'false' %}<span class="filter-tag">Estado: Inactivo</span>{% endif %}
+            </div>
+            {% endif %}
+        </div>
+    </div>
+
+    <!-- Tabla de proyectos -->
+    <div class="table-card">
+        <div class="card-header-regency">
+            <span>
+                {% if is_filtered %}
+                    📋 Resultados de búsqueda ({{ total_proyectos }})
+                {% else %}
+                    📋 Lista de Proyectos ({{ total_proyectos }})
+                {% endif %}
+            </span>
+            {% if is_filtered %}
+                <a href="{% url 'empresas:proyectos_list' %}" class="btn-sm btn-info">
+                    ❌ Limpiar Filtros
+                </a>
+            {% endif %}
+        </div>
+
+        <div class="table-container">
+            {% if proyectos %}
+                <table class="data-table">
+                    <thead>
+                        <tr>
+                            <th class="project-info">📊 Proyecto</th>
+                            <th>🏢 Empresa</th>
+                            <th class="dates-info">📅 Fechas</th>
+                            <th class="centros-info">🏭 Centros</th>
+                            <th>⚙️ Estado</th>
+                            <th>🔧 Acciones</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for proyecto in proyectos %}
+                        <tr>
+                            <!-- Información del proyecto -->
+                            <td class="project-info">
+                                <div class="project-name">{{ proyecto.nombre }}</div>
+                                {% if proyecto.descripcion %}
+                                    <div class="project-description">
+                                        {{ proyecto.descripcion|truncatechars:60 }}
+                                    </div>
+                                {% else %}
+                                    <div class="project-description" style="font-style: italic; opacity: 0.6;">
+                                        Sin descripción
+                                    </div>
+                                {% endif %}
+                            </td>
+                            
+                            <!-- Empresa COMPACTA -->
+                            <td>
+                                {% if proyecto.id_empresa_proyecto %}
+                                    <div class="empresa-compact" title="{{ proyecto.id_empresa_proyecto.nombre }}">
+                                        {{ proyecto.id_empresa_proyecto.nombre|truncatechars:20 }}
+                                    </div>
+                                {% else %}
+                                    <span style="color: var(--regency-gray-dark); font-style: italic; font-size: 0.75rem;">
+                                        Sin empresa
+                                    </span>
+                                {% endif %}
+                            </td>
+                            
+                            <!-- Fechas COMPACTAS -->
+                            <td class="dates-info">
+                                {% if proyecto.fecha_inicio %}
+                                    <div class="date-item">
+                                        <span class="date-label">📅</span>
+                                        <span class="date-value">{{ proyecto.fecha_inicio|date:"d/m/Y" }}</span>
+                                    </div>
+                                {% endif %}
+                                
+                                {% if proyecto.fecha_fin %}
+                                    <div class="date-item">
+                                        <span class="date-label">🏁</span>
+                                        <span class="date-value">{{ proyecto.fecha_fin|date:"d/m/Y" }}</span>
+                                    </div>
+                                {% endif %}
+                                
+                                {% if not proyecto.fecha_inicio and not proyecto.fecha_fin %}
+                                    <span style="color: var(--regency-gray-dark); font-style: italic; font-size: 0.7rem;">
+                                        Sin fechas
+                                    </span>
+                                {% endif %}
+                            </td>
+                            
+                            <!-- Centros Operativos COMPACTOS -->
+                            <td class="centros-info">
+                                <span class="centros-badge">
+                                    🏭 {{ proyecto.centros_operativos.count }}
+                                </span>
+                                {% if proyecto.centros_operativos.count > 0 and proyecto.centros_operativos.count <= 2 %}
+                                    <div class="centros-list">
+                                        {% for centro in proyecto.centros_operativos.all|slice:":2" %}
+                                            <span class="centro-item">
+                                                {{ centro.nombre|truncatechars:10 }}
+                                            </span>
+                                        {% endfor %}
+                                    </div>
+                                {% endif %}
+                            </td>
+                            
+                            <!-- Estado COMPACTO -->
+                            <td>
+                                {% if proyecto.activo %}
+                                    <span class="badge badge-success">
+                                        ✅ Activo
+                                    </span>
+                                {% else %}
+                                    <span class="badge badge-danger">
+                                        ❌ Inactivo
+                                    </span>
+                                {% endif %}
+                            </td>
+                            
+                            <!-- Acciones COMPACTAS HORIZONTALES -->
+                            <td>
+                                <div class="btn-actions">
+                                    <a href="{% url 'empresas:proyecto_detail' proyecto.id_proyecto %}" 
+                                       class="btn-sm btn-info" 
+                                       title="Ver detalles">
+                                        Ver
+                                    </a>
+                                    <a href="{% url 'empresas:proyecto_update' proyecto.id_proyecto %}" 
+                                       class="btn-sm btn-warning" 
+                                       title="Editar">
+                                        Edit
+                                    </a>
+                                    <a href="{% url 'empresas:proyecto_delete' proyecto.id_proyecto %}" 
+                                       class="btn-sm btn-danger" 
+                                       title="Eliminar"
+                                       onclick="return confirm('⚠️ ¿Eliminar proyecto?')">
+                                        Del
+                                    </a>
+                                </div>
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            {% else %}
+                <div class="empty-state">
+                    <div class="empty-icon">📊</div>
+                    <h3 class="empty-title">No se encontraron proyectos</h3>
+                    {% if is_filtered %}
+                        <p class="empty-description">
+                            No hay proyectos que coincidan con los filtros aplicados.
+                        </p>
+                        <a href="{% url 'empresas:proyectos_list' %}" class="btn-regency">
+                            ❌ Limpiar Filtros
+                        </a>
+                    {% else %}
+                        <p class="empty-description">
+                            Aún no hay proyectos registrados en el sistema.
+                        </p>
+                        <a href="{% url 'empresas:proyecto_create' %}" class="btn-regency">
+                            ➕ Crear Primer Proyecto
+                        </a>
+                    {% endif %}
+                </div>
+            {% endif %}
+        </div>
+
+        <!-- Paginación -->
+        {% if proyectos.has_other_pages %}
+        <div class="pagination-container">
+            <div class="pagination-info">
+                Mostrando {{ proyectos.start_index }} - {{ proyectos.end_index }} de {{ proyectos.paginator.count }} proyectos
+            </div>
+            <div class="pagination">
+                {% if proyectos.has_previous %}
+                    <a href="?page=1{% if search %}&search={{ search }}{% endif %}{% if activo %}&activo={{ activo }}{% endif %}">« Primera</a>
+                    <a href="?page={{ proyectos.previous_page_number }}{% if search %}&search={{ search }}{% endif %}{% if activo %}&activo={{ activo }}{% endif %}">‹ Anterior</a>
+                {% endif %}
+                
+                <span class="current">{{ proyectos.number }}</span>
+                
+                {% if proyectos.has_next %}
+                    <a href="?page={{ proyectos.next_page_number }}{% if search %}&search={{ search }}{% endif %}{% if activo %}&activo={{ activo }}{% endif %}">Siguiente ›</a>
+                    <a href="?page={{ proyectos.paginator.num_pages }}{% if search %}&search={{ search }}{% endif %}{% if activo %}&activo={{ activo }}{% endif %}">Última »</a>
+                {% endif %}
+            </div>
+        </div>
+        {% endif %}
+    </div>
+</div>
+
+<!-- JavaScript para mejorar la UX -->
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // Auto-submit en cambios de filtros
+    const selectInputs = document.querySelectorAll('select');
+    
+    selectInputs.forEach(input => {
+        input.addEventListener('change', function() {
+            document.getElementById('filtersForm').submit();
+        });
+    });
+
+    // Búsqueda con delay
+    const searchInput = document.querySelector('input[name="search"]');
+    let searchTimeout;
+    
+    searchInput.addEventListener('input', function() {
+        clearTimeout(searchTimeout);
+        searchTimeout = setTimeout(function() {
+            if (searchInput.value.length >= 3 || searchInput.value.length === 0) {
+                document.getElementById('filtersForm').submit();
+            }
+        }, 500);
+    });
+});
+</script>
+{% endblock %}

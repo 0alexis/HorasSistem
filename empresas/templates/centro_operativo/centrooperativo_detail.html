@@ -1,0 +1,759 @@
+{% extends "admin/base_site.html" %}
+{% load i18n static %}
+
+{% block extrastyle %}
+{{ block.super }}
+<style>
+    /* Variables empresariales REGENCY */
+    :root {
+        --regency-red: #871F1B;
+        --regency-red-dark: #6b191b;
+        --regency-red-light: #a13832;
+        --regency-gray: #f8f9fa;
+        --regency-gray-dark: #64748b;
+        --regency-text: #333;
+        --border-radius: 8px;
+        --shadow-sm: 0 1px 3px rgba(0, 0, 0, 0.1);
+        --shadow-md: 0 4px 6px rgba(0, 0, 0, 0.1);
+    }
+
+    /* ========== OCULTAR BREADCRUMB DJANGO ADMIN ========== */
+    .breadcrumbs,
+    div.breadcrumbs {
+        display: none !important;
+    }
+
+    /* Tipografía empresarial consistente */
+    body {
+        font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+        font-size: 14px;
+        line-height: 1.5;
+        color: var(--regency-text);
+        background: var(--regency-gray);
+    }
+
+    /* Container principal */
+    .detail-container {
+        padding: 1rem 1.5rem;
+        max-width: 1200px;
+        margin: 0 auto;
+    }
+
+    /* Header de la página */
+    .page-header {
+        background: var(--regency-red);
+        color: white;
+        padding: 1.25rem 1.5rem;
+        margin-bottom: 1.5rem;
+        border-radius: var(--border-radius);
+        box-shadow: var(--shadow-sm);
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        flex-wrap: wrap;
+        gap: 1rem;
+    }
+
+    .header-main {
+        flex: 1;
+        min-width: 0;
+    }
+
+    .page-header h1 {
+        font-size: 1.4rem;
+        font-weight: 600;
+        margin: 0 0 0.4rem 0;
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+        line-height: 1.2;
+    }
+
+    .page-subtitle {
+        font-size: 0.85rem;
+        opacity: 0.9;
+        margin: 0;
+        font-weight: 400;
+    }
+
+    .header-actions {
+        display: flex;
+        gap: 0.5rem;
+        flex-shrink: 0;
+        flex-wrap: wrap;
+    }
+
+    /* Breadcrumb personalizado */
+    .custom-breadcrumb {
+        background: white;
+        border: 1px solid #e5e7eb;
+        border-radius: var(--border-radius);
+        padding: 0.75rem 1rem;
+        margin-bottom: 1.5rem;
+        box-shadow: var(--shadow-sm);
+        font-size: 0.85rem;
+    }
+
+    .custom-breadcrumb a {
+        color: var(--regency-red);
+        text-decoration: none;
+        font-weight: 500;
+        transition: color 0.2s ease;
+    }
+
+    .custom-breadcrumb a:hover {
+        color: var(--regency-red-dark);
+        text-decoration: underline;
+    }
+
+    .breadcrumb-separator {
+        color: var(--regency-gray-dark);
+        margin: 0 0.5rem;
+    }
+
+    /* Estado del centro */
+    .status-banner {
+        padding: 1rem 1.25rem;
+        margin-bottom: 1.5rem;
+        border-radius: var(--border-radius);
+        font-weight: 600;
+        text-align: center;
+        font-size: 1rem;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 0.5rem;
+    }
+
+    .status-banner.active {
+        background: #dcfce7;
+        border: 2px solid #bbf7d0;
+        color: #166534;
+    }
+
+    .status-banner.inactive {
+        background: #fee2e2;
+        border: 2px solid #fecaca;
+        color: #991b1b;
+    }
+
+    /* Grid principal */
+    .detail-grid {
+        display: grid;
+        grid-template-columns: 2fr 1fr;
+        gap: 1.5rem;
+        margin-bottom: 1.5rem;
+    }
+
+    /* Cards de información */
+    .info-card {
+        background: white;
+        border-radius: var(--border-radius);
+        overflow: hidden;
+        box-shadow: var(--shadow-sm);
+        border: 1px solid #e5e7eb;
+    }
+
+    .card-header {
+        background: var(--regency-red);
+        color: white;
+        padding: 1rem 1.25rem;
+        font-weight: 600;
+        font-size: 1rem;
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+    }
+
+    .card-content {
+        padding: 1.5rem;
+    }
+
+    /* Secciones de información */
+    .info-section {
+        margin-bottom: 1.5rem;
+    }
+
+    .info-section:last-child {
+        margin-bottom: 0;
+    }
+
+    .section-title {
+        font-size: 1rem;
+        font-weight: 600;
+        color: var(--regency-text);
+        margin-bottom: 0.75rem;
+        padding-bottom: 0.5rem;
+        border-bottom: 1px solid #e5e7eb;
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+    }
+
+    /* Campos de información */
+    .info-field {
+        display: flex;
+        margin-bottom: 0.75rem;
+        padding: 0.5rem 0;
+        border-bottom: 1px solid #f1f5f9;
+    }
+
+    .info-field:last-child {
+        border-bottom: none;
+        margin-bottom: 0;
+    }
+
+    .field-label {
+        font-weight: 600;
+        color: var(--regency-gray-dark);
+        min-width: 120px;
+        font-size: 0.85rem;
+        display: flex;
+        align-items: center;
+        gap: 0.25rem;
+    }
+
+    .field-value {
+        flex: 1;
+        color: var(--regency-text);
+        font-size: 0.9rem;
+        word-break: break-word;
+    }
+
+    .field-value.empty {
+        color: var(--regency-gray-dark);
+        font-style: italic;
+    }
+
+    /* Badges y etiquetas */
+    .badge {
+        padding: 0.25rem 0.5rem;
+        border-radius: 0.25rem;
+        font-size: 0.75rem;
+        font-weight: 600;
+        text-transform: uppercase;
+        letter-spacing: 0.025em;
+        display: inline-flex;
+        align-items: center;
+        gap: 0.25rem;
+    }
+
+    .badge-success {
+        background: #dcfce7;
+        color: #166534;
+    }
+
+    .badge-danger {
+        background: #fee2e2;
+        color: #991b1b;
+    }
+
+    .badge-info {
+        background: #dbeafe;
+        color: #1e40af;
+    }
+
+    .badge-warning {
+        background: #fef3c7;
+        color: #92400e;
+    }
+
+    .badge-secondary {
+        background: #f1f5f9;
+        color: #475569;
+    }
+
+    /* Lista de proyectos */
+    .proyectos-list {
+        display: flex;
+        flex-direction: column;
+        gap: 0.5rem;
+    }
+
+    .proyecto-item {
+        background: #f8fafc;
+        border: 1px solid #e2e8f0;
+        border-radius: 0.375rem;
+        padding: 0.75rem;
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+        transition: all 0.2s ease;
+    }
+
+    .proyecto-item:hover {
+        background: #f1f5f9;
+        border-color: var(--regency-red-light);
+    }
+
+    .proyecto-icon {
+        font-size: 1.1rem;
+        color: var(--regency-red);
+    }
+
+    .proyecto-name {
+        flex: 1;
+        font-weight: 500;
+        color: var(--regency-text);
+    }
+
+    .proyecto-status {
+        font-size: 0.75rem;
+    }
+
+    /* Estadísticas rápidas */
+    .stats-card {
+        background: white;
+        border-radius: var(--border-radius);
+        overflow: hidden;
+        box-shadow: var(--shadow-sm);
+        border: 1px solid #e5e7eb;
+    }
+
+    .stats-grid {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 0;
+    }
+
+    .stat-item {
+        padding: 1rem;
+        text-align: center;
+        border-right: 1px solid #e5e7eb;
+        border-bottom: 1px solid #e5e7eb;
+    }
+
+    .stat-item:nth-child(2n) {
+        border-right: none;
+    }
+
+    .stat-item:nth-last-child(-n+2) {
+        border-bottom: none;
+    }
+
+    .stat-value {
+        font-size: 1.5rem;
+        font-weight: 700;
+        color: var(--regency-red);
+        margin-bottom: 0.25rem;
+    }
+
+    .stat-label {
+        font-size: 0.8rem;
+        color: var(--regency-gray-dark);
+        font-weight: 500;
+    }
+
+    /* Botones de acción */
+    .action-buttons {
+        background: white;
+        border-radius: var(--border-radius);
+        overflow: hidden;
+        box-shadow: var(--shadow-sm);
+        border: 1px solid #e5e7eb;
+    }
+
+    .action-buttons .card-header {
+        background: var(--regency-red);
+    }
+
+    .actions-content {
+        padding: 1.25rem;
+        display: flex;
+        flex-direction: column;
+        gap: 0.75rem;
+    }
+
+    .btn-action {
+        padding: 0.75rem 1rem;
+        border-radius: var(--border-radius);
+        font-weight: 500;
+        font-size: 0.9rem;
+        cursor: pointer;
+        transition: all 0.2s ease;
+        text-decoration: none;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        gap: 0.5rem;
+        border: 1px solid;
+        text-align: center;
+    }
+
+    .btn-primary {
+        background: var(--regency-red);
+        color: white;
+        border-color: var(--regency-red);
+    }
+
+    .btn-primary:hover {
+        background: var(--regency-red-dark);
+        border-color: var(--regency-red-dark);
+        color: white;
+        text-decoration: none;
+        transform: translateY(-1px);
+    }
+
+    .btn-warning {
+        background: #f59e0b;
+        color: white;
+        border-color: #f59e0b;
+    }
+
+    .btn-warning:hover {
+        background: #d97706;
+        border-color: #d97706;
+        color: white;
+        text-decoration: none;
+        transform: translateY(-1px);
+    }
+
+    .btn-danger {
+        background: #dc2626;
+        color: white;
+        border-color: #dc2626;
+    }
+
+    .btn-danger:hover {
+        background: #b91c1c;
+        border-color: #b91c1c;
+        color: white;
+        text-decoration: none;
+        transform: translateY(-1px);
+    }
+
+    .btn-secondary {
+        background: #6b7280;
+        color: white;
+        border-color: #6b7280;
+    }
+
+    .btn-secondary:hover {
+        background: #4b5563;
+        border-color: #4b5563;
+        color: white;
+        text-decoration: none;
+    }
+
+    /* Información adicional */
+    .additional-info {
+        background: #f8fafc;
+        border: 1px solid #e2e8f0;
+        border-radius: var(--border-radius);
+        padding: 1rem;
+        margin-top: 1rem;
+        font-size: 0.85rem;
+        color: var(--regency-gray-dark);
+    }
+
+    /* Responsive */
+    @media (max-width: 768px) {
+        .detail-container {
+            padding: 0.75rem 1rem;
+        }
+
+        .page-header {
+            padding: 1rem;
+            flex-direction: column;
+            align-items: stretch;
+            text-align: center;
+        }
+
+        .page-header h1 {
+            font-size: 1.2rem;
+            justify-content: center;
+        }
+
+        .header-actions {
+            justify-content: center;
+            margin-top: 0.5rem;
+        }
+
+        .detail-grid {
+            grid-template-columns: 1fr;
+            gap: 1rem;
+        }
+
+        .stats-grid {
+            grid-template-columns: 1fr;
+        }
+
+        .stat-item {
+            border-right: none;
+            border-bottom: 1px solid #e5e7eb;
+        }
+
+        .stat-item:last-child {
+            border-bottom: none;
+        }
+
+        .info-field {
+            flex-direction: column;
+            gap: 0.25rem;
+        }
+
+        .field-label {
+            min-width: auto;
+            font-weight: 700;
+        }
+    }
+
+    /* Animaciones */
+    .info-card {
+        animation: slideInUp 0.3s ease-out;
+    }
+
+    @keyframes slideInUp {
+        from {
+            opacity: 0;
+            transform: translateY(20px);
+        }
+        to {
+            opacity: 1;
+            transform: translateY(0);
+        }
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="detail-container">
+    <!-- Header de la página -->
+    <div class="page-header">
+        <div class="header-main">
+            <h1>
+                🏭 {{ centro.nombre }}
+            </h1>
+            <p class="page-subtitle">
+                Centro Operativo - {{ centro.ciudad|default:"Ubicación no especificada" }}
+            </p>
+        </div>
+        <div class="header-actions">
+            <a href="{% url 'empresas:centros_operativos_list' %}" class="btn-action btn-secondary">
+                📋 Ver Lista
+            </a>
+            <a href="{% url 'empresas:centro_operativo_update' centro.id_centro %}" class="btn-action btn-warning">
+                ✏️ Editar
+            </a>
+        </div>
+    </div>
+
+    <!-- Breadcrumb personalizado -->
+    <div class="custom-breadcrumb">
+        <a href="/">🏠 Dashboard</a>
+        <span class="breadcrumb-separator">→</span>
+        <a href="/empresas/">👔 Empresas</a>
+        <span class="breadcrumb-separator">→</span>
+        <a href="{% url 'empresas:centros_operativos_list' %}">🏭 Centros Operativos</a>
+        <span class="breadcrumb-separator">→</span>
+        <span style="color: var(--regency-gray-dark);">{{ centro.nombre|truncatechars:30 }}</span>
+    </div>
+
+    <!-- Banner de estado -->
+    {% if centro.activo %}
+        <div class="status-banner active">
+            <span>✅</span>
+            <strong>Centro Operativo ACTIVO</strong>
+            <span>- Funcionando normalmente</span>
+        </div>
+    {% else %}
+        <div class="status-banner inactive">
+            <span>❌</span>
+            <strong>Centro Operativo INACTIVO</strong>
+            <span>- Fuera de servicio</span>
+        </div>
+    {% endif %}
+
+    <!-- Grid principal -->
+    <div class="detail-grid">
+        <!-- Información principal -->
+        <div class="info-card">
+            <div class="card-header">
+                📋 Información del Centro Operativo
+            </div>
+            <div class="card-content">
+                <!-- Información básica -->
+                <div class="info-section">
+                    <h4 class="section-title">
+                        🏢 Datos Básicos
+                    </h4>
+                    
+                    <div class="info-field">
+                        <span class="field-label">🏭 Nombre:</span>
+                        <span class="field-value">{{ centro.nombre }}</span>
+                    </div>
+                    
+                    <div class="info-field">
+                        <span class="field-label">🏙️ Ciudad:</span>
+                        <span class="field-value">{{ centro.ciudad|default:"No especificada" }}</span>
+                    </div>
+                    
+                    <div class="info-field">
+                        <span class="field-label">📍 Dirección:</span>
+                        <span class="field-value">{{ centro.direccion|default:"No especificada" }}</span>
+                    </div>
+                    
+                    <div class="info-field">
+                        <span class="field-label">📝 Descripción:</span>
+                        <span class="field-value {% if not centro.descripcion %}empty{% endif %}">
+                            {{ centro.descripcion|default:"Sin descripción" }}
+                        </span>
+                    </div>
+                    
+                    <div class="info-field">
+                        <span class="field-label">⚙️ Estado:</span>
+                        <span class="field-value">
+                            {% if centro.activo %}
+                                <span class="badge badge-success">✅ Activo</span>
+                            {% else %}
+                                <span class="badge badge-danger">❌ Inactivo</span>
+                            {% endif %}
+                        </span>
+                    </div>
+                </div>
+
+                <!-- Información de gestión -->
+                <div class="info-section">
+                    <h4 class="section-title">
+                        👤 Gestión y Control
+                    </h4>
+                    
+                    <div class="info-field">
+                        <span class="field-label">👤 Responsable:</span>
+                        <span class="field-value">
+                            {% if centro.responsable %}
+                                <span class="badge badge-info">
+                                    {{ centro.responsable.get_full_name|default:centro.responsable.username }}
+                                </span>
+                            {% else %}
+                                <span class="field-value empty">Sin responsable asignado</span>
+                            {% endif %}
+                        </span>
+                    </div>
+                    
+                    <div class="info-field">
+                        <span class="field-label">🏠 PV Casetas:</span>
+                        <span class="field-value">
+                            {% if centro.promesa_valor %}
+                                <span class="badge badge-secondary">{{ centro.promesa_valor }} caseta{{ centro.promesa_valor|pluralize }}</span>
+                            {% else %}
+                                <span class="field-value empty">No especificado</span>
+                            {% endif %}
+                        </span>
+                    </div>
+                    
+                    <div class="info-field">
+                        <span class="field-label">📊 Proyectos:</span>
+                        <span class="field-value">
+                            <span class="badge badge-warning">{{ centro.proyectos.count }} proyecto{{ centro.proyectos.count|pluralize }}</span>
+                        </span>
+                    </div>
+                </div>
+
+                <!-- Lista de proyectos -->
+                {% if centro.proyectos.exists %}
+                <div class="info-section">
+                    <h4 class="section-title">
+                        📊 Proyectos Asociados
+                    </h4>
+                    
+                    <div class="proyectos-list">
+                        {% for proyecto in centro.proyectos.all %}
+                            <div class="proyecto-item">
+                                <span class="proyecto-icon">📊</span>
+                                <span class="proyecto-name">{{ proyecto.nombre }}</span>
+                                <span class="proyecto-status">
+                                    {% if proyecto.activo %}
+                                        <span class="badge badge-success">Activo</span>
+                                    {% else %}
+                                        <span class="badge badge-danger">Inactivo</span>
+                                    {% endif %}
+                                </span>
+                            </div>
+                        {% endfor %}
+                    </div>
+                </div>
+                {% else %}
+                <div class="info-section">
+                    <h4 class="section-title">
+                        📊 Proyectos Asociados
+                    </h4>
+                    <div style="text-align: center; padding: 2rem; color: var(--regency-gray-dark);">
+                        <div style="font-size: 2rem; margin-bottom: 0.5rem; opacity: 0.5;">📋</div>
+                        <p>No hay proyectos asociados a este centro operativo.</p>
+                        <small>Los proyectos se pueden asignar editando el centro operativo.</small>
+                    </div>
+                </div>
+                {% endif %}
+            </div>
+        </div>
+
+        <!-- Panel lateral -->
+        <div>
+            <!-- Estadísticas rápidas -->
+            <div class="stats-card">
+                <div class="card-header">
+                    📈 Estadísticas Rápidas
+                </div>
+                <div class="stats-grid">
+                    <div class="stat-item">
+                        <div class="stat-value">{{ centro.proyectos.count }}</div>
+                        <div class="stat-label">Proyectos</div>
+                    </div>
+                    <div class="stat-item">
+                        <div class="stat-value">{{ centro.promesa_valor|default:0 }}</div>
+                        <div class="stat-label">PV Casetas</div>
+                    </div>
+                    <div class="stat-item">
+                        <div class="stat-value">
+                            {% if centro.activo %}1{% else %}0{% endif %}
+                        </div>
+                        <div class="stat-label">Estado Activo</div>
+                    </div>
+                    <div class="stat-item">
+                        <div class="stat-value">
+                            {% with proyectos_activos=centro.proyectos.all %}
+                                {{ proyectos_activos|length }}
+                            {% endwith %}
+                        </div>
+                        <div class="stat-label">Proyectos Activos</div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Botones de acción -->
+            <div class="action-buttons">
+                <div class="card-header">
+                    ⚡ Acciones Disponibles
+                </div>
+                <div class="actions-content">
+                    <a href="{% url 'empresas:centro_operativo_update' centro.id_centro %}" class="btn-action btn-warning">
+                        ✏️ Editar Centro
+                    </a>
+                    
+                    <a href="{% url 'empresas:centro_operativo_delete' centro.id_centro %}" class="btn-action btn-danger">
+                        🗑️ Eliminar Centro
+                    </a>
+                    
+                    <a href="{% url 'empresas:centros_operativos_list' %}" class="btn-action btn-secondary">
+                        📋 Volver a Lista
+                    </a>
+                </div>
+            </div>
+
+            <!-- Información adicional -->
+            <div class="additional-info">
+                <strong>📝 Información del Sistema:</strong><br>
+                <small>
+                    • ID del Centro: {{ centro.id_centro }}<br>
+                    • Estado: {% if centro.activo %}Operativo{% else %}Fuera de servicio{% endif %}<br>
+                    • Total Proyectos: {{ centro.proyectos.count }}<br>
+                    {% if centro.responsable %}
+                    • Responsable: {{ centro.responsable.get_full_name|default:centro.responsable.username }}
+                    {% endif %}
+                </small>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

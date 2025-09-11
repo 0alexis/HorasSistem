@@ -22,7 +22,7 @@ from rest_framework.response import Response
 from rest_framework import status
 
 from .models import Empresa, Proyecto, CentroOperativo
-from .forms import EmpresaFiltroForm, EmpresaForm
+from .forms import EmpresaFiltroForm, EmpresaForm, ProyectoForm
 
 # =======================
 #   APIs DE SISTEMA
@@ -217,6 +217,70 @@ def empresa_update(request, pk):
     except Exception as e:
         messages.error(request, f'Error al editar empresa: {str(e)}')
         return redirect('empresas:empresas_list')
+    
+@login_required
+def empresa_delete(request, pk):
+    """Eliminar empresa"""
+    try:
+        empresa = get_object_or_404(Empresa, pk=pk)
+        if request.method == 'POST':
+            empresa_nombre = empresa.nombre
+            empresa.delete()
+            messages.success(request, f'Empresa "{empresa_nombre}" eliminada exitosamente.')
+            return redirect('empresas:empresas_list')
+        return render(request, 'empresas/empresa_confirm_delete.html', {'empresa': empresa})
+    except Exception as e:
+        messages.error(request, f'Error al eliminar empresa: {str(e)}')
+        return redirect('empresas:empresas_list')
+
+@login_required
+def proyecto_detail(request, pk):
+    """Detalle de proyecto"""
+    try:
+        proyecto = get_object_or_404(
+            Proyecto.objects.select_related('id_proyecto').prefetch_related('centros_operativos'),
+            pk=pk
+        )
+        
+        # ✅ OBTENER CENTROS OPERATIVOS CORRECTAMENTE
+        # La relación está en CentroOperativo -> proyectos (ManyToMany)
+        centros_operativos = CentroOperativo.objects.filter(proyectos=proyecto)
+        
+        context = {
+            'proyecto': proyecto,
+            # ✅ AGREGAR ESTAS VARIABLES QUE EL TEMPLATE ESPERA
+            'centros_operativos': centros_operativos,
+            'centros_count': centros_operativos.count(),
+            # Variables adicionales
+            'total_centros': centros_operativos.count(),
+            'centros_activos': centros_operativos.filter(activo=True).count(),
+        }
+        
+    except Exception as e:
+        messages.error(request, f'Error al cargar proyecto: {str(e)}')
+        return redirect('empresas:proyectos_list')
+    
+    return render(request, 'proyectos/proyecto_detail.html', context)
+
+@login_required
+def empresa_update(request, pk):
+    """Editar empresa"""
+    try:
+        empresa = get_object_or_404(Empresa, pk=pk)
+        if request.method == 'POST':
+            form = EmpresaForm(request.POST, instance=empresa)
+            if form.is_valid():
+                empresa = form.save()
+                messages.success(request, f'Empresa "{empresa.nombre}" actualizada exitosamente.')
+                return redirect('empresas:empresa_detail', pk=empresa.pk)
+            else:
+                messages.error(request, 'Por favor corrige los errores en el formulario.')
+        else:
+            form = EmpresaForm(instance=empresa)
+        return render(request, 'empresas/empresa_form.html', {'form': form, 'title': f'Editar Empresa: {empresa.nombre}', 'action': 'Actualizar', 'empresa': empresa})
+    except Exception as e:
+        messages.error(request, f'Error al editar empresa: {str(e)}')
+        return redirect('empresas:empresas_list')
 
 @login_required
 def empresa_delete(request, pk):
@@ -250,35 +314,226 @@ def empresas_activas_api(request):
 #     CRUD DE PROYECTOS (EN DESARROLLO)
 # =======================
 
+
 @login_required
 def proyectos_list(request):
     """Lista de proyectos"""
     try:
-        from .models import Proyecto
-        proyectos = Proyecto.objects.all().order_by('-id')
+        from .models import Proyecto, UnidadNegocio
+        from django.db import models
+        
+        # Obtener parámetros de filtro
+        search = request.GET.get('search', '')
+        activo = request.GET.get('activo', '')
+        unidad_negocio = request.GET.get('unidad_negocio', '')
+        
+        # Base queryset
+        proyectos = Proyecto.objects.all()
+        
+        # Aplicar filtros
+        if search:
+            proyectos = proyectos.filter(
+                models.Q(nombre__icontains=search) |
+                models.Q(descripcion__icontains=search) |
+                models.Q(ubicacion__icontains=search)
+            )
+        
+        if activo == 'true':
+            proyectos = proyectos.filter(activo=True)
+        elif activo == 'false':
+            proyectos = proyectos.filter(activo=False)
+            
+        if unidad_negocio:
+            proyectos = proyectos.filter(unidad_negocio_id=unidad_negocio)
+        
+        # Ordenar y paginar
+        proyectos = proyectos.order_by('-id_proyecto')
         paginator = Paginator(proyectos, 10)
         page_number = request.GET.get('page')
         proyectos_page = paginator.get_page(page_number)
-        context = {'proyectos': proyectos_page}
-    except:
-        context = {'proyectos': [], 'mensaje': 'En desarrollo'}
-    return render(request, 'empresas/proyectos_list.html', context)
+        
+        # Datos adicionales
+        unidades_disponibles = UnidadNegocio.objects.filter(activo=True).order_by('nombre')
+        total_proyectos = Proyecto.objects.count()
+        is_filtered = bool(search or activo or unidad_negocio)
+        
+        context = {
+            'proyectos': proyectos_page,
+            'search': search,
+            'activo': activo,
+            'unidad_negocio': unidad_negocio,
+            'unidades_disponibles': unidades_disponibles,
+            'total_proyectos': total_proyectos,
+            'is_filtered': is_filtered,
+        }
+        
+    except Exception as e:
+        messages.error(request, f'Error al cargar proyectos: {str(e)}')
+        context = {
+            'proyectos': [],
+            'total_proyectos': 0,
+            'unidades_disponibles': [],
+            'is_filtered': False,
+        }
+    
+    
+    return render(request, 'proyectos/proyecto_list.html', context)
 
 @login_required
 def proyecto_create(request):
-    return render(request, 'empresas/en_desarrollo.html', {'modulo': 'Proyectos'})
+    """Crear nuevo proyecto"""
+    try:
+        from .forms import ProyectoForm
+        
+        if request.method == 'POST':
+            form = ProyectoForm(request.POST)
+            if form.is_valid():
+                proyecto = form.save()
+                messages.success(request, f'✅ Proyecto "{proyecto.nombre}" creado exitosamente!')
+                return redirect('empresas:proyecto_detail', pk=proyecto.id_proyecto)
+            else:
+                messages.error(request, '❌ Error al crear el proyecto. Revise los campos marcados.')
+        else:
+            form = ProyectoForm()
+        
+        context = {
+            'form': form,
+            'title': 'Nuevo Proyecto',
+            'action': 'Crear'
+        }
+        
+    except Exception as e:
+        messages.error(request, f'Error al crear proyecto: {str(e)}')
+        return redirect('empresas:proyectos_list')
+    
+    return render(request, 'proyectos/proyecto_form.html', context)
+
 
 @login_required
 def proyecto_detail(request, pk):
-    return render(request, 'empresas/en_desarrollo.html', {'modulo': 'Proyectos'})
+    """Detalle de proyecto"""
+    try:
+        proyecto = get_object_or_404(
+            # ✅ CORREGIR LA RELACIÓN
+            Proyecto.objects.select_related('id_empresa_proyecto'),
+            pk=pk
+        )
+        
+        # ✅ OBTENER CENTROS OPERATIVOS CORRECTAMENTE
+        # La relación está en CentroOperativo -> proyectos (ManyToMany)
+        centros_operativos = CentroOperativo.objects.filter(proyectos=proyecto)
+        
+        context = {
+            'proyecto': proyecto,
+            # ✅ VARIABLES QUE EL TEMPLATE ESPERA
+            'centros_operativos': centros_operativos,
+            'centros_count': centros_operativos.count(),
+            'centros_activos': centros_operativos.filter(activo=True).count(),
+            'total_centros': centros_operativos.count(),
+        }
+        
+    except Exception as e:
+        messages.error(request, f'Error al cargar proyecto: {str(e)}')
+        return redirect('empresas:proyectos_list')
+    
+    return render(request, 'proyectos/proyecto_detail.html', context)
 
 @login_required
 def proyecto_update(request, pk):
-    return render(request, 'empresas/en_desarrollo.html', {'modulo': 'Proyectos'})
+    """Actualizar proyecto"""
+    try:
+        proyecto = get_object_or_404(Proyecto, pk=pk)
+        
+        if request.method == 'POST':
+            form = ProyectoForm(request.POST, instance=proyecto)  # ✅ PASAR INSTANCE
+            if form.is_valid():
+                proyecto_actualizado = form.save()
+                messages.success(request, f'✅ Proyecto "{proyecto_actualizado.nombre}" actualizado exitosamente!')
+                return redirect('empresas:proyecto_detail', pk=proyecto_actualizado.pk)
+        else:
+            form = ProyectoForm(instance=proyecto)  # ✅ PASAR INSTANCE AL GET
+        
+        context = {
+            'form': form,
+            'proyecto': proyecto,  # ✅ PASAR EL PROYECTO TAMBIÉN
+        }
+        
+    except Exception as e:
+        messages.error(request, f'Error al actualizar proyecto: {str(e)}')
+        return redirect('empresas:proyectos_list')
+    
+    return render(request, 'proyectos/proyecto_form.html', context)
 
+# ✅ REEMPLAZAR LA VISTA proyecto_delete CON ESTA:
 @login_required
 def proyecto_delete(request, pk):
-    return render(request, 'empresas/en_desarrollo.html', {'modulo': 'Proyectos'})
+    """Eliminar proyecto con confirmación"""
+    try:
+        proyecto = get_object_or_404(Proyecto, pk=pk)
+        
+        # Obtener centros operativos asociados para mostrar en la confirmación
+        centros_operativos = CentroOperativo.objects.filter(proyectos=proyecto)
+        
+        if request.method == 'POST':
+            # Nombre del proyecto para el mensaje
+            nombre_proyecto = proyecto.nombre
+            
+            # Eliminar el proyecto (las relaciones M2M se eliminan automáticamente)
+            proyecto.delete()
+            
+            messages.success(
+                request, 
+                f'✅ Proyecto "{nombre_proyecto}" eliminado exitosamente.'
+            )
+            return redirect('empresas:proyectos_list')
+        
+        context = {
+            'object': proyecto,  # ✅ USAR 'object' COMO ESPERA EL TEMPLATE
+            'centros_operativos': centros_operativos,
+            'centros_count': centros_operativos.count(),
+        }
+        
+    except Exception as e:
+        messages.error(request, f'Error al eliminar proyecto: {str(e)}')
+        return redirect('empresas:proyectos_list')
+    
+    # ✅ APUNTAR AL TEMPLATE CORRECTO
+    return render(request, 'proyectos/proyecto_delete.html', context)
+
+
+# =======================
+#  API PARA PROYECTOS
+# =======================
+
+@login_required
+def proyectos_activos_api(request):
+    """API para obtener proyectos activos"""
+    try:
+        proyectos = Proyecto.objects.filter(activo=True).values(
+            'id_proyecto', 
+            'nombre', 
+            'id_empresa_proyecto__nombre'
+        )
+        return JsonResponse({'proyectos': list(proyectos)})
+    except Exception as e:
+        return JsonResponse({'error': str(e)}, status=500)
+@login_required
+def proyecto_centros_api(request, pk):
+    """API para obtener centros operativos de un proyecto"""
+    try:
+        proyecto = get_object_or_404(Proyecto, pk=pk)
+        centros = proyecto.centros_operativos.filter(activo=True).values(
+            'id_centro',
+            'nombre',
+            'ciudad'
+        )
+        return JsonResponse({
+            'proyecto': proyecto.nombre,
+            'centros': list(centros),
+            'total': centros.count()
+        })
+    except Exception as e:
+        return JsonResponse({'error': str(e)}, status=500)
 
 
 # =======================

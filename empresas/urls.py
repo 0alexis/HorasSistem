@@ -8,11 +8,11 @@ urlpatterns = [
     path('', views.empresas_dashboard, name='dashboard'),
     
     # ========== CRUD DE EMPRESAS ==========
-    path('lista/', views.empresas_list, name='empresas_list'),
-    path('nueva/', views.empresa_create, name='empresa_create'),
-    path('<int:pk>/', views.empresa_detail, name='empresa_detail'),
-    path('<int:pk>/editar/', views.empresa_update, name='empresa_update'),
-    path('<int:pk>/eliminar/', views.empresa_delete, name='empresa_delete'),
+    path('empresas/', views.empresas_list, name='empresas_list'),  
+    path('empresas/nueva/', views.empresa_create, name='empresa_create'),
+    path('empresas/<int:pk>/', views.empresa_detail, name='empresa_detail'),
+    path('empresas/<int:pk>/editar/', views.empresa_update, name='empresa_update'),
+    path('empresas/<int:pk>/eliminar/', views.empresa_delete, name='empresa_delete'),
     
     # ========== CRUD DE PROYECTOS ==========
     path('proyectos/', views.proyectos_list, name='proyectos_list'),
