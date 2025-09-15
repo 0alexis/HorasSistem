@@ -34,7 +34,7 @@ def home_redirect(request):
 
 urlpatterns = [
     # ========== RUTAS PRINCIPALES ==========
-    path('', home_redirect, name='home'),  # Ruta raíz
+    path('', home_redirect, name='home'),
     
     # ========== ADMINISTRACIÓN ==========
     path('admin/logout/', views.custom_logout, name='admin_logout'),  
@@ -44,41 +44,18 @@ urlpatterns = [
     path('welcome/', views.welcome_view, name='welcome'),
     path('logout/', views.custom_logout, name='logout'),
     
-    # ========== APLICACIONES (CRUD COMPLETO) ==========
-    # Una sola ruta para empresas que incluye tanto el CRUD web como las APIs
-    path('empresas/', include('empresas.urls')),  # CRUD completo de empresas
-    
-    # Cuando estén listas, descomenta estas:
-    # path('turnos/', include('turnos.urls')),      # CRUD completo de turnos
-
-
-
-    # path('terceros/', include('terceros.urls')),  # CRUD completo de terceros
+    # ========== APLICACIONES ==========
+    path('empresas/', include('empresas.urls')),
     path('usuarios/', include('usuarios.urls', namespace='usuarios')),
-   
-
-
-
+    
     path('asignacionturno/<str:llave>/change/', asignacion_turno_edit_view, name='asignacion_turno_edit'),
 
-
-
-     # ========== DASHBOARD PROGRAMACIONES ==========
+    # ========== PROGRAMACIONES (WEB + BITÁCORA) ==========
     path('programacion_turnos/', include('programacion_turnos.urls')),
 
-
-
-
-
-
-
-
-
-    # ========== APIs ESPECÍFICAS (OTRAS APLICACIONES) ==========
-    # Solo para aplicaciones que no tienen CRUD web o son específicamente APIs
-  
+    # ========== APIs (SIN BITÁCORA) ==========
     path('api/modelos/', include('programacion_models.urls')),
-    path('api/', include('programacion_turnos.urls')),
+    path('api/', include('programacion_turnos.urls')),  # ✅ MANTENER - pero sin bitácora
     
     # ========== DOCUMENTACIÓN API ==========
     path('swagger<format>/', schema_view.without_ui(cache_timeout=0), name='schema-json'),

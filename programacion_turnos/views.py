@@ -9,7 +9,7 @@ import json
 # Create your views here.
 import holidays
 from rest_framework import viewsets
-from .models import ProgramacionHorario, AsignacionTurno, LetraTurno
+from .models import ProgramacionHorario, AsignacionTurno, LetraTurno, Bitacora
 from .serializers import ProgramacionHorarioSerializer, AsignacionTurnoSerializer
 from usuarios.models import Tercero, CodigoTurno
 from .utils import programar_turnos
@@ -27,7 +27,11 @@ from .forms import ProgramacionHorarioForm
 
 from .serializers import EditarLetraTurnoSerializer
 from django.shortcuts import render, get_object_or_404, redirect
-from .models import AsignacionTurno, LetraTurno
+
+from django.db.models import Count, Q
+from django.core.paginator import Paginator
+from .forms import BitacoraFiltrosForm
+from django.contrib.auth.decorators import login_required
 
 class ProgramacionHorarioViewSet(viewsets.ModelViewSet):
     queryset = ProgramacionHorario.objects.all()
@@ -862,3 +866,63 @@ def get_domingos_for_dates(fecha_inicio, fecha_fin):
         fecha_actual += timedelta(days=1)
     
     return domingos_lista
+
+
+@login_required
+def bitacora_dashboard(request):
+    """Dashboard único completo de bitácora"""
+    
+    # Obtener todos los registros ordenados por fecha
+    bitacoras = Bitacora.objects.all().select_related('usuario').order_by('-fecha_hora')
+    
+    # Aplicar filtros
+    form = BitacoraFiltrosForm(request.GET or None)
+    
+    if form.is_valid():
+        if form.cleaned_data.get('fecha_desde'):
+            bitacoras = bitacoras.filter(fecha_hora__date__gte=form.cleaned_data['fecha_desde'])
+        
+        if form.cleaned_data.get('fecha_hasta'):
+            bitacoras = bitacoras.filter(fecha_hora__date__lte=form.cleaned_data['fecha_hasta'])
+        
+        if form.cleaned_data.get('usuario'):
+            bitacoras = bitacoras.filter(usuario=form.cleaned_data['usuario'])
+        
+        if form.cleaned_data.get('tipo_accion'):
+            bitacoras = bitacoras.filter(tipo_accion=form.cleaned_data['tipo_accion'])
+        
+        if form.cleaned_data.get('modulo'):
+            bitacoras = bitacoras.filter(modulo=form.cleaned_data['modulo'])
+        
+        if form.cleaned_data.get('modelo_afectado'):
+            bitacoras = bitacoras.filter(modelo_afectado__icontains=form.cleaned_data['modelo_afectado'])
+        
+        if form.cleaned_data.get('busqueda'):
+            busqueda = form.cleaned_data['busqueda']
+            bitacoras = bitacoras.filter(
+                Q(descripcion__icontains=busqueda) |
+                Q(ip_address__icontains=busqueda) |
+                Q(modelo_afectado__icontains=busqueda)
+            )
+    
+    # Estadísticas
+    stats = {
+        'total_registros': Bitacora.objects.count(),
+        'registros_hoy': Bitacora.objects.filter(fecha_hora__date=timezone.now().date()).count(),
+        'usuarios_activos': Bitacora.objects.values('usuario').distinct().count(),
+        'acciones_por_tipo': list(bitacoras.values('tipo_accion').annotate(count=Count('id')).order_by('-count')),
+    }
+    
+    # Paginación
+    paginator = Paginator(bitacoras, 25)
+    page_number = request.GET.get('page')
+    page_obj = paginator.get_page(page_number)
+    
+    context = {
+        'page_obj': page_obj,
+        'form': form,
+        'stats': stats,
+        'bitacoras_count': bitacoras.count(),
+    }
+    
+    return render(request, 'bitacora/bitacora_dashboard.html', context)

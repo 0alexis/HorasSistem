@@ -1,0 +1,1331 @@
+{% extends "admin/base_site.html" %}
+{% load i18n static %}
+
+{% block extrastyle %}
+<style>
+    /* Variables empresariales REGENCY */
+    :root {
+        --regency-red: #871F1B;
+        --regency-red-dark: #6b191b;
+        --regency-red-light: #a13832;
+        --regency-gray: #f8f9fa;
+        --regency-gray-dark: #64748b;
+        --regency-text: #333;
+        --border-radius: 6px;
+        --shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.05);
+        --shadow-md: 0 2px 4px rgba(0, 0, 0, 0.1);
+        --shadow-lg: 0 4px 12px rgba(0, 0, 0, 0.15);
+    }
+
+    /* ========== OCULTAR BREADCRUMB DJANGO ADMIN ========== */
+    .breadcrumbs,
+    div.breadcrumbs {
+        display: none !important;
+    }
+
+    /* Tipografía empresarial consistente */
+    body {
+        font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+        font-size: 14px;
+        line-height: 1.5;
+        color: var(--regency-text);
+        background: var(--regency-gray);
+    }
+
+    /* Container principal - MÁS COMPACTO */
+    .bitacora-container {
+        padding: 1rem 1.5rem;
+        max-width: 1600px;
+        margin: 0 auto;
+        position: relative;
+    }
+
+    /* Header - MÁS COMPACTO */
+    .bitacora-header {
+        background: linear-gradient(135deg, var(--regency-red) 0%, var(--regency-red-dark) 100%);
+        color: white;
+        padding: 1.5rem 2rem;
+        margin-bottom: 1.5rem;
+        border-radius: var(--border-radius);
+        box-shadow: var(--shadow-md);
+        position: relative;
+        overflow: hidden;
+    }
+
+    .bitacora-header::before {
+        content: '';
+        position: absolute;
+        top: 0;
+        right: 0;
+        width: 150px;
+        height: 150px;
+        background: rgba(255, 255, 255, 0.05);
+        border-radius: 50%;
+        transform: translate(25%, -25%);
+    }
+
+    .header-content {
+        position: relative;
+        z-index: 2;
+        display: flex;
+        justify-content: space-between;
+        align-items: flex-start;
+        flex-wrap: wrap;
+        gap: 1.5rem;
+    }
+
+    .header-main {
+        flex: 1;
+        min-width: 0;
+    }
+
+    .bitacora-header h1 {
+        font-size: 1.8rem;
+        font-weight: 700;
+        margin: 0 0 0.5rem 0;
+        display: flex;
+        align-items: center;
+        gap: 0.75rem;
+        line-height: 1.2;
+    }
+
+    .page-subtitle {
+        font-size: 1rem;
+        opacity: 0.9;
+        margin: 0.25rem 0 1rem 0;
+        font-weight: 400;
+    }
+
+    /* Estadísticas - MÁS COMPACTAS */
+    .header-stats {
+        display: grid;
+        grid-template-columns: repeat(4, 1fr);
+        gap: 1rem;
+        margin-top: 0.75rem;
+    }
+
+    .stat-card {
+        background: rgba(255, 255, 255, 0.15);
+        border-radius: var(--border-radius);
+        padding: 0.75rem;
+        text-align: center;
+        backdrop-filter: blur(10px);
+        border: 1px solid rgba(255, 255, 255, 0.1);
+    }
+
+    .stat-number {
+        font-size: 1.5rem;
+        font-weight: 700;
+        line-height: 1;
+        margin-bottom: 0.25rem;
+    }
+
+    .stat-label {
+        font-size: 0.7rem;
+        opacity: 0.9;
+        text-transform: uppercase;
+        letter-spacing: 0.3px;
+    }
+
+    .header-actions {
+        display: flex;
+        gap: 0.75rem;
+        flex-shrink: 0;
+        align-items: flex-start;
+    }
+
+    /* Layout principal - OPTIMIZADO */
+    .main-layout {
+        display: grid;
+        grid-template-columns: 280px 1fr;
+        gap: 1.5rem;
+        margin-bottom: 1.5rem;
+    }
+
+    /* Sidebar - MÁS COMPACTO */
+    .filters-sidebar {
+        background: white;
+        border-radius: var(--border-radius);
+        box-shadow: var(--shadow-sm);
+        border: 1px solid #e5e7eb;
+        height: fit-content;
+        position: sticky;
+        top: 1rem;
+    }
+
+    .sidebar-header {
+        background: var(--regency-red);
+        color: white;
+        padding: 0.875rem 1.25rem;
+        font-weight: 600;
+        font-size: 0.95rem;
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+        border-radius: var(--border-radius) var(--border-radius) 0 0;
+    }
+
+    .sidebar-content {
+        padding: 1.25rem;
+    }
+
+    .filter-group {
+        margin-bottom: 1.25rem;
+    }
+
+    .filter-group:last-child {
+        margin-bottom: 0;
+    }
+
+    .filter-label {
+        font-weight: 600;
+        color: var(--regency-gray-dark);
+        font-size: 0.8rem;
+        text-transform: uppercase;
+        letter-spacing: 0.3px;
+        margin-bottom: 0.4rem;
+        display: flex;
+        align-items: center;
+        gap: 0.4rem;
+    }
+
+    .form-control,
+    .form-select {
+        width: 100%;
+        padding: 0.6rem;
+        border: 1px solid #d1d5db;
+        border-radius: var(--border-radius);
+        font-size: 0.85rem;
+        transition: all 0.2s ease;
+        background: white;
+    }
+
+    .form-control:focus,
+    .form-select:focus {
+        outline: none;
+        border-color: var(--regency-red);
+        box-shadow: 0 0 0 2px rgba(135, 31, 27, 0.1);
+    }
+
+    /* Botones - MÁS COMPACTOS */
+    .filter-actions {
+        display: flex;
+        gap: 0.5rem;
+        margin-top: 1rem;
+    }
+
+    .btn-filter {
+        background: var(--regency-red);
+        color: white;
+        border: none;
+        padding: 0.6rem 1.25rem;
+        border-radius: var(--border-radius);
+        font-weight: 600;
+        font-size: 0.8rem;
+        cursor: pointer;
+        transition: all 0.2s ease;
+        flex: 1;
+    }
+
+    .btn-filter:hover {
+        background: var(--regency-red-dark);
+        transform: translateY(-1px);
+    }
+
+    .btn-clear {
+        background: #6b7280;
+        color: white;
+        border: none;
+        padding: 0.6rem 0.875rem;
+        border-radius: var(--border-radius);
+        font-weight: 500;
+        font-size: 0.8rem;
+        cursor: pointer;
+        transition: all 0.2s ease;
+    }
+
+    .btn-clear:hover {
+        background: #4b5563;
+    }
+
+    /* Contenido principal */
+    .main-content {
+        display: flex;
+        flex-direction: column;
+        gap: 1.5rem;
+    }
+
+    /* Reportes rápidos - MÁS COMPACTOS */
+    .quick-reports {
+        background: white;
+        border-radius: var(--border-radius);
+        box-shadow: var(--shadow-sm);
+        border: 1px solid #e5e7eb;
+        overflow: hidden;
+        width: 100%;
+    }
+
+    .reports-header {
+        background: #1f2937;
+        color: white;
+        padding: 0.875rem 1.25rem;
+        font-weight: 600;
+        font-size: 0.95rem;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+    }
+
+    .reports-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+        gap: 0.875rem;
+        padding: 1.25rem;
+    }
+
+    .report-card {
+        background: #f8fafc;
+        border: 1px solid #e2e8f0;
+        border-radius: var(--border-radius);
+        padding: 0.875rem;
+        text-align: center;
+        transition: all 0.2s ease;
+        cursor: pointer;
+    }
+
+    .report-card:hover {
+        border-color: var(--regency-red-light);
+        box-shadow: var(--shadow-sm);
+        transform: translateY(-2px);
+    }
+
+    .report-icon {
+        font-size: 1.5rem;
+        margin-bottom: 0.4rem;
+    }
+
+    .report-title {
+        font-weight: 600;
+        color: var(--regency-text);
+        font-size: 0.8rem;
+        margin-bottom: 0.25rem;
+    }
+
+    .report-value {
+        font-size: 1.1rem;
+        font-weight: 700;
+        color: var(--regency-red);
+    }
+
+    /* Tabla - OPTIMIZADA */
+    .bitacora-table-section {
+        background: white;
+        border-radius: var(--border-radius);
+        box-shadow: var(--shadow-sm);
+        border: 1px solid #e5e7eb;
+        overflow: hidden;
+        width: 100%;
+    }
+
+    .table-header {
+        background: var(--regency-red);
+        color: white;
+        padding: 1rem 1.25rem;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        flex-wrap: wrap;
+        gap: 0.875rem;
+    }
+
+    .table-title {
+        font-weight: 600;
+        font-size: 1rem;
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+    }
+
+    .table-counter {
+        background: rgba(255, 255, 255, 0.2);
+        color: white;
+        padding: 0.375rem 0.75rem;
+        border-radius: 15px;
+        font-size: 0.75rem;
+        font-weight: 600;
+    }
+
+    .table-controls {
+        display: flex;
+        gap: 0.875rem; /* Aumenta el espacio entre elementos */
+        align-items: center; /* Alinea verticalmente los elementos */
+    }
+
+    .search-box {
+        background: rgba(255, 255, 255, 0.1);
+        border: 1px solid rgba(255, 255, 255, 0.2);
+        color: white;
+        padding: 0.5rem 0.875rem;
+        border-radius: var(--border-radius);
+        font-size: 0.85rem;
+        width: 220px;
+    }
+
+    .search-box::placeholder {
+        color: rgba(255, 255, 255, 0.7);
+    }
+
+    .search-box:focus {
+        outline: none;
+        background: rgba(255, 255, 255, 0.15);
+        border-color: rgba(255, 255, 255, 0.4);
+    }
+
+    /* Tabla responsive - MÁS COMPACTA */
+    .table-container {
+        overflow-x: auto;
+        max-height: 500px;
+        overflow-y: auto;
+    }
+
+    .bitacora-table {
+        width: 100%;
+        border-collapse: collapse;
+        font-size: 0.8rem;
+    }
+
+    .bitacora-table th {
+        background: #f8fafc;
+        color: var(--regency-text);
+        font-weight: 600;
+        padding: 0.75rem 0.5rem;
+        text-align: left;
+        border-bottom: 1px solid #e5e7eb;
+        position: sticky;
+        top: 0;
+        z-index: 10;
+        font-size: 0.75rem;
+        text-transform: uppercase;
+        letter-spacing: 0.3px;
+    }
+
+    .bitacora-table td {
+        padding: 0.6rem 0.5rem;
+        border-bottom: 1px solid #f1f5f9;
+        vertical-align: top;
+    }
+
+    .bitacora-table tr:hover {
+        background: #fefce8;
+    }
+
+    .bitacora-table tr:nth-child(even) {
+        background: #fafbfc;
+    }
+
+    .bitacora-table tr:nth-child(even):hover {
+        background: #fefce8;
+    }
+
+    /* Badges - MÁS PEQUEÑOS */
+    .action-badge {
+        display: inline-flex;
+        align-items: center;
+        gap: 0.2rem;
+        padding: 0.2rem 0.5rem;
+        border-radius: 12px;
+        font-size: 0.65rem;
+        font-weight: 600;
+        text-transform: uppercase;
+        letter-spacing: 0.3px;
+    }
+
+    .action-badge.crear {
+        background: #dcfce7;
+        color: #166534;
+        border: 1px solid #bbf7d0;
+    }
+
+    .action-badge.editar {
+        background: #fef3c7;
+        color: #92400e;
+        border: 1px solid #fde68a;
+    }
+
+    .action-badge.eliminar {
+        background: #fef2f2;
+        color: #dc2626;
+        border: 1px solid #fecaca;
+    }
+
+    .action-badge.consultar {
+        background: #e0f2fe;
+        color: #0369a1;
+        border: 1px solid #bae6fd;
+    }
+
+    /* Módulo badge */
+    .module-badge {
+        background: #f3f4f6;
+        color: var(--regency-text);
+        padding: 0.2rem 0.4rem;
+        border-radius: var(--border-radius);
+        font-size: 0.65rem;
+        font-weight: 500;
+        border: 1px solid #d1d5db;
+    }
+
+    /* Usuario info - MÁS COMPACTA */
+    .user-info {
+        display: flex;
+        align-items: center;
+        gap: 0.4rem;
+    }
+
+    .user-avatar {
+        width: 24px;
+        height: 24px;
+        background: var(--regency-red);
+        color: white;
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 0.65rem;
+        font-weight: 600;
+    }
+
+    .user-name {
+        font-weight: 500;
+        color: var(--regency-text);
+        font-size: 0.8rem;
+    }
+
+    /* Fecha y hora - MÁS COMPACTA */
+    .datetime-info {
+        display: flex;
+        flex-direction: column;
+        gap: 0.1rem;
+    }
+
+    .date-part {
+        font-weight: 500;
+        color: var(--regency-text);
+        font-size: 0.75rem;
+    }
+
+    .time-part {
+        font-size: 0.65rem;
+        color: var(--regency-gray-dark);
+    }
+
+    /* Descripción - MÁS COMPACTA */
+    .description-cell {
+        max-width: 180px;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+        position: relative;
+        font-size: 0.75rem;
+    }
+
+    .description-full {
+        display: none;
+        position: absolute;
+        background: #1f2937;
+        color: white;
+        padding: 0.75rem;
+        border-radius: var(--border-radius);
+        box-shadow: var(--shadow-lg);
+        z-index: 1000;
+        max-width: 300px;
+        top: 100%;
+        left: 0;
+        font-size: 0.85rem;
+        line-height: 1.4;
+    }
+
+    .description-cell:hover .description-full {
+        display: block;
+    }
+
+    /* Botones de acción - MÁS PEQUEÑOS */
+    .action-buttons {
+        display: flex;
+        gap: 0.25rem;
+    }
+
+    .btn-icon {
+        background: transparent;
+        border: 1px solid #d1d5db;
+        color: var(--regency-gray-dark);
+        padding: 0.25rem;
+        border-radius: var(--border-radius);
+        cursor: pointer;
+        transition: all 0.2s ease;
+        font-size: 0.75rem;
+        width: 28px;
+        height: 28px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+    }
+
+    .btn-icon:hover {
+        border-color: var(--regency-red);
+        color: var(--regency-red);
+        background: rgba(135, 31, 27, 0.05);
+    }
+
+    /* Paginación - MÁS COMPACTA */
+    .pagination-section {
+        background: white;
+        border-radius: var(--border-radius);
+        box-shadow: var(--shadow-sm);
+        border: 1px solid #e5e7eb;
+        padding: 1rem;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-top: 1rem;
+    }
+
+    .pagination-info {
+        color: var(--regency-gray-dark);
+        font-size: 0.8rem;
+    }
+
+    .pagination-controls {
+        display: flex;
+        gap: 0.25rem;
+        margin-left: auto;
+    }
+
+    .page-btn {
+        background: white;
+        border: 1px solid #e5e7eb;
+        color: var(--regency-text);
+        padding: 0.4rem 0.6rem;
+        border-radius: var(--border-radius);
+        font-weight: 500;
+        cursor: pointer;
+        transition: all 0.2s ease;
+        text-decoration: none;
+        min-width: 32px;
+        text-align: center;
+        font-size: 0.8rem;
+    }
+
+    .page-btn:hover {
+        border-color: var(--regency-red);
+        color: var(--regency-red);
+        text-decoration: none;
+    }
+
+    .page-btn.active {
+        background: var(--regency-red);
+        border-color: var(--regency-red);
+        color: white;
+    }
+
+    .page-btn:disabled {
+        opacity: 0.5;
+        cursor: not-allowed;
+    }
+
+    /* Detalle expandible */
+    .expandable-row {
+        display: none;
+        background: #fafbfc;
+    }
+
+    .expandable-row.show {
+        display: table-row;
+    }
+
+    .expandable-content {
+        padding: 1.5rem;
+        border-left: 4px solid var(--regency-red);
+    }
+
+    .detail-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+        gap: 1rem;
+        margin-bottom: 1rem;
+    }
+
+    .detail-item {
+        background: white;
+        padding: 1rem;
+        border-radius: var(--border-radius);
+        border: 1px solid #e5e7eb;
+    }
+
+    .detail-label {
+        font-weight: 600;
+        color: var(--regency-gray-dark);
+        font-size: 0.8rem;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+        margin-bottom: 0.25rem;
+    }
+
+    .detail-value {
+        color: var(--regency-text);
+        font-size: 0.9rem;
+    }
+
+    .json-viewer {
+        background: #1f2937;
+        color: #e5e7eb;
+        padding: 1rem;
+        border-radius: var(--border-radius);
+        font-family: 'Courier New', monospace;
+        font-size: 0.8rem;
+        overflow-x: auto;
+        max-height: 200px;
+        overflow-y: auto;
+    }
+
+    /* Botones de acción */
+    .action-buttons {
+        display: flex;
+        gap: 0.5rem;
+    }
+
+    .btn-icon {
+        background: transparent;
+        border: 1px solid #d1d5db;
+        color: var(--regency-gray-dark);
+        padding: 0.5rem;
+        border-radius: var(--border-radius);
+        cursor: pointer;
+        transition: all 0.2s ease;
+        font-size: 0.9rem;
+    }
+
+    .btn-icon:hover {
+        border-color: var(--regency-red);
+        color: var(--regency-red);
+        background: rgba(135, 31, 27, 0.05);
+    }
+
+    /* Loading state */
+    .loading {
+        text-align: center;
+        padding: 3rem;
+        color: var(--regency-gray-dark);
+    }
+
+    .loading-spinner {
+        display: inline-block;
+        width: 2rem;
+        height: 2rem;
+        border: 3px solid #f3f4f6;
+        border-top: 3px solid var(--regency-red);
+        border-radius: 50%;
+        animation: spin 1s linear infinite;
+        margin-bottom: 1rem;
+    }
+
+    @keyframes spin {
+        0% { transform: rotate(0deg); }
+        100% { transform: rotate(360deg); }
+    }
+
+    /* Empty state */
+    .empty-state {
+        text-align: center;
+        padding: 3rem 2rem;
+        color: var(--regency-gray-dark);
+    }
+
+    .empty-icon {
+        font-size: 4rem;
+        margin-bottom: 1rem;
+        opacity: 0.5;
+    }
+
+    /* Responsive design */
+    @media (max-width: 1200px) {
+        .main-layout {
+            grid-template-columns: 1fr;
+            gap: 1.5rem;
+        }
+        
+        .filters-sidebar {
+            position: static;
+        }
+        
+        .header-stats {
+            grid-template-columns: repeat(2, 1fr);
+        }
+    }
+
+    @media (max-width: 768px) {
+        .bitacora-container {
+            padding: 1rem;
+        }
+        
+        .bitacora-header {
+            padding: 1.5rem;
+        }
+        
+        .bitacora-header h1 {
+            font-size: 1.8rem;
+        }
+        
+        .header-content {
+            flex-direction: column;
+            align-items: stretch;
+        }
+        
+        .table-header {
+            flex-direction: column;
+            align-items: stretch;
+            gap: 1rem;
+        }
+        
+        .search-box {
+            width: 100%;
+        }
+        
+        .bitacora-table {
+            font-size: 0.8rem;
+        }
+        
+        .bitacora-table th,
+        .bitacora-table td {
+            padding: 0.5rem 0.4rem;
+        }
+        
+        .pagination-section {
+            flex-direction: column;
+            gap: 1rem;
+        }
+        
+        .pagination-controls {
+            margin-left: 0;
+        }
+    }
+
+    /* Animaciones */
+    .bitacora-container {
+        animation: fadeIn 0.3s ease-out;
+    }
+
+    @keyframes fadeIn {
+        from {
+            opacity: 0;
+            transform: translateY(20px);
+        }
+        to {
+            opacity: 1;
+            transform: translateY(0);
+        }
+    }
+
+    .fade-in {
+        animation: fadeIn 0.3s ease-out;
+    }
+
+    /* Print styles */
+    @media print {
+        .filters-sidebar,
+        .header-actions,
+        .table-controls,
+        .pagination-section {
+            display: none !important;
+        }
+        
+        .main-layout {
+            grid-template-columns: 1fr;
+        }
+        
+        .bitacora-header {
+            background: white !important;
+            color: black !important;
+            box-shadow: none !important;
+        }
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="bitacora-container">
+    <!-- Header con estadísticas -->
+    <div class="bitacora-header">
+        <div class="header-content">
+            <div class="header-main">
+                <h1>
+                    📊 Bitácora del Sistema
+                </h1>
+                <p class="page-subtitle">
+                    Registro completo de actividades y auditoría empresarial
+                </p>
+                
+                <div class="header-stats">
+                    <div class="stat-card">
+                        <div class="stat-number">{{ stats.total_registros|default:0 }}</div>
+                        <div class="stat-label">Registros Totales</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-number">{{ stats.registros_hoy|default:0 }}</div>
+                        <div class="stat-label">Hoy</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-number">{{ stats.usuarios_activos|default:0 }}</div>
+                        <div class="stat-label">Usuarios Activos</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-number">{{ bitacoras_count|default:0 }}</div>
+                        <div class="stat-label">Filtrados</div>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="header-actions">
+                <button onclick="exportarExcel()" class="btn-filter">
+                     Exportar Excel
+                </button>
+                <button onclick="window.print()" class="btn-clear">
+                     Imprimir
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Layout principal: Filtros + Contenido -->
+    <div class="main-layout">
+        <!-- Sidebar de filtros -->
+        <div class="filters-sidebar">
+            <div class="sidebar-header">
+                 Filtros de Búsqueda
+            </div>
+            <div class="sidebar-content">
+                <form method="get" id="filtros-form">
+                    <!-- Rango de fechas -->
+                    <div class="filter-group">
+                        <div class="filter-label">
+                             Rango de Fechas
+                        </div>
+                        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 0.5rem;">
+                            {{ form.fecha_desde }}
+                            {{ form.fecha_hasta }}
+                        </div>
+                    </div>
+
+                    <!-- Usuario -->
+                    <div class="filter-group">
+                        <div class="filter-label">
+                            👤 Usuario
+                        </div>
+                        {{ form.usuario }}
+                    </div>
+
+                    <!-- Tipo de acción -->
+                    <div class="filter-group">
+                        <div class="filter-label">
+                             Tipo de Acción
+                        </div>
+                        {{ form.tipo_accion }}
+                    </div>
+
+                    <!-- Módulo -->
+                    <div class="filter-group">
+                        <div class="filter-label">
+                            📂 Módulo
+                        </div>
+                        {{ form.modulo }}
+                    </div>
+
+                    <!-- Modelo afectado -->
+                    <div class="filter-group">
+                        <div class="filter-label">
+                            🏗️ Modelo Afectado
+                        </div>
+                        {{ form.modelo_afectado }}
+                    </div>
+
+                    <!-- Búsqueda general -->
+                    <div class="filter-group">
+                        <div class="filter-label">
+                            🔍 Búsqueda General
+                        </div>
+                        {{ form.busqueda }}
+                    </div>
+
+                    <!-- Botones de acción -->
+                    <div class="filter-actions">
+                        <button type="submit" class="btn-filter">
+                            🔍 Filtrar
+                        </button>
+                        <button type="button" onclick="limpiarFiltros()" class="btn-clear">
+                            🗑️ Limpiar
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+
+        <!-- Contenido principal -->
+        <div class="main-content">
+            <!-- Reportes rápidos -->
+            <div class="quick-reports">
+                <div class="reports-header">
+                    <span>📈 Reportes Rápidos</span>
+                    <span>Estadísticas del período</span>
+                </div>
+                <div class="reports-grid">
+                    {% for accion in stats.acciones_por_tipo %}
+                        <div class="report-card" onclick="filtrarPorAccion('{{ accion.tipo_accion }}')">
+                            <div class="report-icon">
+                                {% if accion.tipo_accion == 'crear' %}🆕
+                                {% elif accion.tipo_accion == 'editar' %}✏️
+                                {% elif accion.tipo_accion == 'eliminar' %}🗑️
+                                {% elif accion.tipo_accion == 'consultar' %}👁️
+                                {% else %}📋{% endif %}
+                            </div>
+                            <div class="report-title">{{ accion.tipo_accion|title }}</div>
+                            <div class="report-value">{{ accion.count }}</div>
+                        </div>
+                    {% endfor %}
+                </div>
+            </div>
+
+            <!-- Tabla de registros -->
+            <div class="bitacora-table-section">
+                <div class="table-header">
+                    <div class="table-title">
+                        📋 Registros de Bitácora
+                        <div class="table-counter">
+                            {{ bitacoras_count }} registro{{ bitacoras_count|pluralize }}
+                        </div>
+                    </div>
+                    <div class="table-controls">
+                        <input type="text" 
+                               class="search-box" 
+                               placeholder="🔍 Buscar en tiempo real..."
+                               id="search-realtime"
+                               onkeyup="buscarEnTiempoReal(this.value)">
+                        <button onclick="toggleAllDetails()" class="btn-clear">
+                             Ver Detalles
+                        </button>
+                    </div>
+                </div>
+
+                <div class="table-container">
+                    {% if page_obj %}
+                        <table class="bitacora-table" id="bitacora-table">
+                            <thead>
+                                <tr>
+                                    <th style="width: 40px;"></th>
+                                    <th style="width: 120px;">Fecha/Hora</th>
+                                    <th style="width: 120px;">Usuario</th>
+                                    <th style="width: 100px;">Acción</th>
+                                    <th style="width: 100px;">Módulo</th>
+                                    <th style="width: 120px;">Modelo</th>
+                                    <th style="width: 80px;">ID Objeto</th>
+                                    <th>Descripción</th>
+                                    <th style="width: 120px;">IP Address</th>
+                                    <th style="width: 80px;">Acciones</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for bitacora in page_obj %}
+                                <tr class="bitacora-row" data-id="{{ bitacora.id }}">
+                                    <td>
+                                        <button class="btn-icon" onclick="toggleDetail({{ bitacora.id }})" title="Ver detalles">
+                                            <span class="toggle-icon">▶</span>
+                                        </button>
+                                    </td>
+                                    <td>
+                                        <div class="datetime-info">
+                                            <div class="date-part">{{ bitacora.fecha_hora|date:"d M Y" }}</div>
+                                            <div class="time-part">{{ bitacora.fecha_hora|time:"H:i:s" }}</div>
+                                        </div>
+                                    </td>
+                                    <td>
+                                        <div class="user-info">
+                                            <div class="user-avatar">
+                                                {{ bitacora.usuario.username|first|upper|default:"?" }}
+                                            </div>
+                                            <div class="user-name">
+                                                {{ bitacora.usuario.username|default:"Sistema" }}
+                                            </div>
+                                        </div>
+                                    </td>
+                                    <td>
+                                        <span class="action-badge {{ bitacora.tipo_accion|lower }}">
+                                            {% if bitacora.tipo_accion == 'crear' %}🆕
+                                            {% elif bitacora.tipo_accion == 'editar' %}✏️
+                                            {% elif bitacora.tipo_accion == 'eliminar' %}🗑️
+                                            {% elif bitacora.tipo_accion == 'consultar' %}👁️
+                                            {% endif %}
+                                            {{ bitacora.get_tipo_accion_display }}
+                                        </span>
+                                    </td>
+                                    <td>
+                                        <span class="module-badge">
+                                            {{ bitacora.get_modulo_display }}
+                                        </span>
+                                    </td>
+                                    <td>
+                                        <strong>{{ bitacora.modelo_afectado }}</strong>
+                                    </td>
+                                    <td>
+                                        <code>{{ bitacora.objeto_id|default:"-" }}</code>
+                                    </td>
+                                    <td>
+                                        <div class="description-cell">
+                                            {{ bitacora.descripcion|truncatechars:50 }}
+                                            {% if bitacora.descripcion|length > 50 %}
+                                                <div class="description-full">
+                                                    {{ bitacora.descripcion }}
+                                                </div>
+                                            {% endif %}
+                                        </div>
+                                    </td>
+                                    <td>
+                                        <code>{{ bitacora.ip_address|default:"-" }}</code>
+                                    </td>
+                                    <td>
+                                        <div class="action-buttons">
+                                            <button class="btn-icon" onclick="verJSON({{ bitacora.id }})" title="Ver JSON">
+                                                📋
+                                            </button>
+                                            <button class="btn-icon" onclick="exportarRegistro({{ bitacora.id }})" title="Exportar">
+                                                💾
+                                            </button>
+                                        </div>
+                                    </td>
+                                </tr>
+                                
+                                <!-- Fila expandible con detalles -->
+                                <tr class="expandable-row" id="detail-{{ bitacora.id }}">
+                                    <td colspan="10">
+                                        <div class="expandable-content">
+                                            <div class="detail-grid">
+                                                <div class="detail-item">
+                                                    <div class="detail-label">📝 Descripción Completa</div>
+                                                    <div class="detail-value">{{ bitacora.descripcion|default:"Sin descripción" }}</div>
+                                                </div>
+                                                <div class="detail-item">
+                                                    <div class="detail-label">🌐 Dirección IP</div>
+                                                    <div class="detail-value">{{ bitacora.ip_address|default:"No registrada" }}</div>
+                                                </div>
+                                                <div class="detail-item">
+                                                    <div class="detail-label">🕒 Timestamp Exacto</div>
+                                                    <div class="detail-value">{{ bitacora.fecha_hora|date:"d/m/Y H:i:s.u" }}</div>
+                                                </div>
+                                                <div class="detail-item">
+                                                    <div class="detail-label">🆔 ID del Registro</div>
+                                                    <div class="detail-value">{{ bitacora.id }}</div>
+                                                </div>
+                                            </div>
+                                            
+                                            {% if bitacora.valores_anteriores %}
+                                            <div class="detail-item">
+                                                <div class="detail-label">📋 Valores Anteriores</div>
+                                                <div class="json-viewer">{{ bitacora.valores_anteriores|default:"null" }}</div>
+                                            </div>
+                                            {% endif %}
+                                            
+                                            {% if bitacora.valores_nuevos %}
+                                            <div class="detail-item">
+                                                <div class="detail-label">🆕 Valores Nuevos</div>
+                                                <div class="json-viewer">{{ bitacora.valores_nuevos|default:"null" }}</div>
+                                            </div>
+                                            {% endif %}
+                                            
+                                            {% if bitacora.campos_modificados %}
+                                            <div class="detail-item">
+                                                <div class="detail-label">🔄 Campos Modificados</div>
+                                                <div class="json-viewer">{{ bitacora.campos_modificados|default:"null" }}</div>
+                                            </div>
+                                            {% endif %}
+                                        </div>
+                                    </td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    {% else %}
+                        <div class="empty-state">
+                            <div class="empty-icon">📊</div>
+                            <h3>No hay registros de bitácora</h3>
+                            <p>No se encontraron registros que coincidan con los filtros aplicados.</p>
+                        </div>
+                    {% endif %}
+                </div>
+            </div>
+
+            <!-- Paginación -->
+            {% if page_obj.has_other_pages %}
+            <div class="pagination-section">
+                <div class="pagination-info">
+                    Mostrando {{ page_obj.start_index }} - {{ page_obj.end_index }} de {{ page_obj.paginator.count }} registros
+                </div>
+                <div class="pagination-controls">
+                    {% if page_obj.has_previous %}
+                        <a href="?page=1{% if request.GET.urlencode %}&{{ request.GET.urlencode }}{% endif %}" class="page-btn">⏮️</a>
+                        <a href="?page={{ page_obj.previous_page_number }}{% if request.GET.urlencode %}&{{ request.GET.urlencode }}{% endif %}" class="page-btn">◀️</a>
+                    {% endif %}
+                    
+                    {% for num in page_obj.paginator.page_range %}
+                        {% if page_obj.number == num %}
+                            <span class="page-btn active">{{ num }}</span>
+                        {% elif num > page_obj.number|add:'-3' and num < page_obj.number|add:'3' %}
+                            <a href="?page={{ num }}{% if request.GET.urlencode %}&{{ request.GET.urlencode }}{% endif %}" class="page-btn">{{ num }}</a>
+                        {% endif %}
+                    {% endfor %}
+                    
+                    {% if page_obj.has_next %}
+                        <a href="?page={{ page_obj.next_page_number }}{% if request.GET.urlencode %}&{{ request.GET.urlencode }}{% endif %}" class="page-btn">▶️</a>
+                        <a href="?page={{ page_obj.paginator.num_pages }}{% if request.GET.urlencode %}&{{ request.GET.urlencode }}{% endif %}" class="page-btn">⏭️</a>
+                    {% endif %}
+                </div>
+            </div>
+            {% endif %}
+        </div>
+    </div>
+</div>
+
+<!-- JavaScript para funcionalidades interactivas -->
+<script>
+// Variables globales
+let allDetailsVisible = false;
+
+// Función para limpiar filtros
+function limpiarFiltros() {
+    document.getElementById('filtros-form').reset();
+    window.location.href = window.location.pathname;
+}
+
+// Función para filtrar por tipo de acción
+function filtrarPorAccion(tipoAccion) {
+    const form = document.getElementById('filtros-form');
+    const tipoSelect = form.querySelector('select[name="tipo_accion"]');
+    if (tipoSelect) {
+        tipoSelect.value = tipoAccion;
+        form.submit();
+    }
+}
+
+// Función para toggle de detalles individuales
+function toggleDetail(bitacoraId) {
+    const detailRow = document.getElementById(`detail-${bitacoraId}`);
+    const toggleIcon = document.querySelector(`[onclick="toggleDetail(${bitacoraId})"] .toggle-icon`);
+    
+    if (detailRow.classList.contains('show')) {
+        detailRow.classList.remove('show');
+        toggleIcon.textContent = '▶️';
+    } else {
+        detailRow.classList.add('show');
+        toggleIcon.textContent = '🔽';
+    }
+}
+
+// Función para toggle de todos los detalles
+function toggleAllDetails() {
+    const detailRows = document.querySelectorAll('.expandable-row');
+    const toggleIcons = document.querySelectorAll('.toggle-icon');
+    
+    allDetailsVisible = !allDetailsVisible;
+    
+    detailRows.forEach(row => {
+        if (allDetailsVisible) {
+            row.classList.add('show');
+        } else {
+            row.classList.remove('show');
+        }
+    });
+    
+    toggleIcons.forEach(icon => {
+        icon.textContent = allDetailsVisible ? '🔽' : '▶️';
+    });
+}
+
+// Función para búsqueda en tiempo real
+function buscarEnTiempoReal(termino) {
+    const rows = document.querySelectorAll('.bitacora-row');
+    const searchTerm = termino.toLowerCase();
+    
+    rows.forEach(row => {
+        const text = row.textContent.toLowerCase();
+        if (text.includes(searchTerm) || searchTerm === '') {
+            row.style.display = '';
+        } else {
+            row.style.display = 'none';
+        }
+    });
+}
+
+// Función para ver JSON de un registro
+function verJSON(bitacoraId) {
+    // Aquí podrías hacer una llamada AJAX para obtener los datos JSON
+    // Por ahora, solo expandimos el detalle
+    toggleDetail(bitacoraId);
+}
+
+// Función para exportar un registro específico
+function exportarRegistro(bitacoraId) {
+    alert(`Exportando registro ${bitacoraId}...`);
+    // Aquí implementarías la lógica de exportación
+}
+
+// Función para exportar a Excel
+function exportarExcel() {
+    alert('Exportando a Excel...');
+    // Aquí implementarías la lógica de exportación a Excel
+    // Ejemplo: window.location.href = '/bitacora/export/excel/?' + window.location.search.substring(1);
+}
+
+// Filtros automáticos por fecha
+document.addEventListener('DOMContentLoaded', function() {
+    // Auto-submit cuando cambian las fechas
+    const fechaInputs = document.querySelectorAll('input[type="date"]');
+    fechaInputs.forEach(input => {
+        input.addEventListener('change', function() {
+            // Opcional: auto-submit cuando cambia la fecha
+            // document.getElementById('filtros-form').submit();
+        });
+    });
+    
+    // Shortcuts de teclado
+    document.addEventListener('keydown', function(e) {
+        // Ctrl + F para enfocar búsqueda
+        if (e.ctrlKey && e.key === 'f') {
+            e.preventDefault();
+            document.getElementById('search-realtime').focus();
+        }
+        
+        // Escape para limpiar búsqueda
+        if (e.key === 'Escape') {
+            document.getElementById('search-realtime').value = '';
+            buscarEnTiempoReal('');
+        }
+    });
+});
+
+// Función para formatear JSON
+function formatJSON(jsonString) {
+    try {
+        const obj = JSON.parse(jsonString);
+        return JSON.stringify(obj, null, 2);
+    } catch (e) {
+        return jsonString;
+    }
+}
+
+// Aplicar formato JSON a todos los viewers al cargar
+document.addEventListener('DOMContentLoaded', function() {
+    const jsonViewers = document.querySelectorAll('.json-viewer');
+    jsonViewers.forEach(viewer => {
+        const content = viewer.textContent;
+        viewer.textContent = formatJSON(content);
+    });
+});
+</script>
+{% endblock %}
