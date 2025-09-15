@@ -22,17 +22,13 @@ urlpatterns = [
     path('tercero/<int:pk>/', views.tercero_detail, name='tercero_detail'),  
     path('tercero/<int:pk>/editar/', views.tercero_update, name='tercero_update'), 
 
-
-
     #######centros de costo######
     path('centrodecosto/nuevo/', views.centrodecosto_create, name='centrodecosto_create'),
     path('centrodecosto/', views.centrodecosto_list, name='centrodecosto_list'),
     path('centrodecosto/<int:pk>/', views.centrodecosto_detail, name='centrodecosto_detail'),
     path('centrodecosto/<int:pk>/editar/', views.centrodecosto_update, name='centrodecosto_update'),
 
-
-
-    ############CGRUPOS DE PERMISOS############
+    ############GRUPOS DE PERMISOS############
     path('grupo/nuevo/', views.group_create, name='group_create'),
     path('grupo/', views.group_list, name='group_list'),
     path('grupo/<int:pk>/', views.group_detail, name='group_detail'),
@@ -43,4 +39,12 @@ urlpatterns = [
     path('codigoturno/', views.codigoturno_list, name='codigoturno_list'),
     path('codigoturno/<int:pk>/', views.codigoturno_detail, name='codigoturno_detail'),
     path('codigoturno/<int:pk>/editar/', views.codigoturno_update, name='codigoturno_update'),
+
+    ############USUARIOS QUE USAN EL SISTEMA############
+    path('usuario_acess/', views.user_list, name='user_list'),
+    path('usuario_acess/nuevo/', views.user_create, name='user_create'),
+    path('usuario_acess/<int:pk>/editar/', views.user_edit, name='user_edit'),
+    path('usuario_acess/<int:pk>/', views.user_detail, name='user_detail'),
+    path('usuario_acess/<int:pk>/toggle-status/', views.user_toggle_status, name='user_toggle_status'),
+
 ]

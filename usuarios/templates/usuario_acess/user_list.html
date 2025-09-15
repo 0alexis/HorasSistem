@@ -1,0 +1,551 @@
+{% extends "admin/base_site.html" %}
+{% load i18n static %}
+
+{% block extrastyle %}
+{{ block.super }}
+<style>
+    /* ========== VARIABLES EMPRESARIALES REGENCY ========== */
+    :root {
+        --regency-red: #871F1B;
+        --regency-red-dark: #6b191b;
+        --regency-red-light: #a13832;
+        --regency-gray: #f8f9fa;
+        --regency-gray-dark: #64748b;
+        --regency-text: #333;
+        --border-radius: 8px;
+        --shadow-sm: 0 1px 3px rgba(0, 0, 0, 0.1);
+        --shadow-md: 0 4px 6px rgba(0, 0, 0, 0.1);
+    }
+
+    /* ========== OCULTAR BREADCRUMB DJANGO ADMIN ========== */
+    .breadcrumbs, div.breadcrumbs { display: none !important; }
+
+    /* ========== TIPOGRAFÍA EMPRESARIAL ========== */
+    body {
+        font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+        font-size: 14px;
+        line-height: 1.5;
+        color: var(--regency-text);
+        background: var(--regency-gray);
+    }
+
+    /* ========== CONTAINER PRINCIPAL ========== */
+    .list-container {
+        padding: 1rem 1.5rem;
+        max-width: 1200px;
+        margin: 0 auto;
+    }
+
+    /* ========== HEADER ========== */
+    .page-header {
+        background: var(--regency-red);
+        color: white;
+        padding: 1.25rem 1.5rem;
+        margin-bottom: 1.5rem;
+        border-radius: var(--border-radius);
+        box-shadow: var(--shadow-sm);
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        flex-wrap: wrap;
+        gap: 1rem;
+    }
+
+    .page-header h1 {
+        font-size: 1.4rem;
+        font-weight: 600;
+        margin: 0;
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+    }
+
+    .page-subtitle {
+        font-size: 0.85rem;
+        opacity: 0.9;
+        margin: 0.25rem 0 0 0;
+        font-weight: 400;
+    }
+
+    /* ========== ESTADÍSTICAS ========== */
+    .stats-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+        gap: 1rem;
+        margin-bottom: 1.5rem;
+    }
+
+    .stat-card {
+        background: white;
+        padding: 1rem;
+        border-radius: var(--border-radius);
+        box-shadow: var(--shadow-sm);
+        border-left: 4px solid var(--regency-red);
+    }
+
+    .stat-number {
+        font-size: 1.5rem;
+        font-weight: 700;
+        color: var(--regency-red);
+        margin-bottom: 0.25rem;
+    }
+
+    .stat-label {
+        font-size: 0.85rem;
+        color: var(--regency-gray-dark);
+        font-weight: 500;
+    }
+
+    /* ========== FILTROS ========== */
+    .filters-card {
+        background: white;
+        border-radius: var(--border-radius);
+        padding: 1.25rem;
+        margin-bottom: 1.5rem;
+        box-shadow: var(--shadow-sm);
+        border: 1px solid #e5e7eb;
+    }
+
+    .filters-grid {
+        display: grid;
+        grid-template-columns: 2fr 1fr 1fr auto;
+        gap: 1rem;
+        align-items: end;
+    }
+
+    .form-group {
+        display: flex;
+        flex-direction: column;
+        gap: 0.25rem;
+    }
+
+    .form-label {
+        font-size: 0.85rem;
+        font-weight: 600;
+        color: var(--regency-text);
+    }
+
+    .form-control {
+        padding: 0.5rem 0.75rem;
+        border: 1px solid #d1d5db;
+        border-radius: var(--border-radius);
+        font-size: 0.9rem;
+        transition: border-color 0.2s ease;
+    }
+
+    .form-control:focus {
+        outline: none;
+        border-color: var(--regency-red);
+        box-shadow: 0 0 0 3px rgba(135, 31, 27, 0.1);
+    }
+
+    /* ========== TABLA ========== */
+    .table-card {
+        background: white;
+        border-radius: var(--border-radius);
+        overflow: hidden;
+        box-shadow: var(--shadow-sm);
+        border: 1px solid #e5e7eb;
+    }
+
+    .table-header {
+        background: var(--regency-red);
+        color: white;
+        padding: 1rem 1.25rem;
+        font-weight: 600;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+    }
+
+    .table-responsive {
+        overflow-x: auto;
+    }
+
+    .users-table {
+        width: 100%;
+        border-collapse: collapse;
+    }
+
+    .users-table th {
+        background: #f8fafc;
+        padding: 0.75rem 1rem;
+        font-weight: 600;
+        color: var(--regency-text);
+        border-bottom: 1px solid #e5e7eb;
+        text-align: left;
+        font-size: 0.85rem;
+    }
+
+    .users-table td {
+        padding: 0.75rem 1rem;
+        border-bottom: 1px solid #f1f5f9;
+        font-size: 0.9rem;
+    }
+
+    .users-table tr:hover {
+        background: #f8fafc;
+    }
+
+    /* ========== BADGES ========== */
+    .badge {
+        display: inline-block;
+        padding: 0.25rem 0.5rem;
+        font-size: 0.75rem;
+        font-weight: 500;
+        border-radius: 3px;
+        text-align: center;
+    }
+
+    .badge-success {
+        background: #dcfce7;
+        color: #166534;
+    }
+
+    .badge-danger {
+        background: #fef2f2;
+        color: #dc2626;
+    }
+
+    .badge-primary {
+        background: #eff6ff;
+        color: #1d4ed8;
+    }
+
+    .badge-secondary {
+        background: #f1f5f9;
+        color: #64748b;
+    }
+
+    /* ========== BOTONES ========== */
+    .btn {
+        display: inline-flex;
+        align-items: center;
+        gap: 0.375rem;
+        padding: 0.5rem 0.75rem;
+        font-size: 0.85rem;
+        font-weight: 500;
+        border-radius: var(--border-radius);
+        border: none;
+        cursor: pointer;
+        text-decoration: none;
+        transition: all 0.2s ease;
+    }
+
+    .btn-primary {
+        background: var(--regency-red);
+        color: white;
+    }
+
+    .btn-primary:hover {
+        background: var(--regency-red-dark);
+        color: white;
+        text-decoration: none;
+    }
+
+    .btn-outline {
+        background: transparent;
+        color: var(--regency-gray-dark);
+        border: 1px solid #d1d5db;
+    }
+
+    .btn-outline:hover {
+        background: var(--regency-gray);
+        border-color: #9ca3af;
+        color: var(--regency-text);
+        text-decoration: none;
+    }
+
+    .btn-sm {
+        padding: 0.375rem 0.5rem;
+        font-size: 0.75rem;
+    }
+
+    /* ========== ACCIONES ========== */
+    .actions-group {
+        display: flex;
+        gap: 0.25rem;
+    }
+
+    /* ========== PAGINACIÓN ========== */
+    .pagination-wrapper {
+        padding: 1rem 1.25rem;
+        border-top: 1px solid #e5e7eb;
+        background: #f8fafc;
+        display: flex;
+        justify-content: between;
+        align-items: center;
+    }
+
+    .pagination {
+        display: flex;
+        gap: 0.25rem;
+        margin: 0;
+    }
+
+    .page-link {
+        padding: 0.5rem 0.75rem;
+        border: 1px solid #d1d5db;
+        background: white;
+        color: var(--regency-gray-dark);
+        text-decoration: none;
+        border-radius: var(--border-radius);
+    }
+
+    .page-link:hover {
+        background: var(--regency-gray);
+        text-decoration: none;
+    }
+
+    .page-link.active {
+        background: var(--regency-red);
+        color: white;
+        border-color: var(--regency-red);
+    }
+
+    /* ========== RESPONSIVE ========== */
+    @media (max-width: 768px) {
+        .list-container {
+            padding: 0.75rem 1rem;
+        }
+
+        .page-header {
+            flex-direction: column;
+            align-items: stretch;
+            text-align: center;
+        }
+
+        .filters-grid {
+            grid-template-columns: 1fr;
+        }
+
+        .stats-grid {
+            grid-template-columns: repeat(2, 1fr);
+        }
+
+        .users-table {
+            font-size: 0.8rem;
+        }
+
+        .users-table th,
+        .users-table td {
+            padding: 0.5rem;
+        }
+    }
+
+    /* ========== ANIMACIONES ========== */
+    .table-card, .filters-card {
+        animation: slideInUp 0.3s ease-out;
+    }
+
+    @keyframes slideInUp {
+        from {
+            opacity: 0;
+            transform: translateY(20px);
+        }
+        to {
+            opacity: 1;
+            transform: translateY(0);
+        }
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="list-container">
+    <!-- Header -->
+    <div class="page-header">
+        <div class="header-main">
+            <h1>
+                👥 Usuarios del Sistema
+            </h1>
+            <p class="page-subtitle">
+                Gestión de usuarios que acceden al sistema
+            </p>
+        </div>
+        <div class="header-actions">
+            <a href="{% url 'usuarios:user_create' %}" class="btn btn-primary">
+                ➕ Nuevo Usuario
+            </a>
+        </div>
+    </div>
+
+    <!-- Estadísticas -->
+    <div class="stats-grid">
+        <div class="stat-card">
+            <div class="stat-number">{{ total_users }}</div>
+            <div class="stat-label">Total Usuarios</div>
+        </div>
+        <div class="stat-card">
+            <div class="stat-number">{{ active_users }}</div>
+            <div class="stat-label">Usuarios Activos</div>
+        </div>
+        <div class="stat-card">
+            <div class="stat-number">{{ inactive_users }}</div>
+            <div class="stat-label">Usuarios Inactivos</div>
+        </div>
+    </div>
+
+    <!-- Filtros -->
+    <div class="filters-card">
+        <form method="get">
+            <div class="filters-grid">
+                <div class="form-group">
+                    <label class="form-label">Buscar Usuario</label>
+                    <input type="text" name="search" class="form-control" 
+                           placeholder="Nombre, usuario o email..." 
+                           value="{{ search_query }}">
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Estado</label>
+                    <select name="status" class="form-control">
+                        <option value="">Todos</option>
+                        <option value="active" {% if status_filter == 'active' %}selected{% endif %}>Activos</option>
+                        <option value="inactive" {% if status_filter == 'inactive' %}selected{% endif %}>Inactivos</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Tipo</label>
+                    <select name="user_type" class="form-control">
+                        <option value="">Todos</option>
+                        <option value="superuser">Superusuarios</option>
+                        <option value="staff">Staff</option>
+                        <option value="normal">Normales</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <button type="submit" class="btn btn-primary">🔍 Buscar</button>
+                </div>
+            </div>
+        </form>
+    </div>
+
+    <!-- Tabla -->
+    <div class="table-card">
+        <div class="table-header">
+            <span>📋 Lista de Usuarios ({{ users.paginator.count }} total)</span>
+        </div>
+        
+        <div class="table-responsive">
+            <table class="users-table">
+                <thead>
+                    <tr>
+                        <th>Usuario</th>
+                        <th>Nombre Completo</th>
+                        <th>Email</th>
+                        <th>Estado</th>
+                        <th>Tipo</th>
+                        <th>Último Acceso</th>
+                        <th style="width: 200px;">Acciones</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for user in users %}
+                    <tr>
+                        <td>
+                            <strong>{{ user.username }}</strong>
+                            {% if user.nombre_usuario and user.nombre_usuario != user.username %}
+                                <br><small style="color: #6b7280;">{{ user.nombre_usuario }}</small>
+                            {% endif %}
+                        </td>
+                        <td>
+                            <!-- ✅ MOSTRAR NOMBRE COMPLETO DEL TERCERO -->
+                            {% if user.tercero %}
+                                <strong>{{ user.tercero.nombre_tercero }} {{ user.tercero.apellido_tercero }}</strong>
+                                {% if user.tercero.documento %}
+                                    <br><small style="color: #6b7280;">CC: {{ user.tercero.documento }}</small>
+                                {% endif %}
+                            {% else %}
+                                <span style="color: #9ca3af; font-style: italic;">Sin tercero asignado</span>
+                            {% endif %}
+                        </td>
+                        <td>
+                            <!-- ✅ MOSTRAR EMAIL DEL TERCERO O USUARIO -->
+                            {% if user.tercero.correo_tercero %}
+                                {{ user.tercero.correo_tercero }}
+                            {% elif user.email %}
+                                {{ user.email }}
+                            {% else %}
+                                <span style="color: #9ca3af;">Sin email</span>
+                            {% endif %}
+                        </td>
+                        <td>
+                            {% if user.estado %}
+                                <span class="badge badge-success">✅ Activo</span>
+                            {% else %}
+                                <span class="badge badge-danger">❌ Inactivo</span>
+                            {% endif %}
+                        </td>
+                        <td>
+                            <!-- ✅ MOSTRAR TIPO BASADO EN SUPERUSER/STAFF -->
+                            {% if user.is_superuser %}
+                                <span class="badge badge-danger">🔑 Superusuario</span>
+                            {% elif user.is_staff %}
+                                <span class="badge badge-warning">⚙️ Staff</span>
+                            {% else %}
+                                <span class="badge badge-secondary">👤 Usuario</span>
+                            {% endif %}
+                        </td>
+                        <td>
+                            {% if user.last_login %}
+                                {{ user.last_login|date:"d/m/Y H:i" }}
+                            {% else %}
+                                <span style="color: #9ca3af;">Nunca</span>
+                            {% endif %}
+                        </td>
+                        <td>
+                            <div class="actions-group">
+                                <a href="{% url 'usuarios:user_edit' pk=user.pk %}" 
+                                   class="btn btn-outline btn-sm" title="Editar">
+                                    ✏️
+                                </a>
+                                <a href="{% url 'usuarios:user_toggle_status' pk=user.pk %}" 
+                                   class="btn btn-outline btn-sm" 
+                                   title="{% if user.estado %}Desactivar{% else %}Activar{% endif %}"
+                                   onclick="return confirm('¿Confirma cambiar el estado del usuario {{ user.username }}?')">
+                                    {% if user.estado %}
+                                        🔒
+                                    {% else %}
+                                        🔓
+                                    {% endif %}
+                                </a>
+                            </div>
+                        </td>
+                    </tr>
+                    {% empty %}
+                    <tr>
+                        <td colspan="7" style="text-align: center; padding: 2rem; color: #9ca3af;">
+                            No hay usuarios que coincidan con los criterios de búsqueda.
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+
+        <!-- Paginación -->
+        {% if users.has_other_pages %}
+        <div class="pagination-wrapper">
+            <div class="pagination-info">
+                Mostrando {{ users.start_index }} - {{ users.end_index }} de {{ users.paginator.count }} usuarios
+            </div>
+            <div class="pagination">
+                {% if users.has_previous %}
+                    <a href="?page=1" class="page-link">« Primera</a>
+                    <a href="?page={{ users.previous_page_number }}" class="page-link">‹ Anterior</a>
+                {% endif %}
+                
+                <span class="page-link active">
+                    Página {{ users.number }} de {{ users.paginator.num_pages }}
+                </span>
+                
+                {% if users.has_next %}
+                    <a href="?page={{ users.next_page_number }}" class="page-link">Siguiente ›</a>
+                    <a href="?page={{ users.paginator.num_pages }}" class="page-link">Última »</a>
+                {% endif %}
+            </div>
+        </div>
+        {% endif %}
+    </div>
+</div>
+{% endblock %}

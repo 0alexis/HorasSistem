@@ -437,22 +437,12 @@
         </div>
     </div>
 
-    <!-- Breadcrumb -->
-    <div class="custom-breadcrumb">
-        <a href="/">🏠 Dashboard</a>
-        <span class="breadcrumb-separator">→</span>
-        <a href="{% url 'empresas:unidades_negocio_list' %}">🏢 Unidades de Negocio</a>
-        <span class="breadcrumb-separator">→</span>
-        <span style="color: var(--regency-gray-dark);">
-            {% if object %}✏️ Editar{% else %}🏢 Nueva{% endif %}
-        </span>
-    </div>
 
     <!-- Formulario -->
     <div class="form-card">
         <div class="card-header-regency">
             {% if object %}
-                ✏️ Editar: {{ object.nombre }}
+                Editar: {{ object.nombre }}
             {% else %}
                 🏢 Crear Nueva Unidad de Negocio
             {% endif %}

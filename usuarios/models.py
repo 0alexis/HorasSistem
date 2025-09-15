@@ -65,6 +65,24 @@ class Usuario(AbstractUser):
         self.estado = True
         self.save()
 
+    def get_full_name(self):
+        """Retorna el nombre completo del tercero asociado o el nombre_usuario"""
+        if self.tercero:
+            return f"{self.tercero.nombre_tercero} {self.tercero.apellido_tercero}"
+        return self.nombre_usuario or self.username
+    
+    def get_display_name(self):
+        """Retorna el nombre para mostrar en la interfaz"""
+        if self.tercero:
+            return f"{self.tercero.nombre_tercero} {self.tercero.apellido_tercero}"
+        return self.nombre_usuario or self.username
+        
+    def get_email_display(self):
+        """Retorna el email del tercero o el del usuario"""
+        if self.tercero and self.tercero.correo_tercero:
+            return self.tercero.correo_tercero
+        return self.email or "Sin email"
+
 class Rol(models.Model):
     """
     Modelo para manejar roles de usuario

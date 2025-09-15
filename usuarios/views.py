@@ -4,17 +4,23 @@ from rest_framework import viewsets, status, permissions
 from rest_framework.decorators import action
 from rest_framework.response import Response
 from rest_framework_simplejwt.tokens import RefreshToken
-from django.contrib.auth import authenticate
+from django.contrib.auth import authenticate, get_user_model
 from .models import Usuario, Rol
 from .serializers import UsuarioSerializer, UsuarioCreateSerializer, RolSerializer
 from django.shortcuts import render, redirect
-from .forms import TerceroForm, CentroDeCostoForm
-from .models import Tercero, CentroDeCosto, CodigoTurno
+from .forms import TerceroForm, CentroDeCostoForm, CodigoTurnoForm, SystemUserForm
+from .models import Tercero, CentroDeCosto, CodigoTurno, Usuario
 from django.shortcuts import render, redirect, get_object_or_404
 from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib.auth.models import Group, Permission
 from django import forms
-from .forms import CodigoTurnoForm
+from django.contrib import messages
+from django.contrib.auth.decorators import login_required
+from django.db.models import Q
+from django.core.paginator import Paginator
+from django.utils import timezone
+
+User = get_user_model()  # Esto obtiene el modelo correcto automáticamente
 
 class UsuarioViewSet(viewsets.ModelViewSet):
     queryset = Usuario.objects.all()
@@ -104,6 +110,7 @@ def tercero_create(request):
     else:
         form = TerceroForm()
     return render(request, 'usuarios/tercero_form.html', {'form': form})
+
 ##############TERCEROS(EMPLEAOS)#################
 def tercero_list(request):
     terceros = Tercero.objects.all().order_by('-id_tercero')
@@ -240,3 +247,170 @@ def codigoturno_update(request, pk):
 def codigoturno_detail(request, pk):
     codigo = get_object_or_404(CodigoTurno, pk=pk)
     return render(request, 'codigoturno/codigoturno_detail.html', {'codigo': codigo})
+
+
+
+############USUARIOS QUE USARAN EL SISTEMA############
+
+@login_required
+def user_list(request):
+    """Listado de usuarios del sistema"""
+    try:
+        # ✅ AGREGAR select_related para evitar consultas N+1
+        users = Usuario.objects.select_related(
+            'tercero', 
+            'cargo_predefinido', 
+            'centro_operativo'
+        ).order_by('-fecha_creacion')
+        
+        # Filtro de búsqueda
+        search_query = request.GET.get('search', '')
+        if search_query:
+            users = users.filter(
+                Q(nombre_usuario__icontains=search_query) |
+                Q(username__icontains=search_query) |
+                Q(email__icontains=search_query) |
+                Q(tercero__nombre_tercero__icontains=search_query) |
+                Q(tercero__apellido_tercero__icontains=search_query) |
+                Q(tercero__correo_tercero__icontains=search_query)
+            )
+        
+        # Filtro por estado
+        status_filter = request.GET.get('status', '')
+        if status_filter == 'active':
+            users = users.filter(estado=True)
+        elif status_filter == 'inactive':
+            users = users.filter(estado=False)
+        
+        # Paginación
+        paginator = Paginator(users, 10)
+        page_number = request.GET.get('page')
+        page_obj = paginator.get_page(page_number)
+        
+        # ✅ ESTADÍSTICAS
+        total_users = Usuario.all_objects.count()  # Usar all_objects para contar todos
+        active_users = Usuario.all_objects.filter(estado=True).count()
+        inactive_users = Usuario.all_objects.filter(estado=False).count()
+        
+        context = {
+            'users': page_obj,
+            'search_query': search_query,
+            'status_filter': status_filter,
+            'total_users': total_users,
+            'active_users': active_users,
+            'inactive_users': inactive_users,
+        }
+        
+        return render(request, 'usuario_acess/user_list.html', context)
+        
+    except Exception as e:
+        messages.error(request, f'Error al cargar usuarios: {str(e)}')
+        return render(request, 'usuario_acess/user_list.html', {'users': []})
+
+@login_required
+def user_create(request):
+    """Crear nuevo usuario del sistema"""
+    try:
+        if request.method == 'POST':
+            form = SystemUserForm(request.POST)
+            if form.is_valid():
+                # Crear el usuario pero no guardarlo aún
+                user = form.save(commit=False)
+                
+                # Configurar campos automáticos
+                user.fecha_creacion = timezone.now()
+                user.fecha_actualizacion = timezone.now()
+                
+                # Guardar el usuario
+                user.save()
+                
+                # Guardar grupos y relaciones many-to-many
+                form.save_m2m()
+                
+                messages.success(request, f'Usuario "{user.username}" creado exitosamente.')
+                return redirect('usuarios:user_list')
+            else:
+                # Si hay errores, mostrarlos
+                for field, errors in form.errors.items():
+                    for error in errors:
+                        messages.error(request, f'{field}: {error}')
+        else:
+            form = SystemUserForm()
+        
+        context = {
+            'form': form,
+            'form_title': 'Nuevo Usuario del Sistema',
+            'action': 'create'
+        }
+        
+        return render(request, 'usuario_acess/user_form.html', context)
+        
+    except Exception as e:
+        messages.error(request, f'Error al crear usuario: {str(e)}')
+        return redirect('usuarios:user_list')
+
+@login_required
+def user_detail(request, pk):
+    """Detalle de usuario del sistema"""
+    try:
+        user_obj = get_object_or_404(Usuario, pk=pk)
+        
+        context = {
+            'user_obj': user_obj,
+        }
+        
+        return render(request, 'usuario_acess/user_detail.html', context)
+        
+    except Exception as e:
+        messages.error(request, f'Error al cargar usuario: {str(e)}')
+        return redirect('usuarios:user_list')
+
+@login_required
+def user_edit(request, pk):
+    """Editar usuario del sistema"""
+    try:
+        user_obj = get_object_or_404(Usuario, pk=pk)  # USAR Usuario
+        
+        if request.method == 'POST':
+            form = SystemUserForm(request.POST, instance=user_obj)
+            if form.is_valid():
+                user = form.save(commit=False)
+                user.fecha_actualizacion = timezone.now()
+                user.save()
+                form.save_m2m()
+                
+                messages.success(request, f'Usuario "{user.nombre_usuario}" actualizado exitosamente.')
+                return redirect('usuarios:user_list')
+        else:
+            form = SystemUserForm(instance=user_obj)
+        
+        context = {
+            'form': form,
+            'form_title': f'Editar Usuario: {user_obj.nombre_usuario}',
+            'action': 'edit',
+            'user_obj': user_obj
+        }
+        
+        return render(request, 'usuario_acess/user_form.html', context)
+        
+    except Exception as e:
+        messages.error(request, f'Error al editar usuario: {str(e)}')
+        return redirect('usuarios:user_list')
+
+
+@login_required
+def user_toggle_status(request, pk):
+    """Activar/Desactivar usuario"""
+    try:
+        user_obj = get_object_or_404(Usuario.all_objects, pk=pk)  # ✅ all_objects para acceder a inactivos también
+        user_obj.estado = not user_obj.estado  # ✅ Toggle más simple
+        user_obj.save()
+        
+        status_text = "activado" if user_obj.estado else "desactivado"
+        user_name = user_obj.get_display_name()  # ✅ Usar el método del modelo
+        messages.success(request, f'Usuario "{user_name}" {status_text} exitosamente.')
+        
+    except Exception as e:
+        messages.error(request, f'Error al cambiar estado: {str(e)}')
+    
+    return redirect('usuarios:user_list')
