@@ -21,8 +21,8 @@ from rest_framework.decorators import api_view
 from rest_framework.response import Response
 from rest_framework import status
 
-from .models import Empresa, Proyecto, CentroOperativo
-from .forms import EmpresaFiltroForm, EmpresaForm, ProyectoForm
+from .models import Empresa, Proyecto, CentroOperativo, UnidadNegocio
+from .forms import EmpresaFiltroForm, EmpresaForm, ProyectoForm, UnidadNegocioForm
 
 # =======================
 #   APIs DE SISTEMA
@@ -702,44 +702,197 @@ def centro_operativo_delete(request, pk):
     # ✅ CAMBIAR ESTA LÍNEA
     return render(request, 'centro_operativo/centrooperativo_confirm_delete.html', context)
 
-
 # =======================
-#  CRUD DE UNIDADES DE NEGOCIO (EN DESARROLLO)
+#  CRUD DE UNIDADES DE NEGOCIO - IMPLEMENTACIÓN COMPLETA
 # =======================
 
 @login_required
 def unidades_negocio_list(request):
-    """Lista de unidades de negocio"""
+    """Lista de unidades de negocio con filtros y búsqueda"""
     try:
-        from .models import UnidadNegocio
-        unidades = UnidadNegocio.objects.all().order_by('-id')
-        paginator = Paginator(unidades, 10)
+        # Obtener parámetros de filtro
+        search = request.GET.get('search', '')
+        estado = request.GET.get('estado', '')
+        fecha_desde = request.GET.get('fecha_desde', '')
+        
+        # ✅ Base queryset CON PREFETCH para tabla intermedia
+        unidades = UnidadNegocio.objects.select_related('responsable').prefetch_related('empresas').all()
+        
+        # Aplicar filtros
+        if search:
+            unidades = unidades.filter(
+                Q(nombre__icontains=search) |
+                Q(descripcion__icontains=search)
+            )
+        
+        if estado:
+            if estado == 'activo':
+                unidades = unidades.filter(activo=1)
+            elif estado == 'inactivo':
+                unidades = unidades.filter(Q(activo=0) | Q(activo__isnull=True))
+            
+        if fecha_desde:
+            try:
+                from datetime import datetime
+                fecha_desde_obj = datetime.strptime(fecha_desde, '%Y-%m-%d').date()
+                unidades = unidades.filter(creado_en__date__gte=fecha_desde_obj)
+            except ValueError:
+                pass
+        
+        # ✅ FILTRAR SOLO UNIDADES QUE TENGAN EMPRESAS ASIGNADAS
+        unidades = unidades.distinct()
+        
+        # Ordenar
+        unidades = unidades.order_by('-creado_en')
+        
+        # Paginación
+        paginator = Paginator(unidades, 12)
         page_number = request.GET.get('page')
-        unidades_page = paginator.get_page(page_number)
-        context = {'unidades_negocio': unidades_page}
-    except:
-        context = {'unidades_negocio': [], 'mensaje': 'En desarrollo'}
-    return render(request, 'empresas/unidades_negocio_list.html', context)
+        page_obj = paginator.get_page(page_number)
+        
+        # ✅ ESTADÍSTICAS CORREGIDAS
+        total_unidades = UnidadNegocio.objects.count()
+        unidades_activas = UnidadNegocio.objects.filter(empresas__isnull=False, activo=1).distinct().count()
+        unidades_inactivas = UnidadNegocio.objects.filter(
+            empresas__isnull=False
+        ).filter(
+            Q(activo=0) | Q(activo__isnull=True)
+        ).distinct().count()
+        
+        print(f"DEBUG: Total={total_unidades}, Activas={unidades_activas}, Inactivas={unidades_inactivas}")
+        
+        context = {
+            'page_obj': page_obj,
+            'total_unidades': total_unidades,
+            'unidades_activas': unidades_activas,
+            'unidades_inactivas': unidades_inactivas,
+            'search': search,
+            'estado': estado,
+            'fecha_desde': fecha_desde,
+            'is_filtered': bool(search or estado or fecha_desde)
+        }
+        
+    except Exception as e:
+        messages.error(request, f'Error al cargar unidades de negocio: {str(e)}')
+        context = {
+            'page_obj': [],
+            'total_unidades': 0,
+            'unidades_activas': 0,
+            'unidades_inactivas': 0,
+            'search': '',
+            'estado': '',
+            'fecha_desde': '',
+            'is_filtered': False
+        }
+    
+    return render(request, 'unidades/unidad_list.html', context)
+
 
 @login_required
 def unidad_negocio_create(request):
-    return render(request, 'empresas/en_desarrollo.html', {'modulo': 'Unidades de Negocio'})
+    """Crear nueva unidad de negocio"""
+    try:
+        from .models import UnidadNegocio
+        from .forms import UnidadNegocioForm
+        
+        if request.method == 'POST':
+            form = UnidadNegocioForm(request.POST)
+            if form.is_valid():
+                unidad = form.save()
+                messages.success(request, f'✅ Unidad de Negocio "{unidad.nombre}" creada exitosamente!')
+                return redirect('empresas:unidad_negocio_detail', pk=unidad.pk)
+            else:
+                messages.error(request, 'Por favor corrige los errores en el formulario.')
+        else:
+            form = UnidadNegocioForm()
+        
+        context = {
+            'form': form,
+            'title': 'Nueva Unidad de Negocio',
+            'action': 'Crear',
+            'unidad': None
+        }
+        
+    except Exception as e:
+        messages.error(request, f'Error al crear unidad de negocio: {str(e)}')
+        return redirect('empresas:unidades_negocio_list')
+
+    return render(request, 'unidades/unidad_form.html', context)
 
 @login_required
 def unidad_negocio_detail(request, pk):
-    return render(request, 'empresas/en_desarrollo.html', {'modulo': 'Unidades de Negocio'})
+    """Detalle de unidad de negocio"""
+    try:
+        from .models import UnidadNegocio
+        # ✅ CAMBIAR 'gerente' POR 'responsable'
+        unidad = get_object_or_404(
+            UnidadNegocio.objects.select_related('responsable'),
+            pk=pk
+        )
+        
+        context = {
+            'unidad': unidad,   
+        }
+        
+    except Exception as e:
+        messages.error(request, f'Error al cargar unidad de negocio: {str(e)}')
+        return redirect('empresas:unidades_negocio_list')
+    
+    return render(request, 'unidades/unidad_detail.html', context)
 
 @login_required
 def unidad_negocio_update(request, pk):
-    return render(request, 'empresas/en_desarrollo.html', {'modulo': 'Unidades de Negocio'})
+    """Actualizar unidad de negocio"""
+    try:
+        unidad = get_object_or_404(UnidadNegocio, pk=pk)
+        
+        if request.method == 'POST':
+            form = UnidadNegocioForm(request.POST, instance=unidad, user=request.user)
+            if form.is_valid():
+                unidad = form.save(commit=False)
+                unidad.actualizado_en = timezone.now()
+                unidad.save()
+                
+                # ✅ GUARDAR RELACIONES MANY-TO-MANY
+                form.save_m2m()
+                
+                messages.success(request, f'Unidad de negocio "{unidad.nombre}" actualizada exitosamente.')
+                return redirect('empresas:unidad_negocio_detail', pk=unidad.pk)
+        else:
+            form = UnidadNegocioForm(instance=unidad, user=request.user)
+        
+        # ✅ PASAR 'object' AL TEMPLATE
+        context = {
+            'form': form,
+            'object': unidad,  # ← ESTO ES CLAVE
+            'title': f'Editar Unidad: {unidad.nombre}'
+        }
+        return render(request, 'unidades/unidad_form.html', context)
+        
+    except Exception as e:
+        messages.error(request, f'Error al actualizar unidad: {e}')
+        return redirect('empresas:unidades_negocio_list')
 
 @login_required
 def unidad_negocio_delete(request, pk):
-    return render(request, 'empresas/en_desarrollo.html', {'modulo': 'Unidades de Negocio'})
+    """Eliminar unidad de negocio"""
+    try:
+        from .models import UnidadNegocio
+        unidad = get_object_or_404(UnidadNegocio, pk=pk)
+        
+        if request.method == 'POST':
+            unidad_nombre = unidad.nombre
+            unidad.delete()
+            messages.success(request, f'✅ Unidad de Negocio "{unidad_nombre}" eliminada exitosamente!')
+            return redirect('empresas:unidades_negocio_list')
+        
+        context = {'unidad': unidad}
+        
+    except Exception as e:
+        messages.error(request, f'Error al eliminar unidad de negocio: {str(e)}')
+        return redirect('empresas:unidades_negocio_list')
 
-
-
-
+    return render(request, 'unidades/unidad_confirm_delete.html', context)
 
 class EmpresaDetailView(DetailView):
     model = Empresa
@@ -843,69 +996,78 @@ def cargopredefinido_detail(request, pk):
         return redirect('empresas:cargopredefinido_list')
     return render(request, 'cargo/cargopredefinido_detail.html', context)
 
-@login_required
-def cargopredefinido_create(request):
-    """Crear nuevo cargo predefinido"""
+
+@login_required  
+def unidad_negocio_create(request):
+    """Crear nueva unidad de negocio"""
     try:
-        from .models import CargoPredefinido
-        from .forms import CargoPredefinidoForm
-        
         if request.method == 'POST':
-            form = CargoPredefinidoForm(request.POST)
+            form = UnidadNegocioForm(request.POST, user=request.user)
             if form.is_valid():
-                cargo = form.save()
-                messages.success(request, f'✅ Cargo "{cargo.nombre}" creado exitosamente!')
-                return redirect('empresas:cargopredefinido_detail', pk=cargo.id_cargo_predefinido)
-            else:
-                messages.error(request, 'Por favor corrige los errores en el formulario.')
+                unidad = form.save(commit=False)
+                unidad.responsable = request.user # Asignar el usuario actual como responsable
+                unidad.creado_en = timezone.now()
+                unidad.actualizado_en = timezone.now()
+                unidad.save()
+                
+                # ✅ GUARDAR RELACIONES M2M
+                form.save_m2m()
+                
+                messages.success(request, f'Unidad de negocio "{unidad.nombre}" creada exitosamente.')
+                return redirect('empresas:unidad_negocio_detail', pk=unidad.pk)
         else:
-            form = CargoPredefinidoForm()
+            form = UnidadNegocioForm(user=request.user)
         
+        # ✅ NO PASAR 'object' EN CREACIÓN
         context = {
             'form': form,
-            'title': 'Nuevo Cargo Predefinido',
-            'action': 'Crear',
-            'cargo': None
+            'title': 'Nueva Unidad de Negocio'
         }
+        return render(request, 'unidades/unidad_form.html', context)
         
     except Exception as e:
-        messages.error(request, f'Error al crear cargo predefinido: {str(e)}')
-        return redirect('empresas:cargopredefinido_list')
-    
-    return render(request, 'cargo/cargopredefinido_form.html', context)
+        messages.error(request, f'Error al crear unidad: {e}')
+        return redirect('empresas:unidades_negocio_list')
 
 @login_required
-def cargopredefinido_update(request, pk):
-    """Editar cargo predefinido"""
+def unidad_negocio_update(request, pk):
+    """Actualizar unidad de negocio"""
     try:
-        from .models import CargoPredefinido
-        from .forms import CargoPredefinidoForm
-        
-        cargo = get_object_or_404(CargoPredefinido, pk=pk)
+        unidad = get_object_or_404(UnidadNegocio, pk=pk)
         
         if request.method == 'POST':
-            form = CargoPredefinidoForm(request.POST, instance=cargo)
+            form = UnidadNegocioForm(request.POST, instance=unidad, user=request.user)
             if form.is_valid():
-                cargo = form.save()
-                messages.success(request, f'✅ Cargo "{cargo.nombre}" actualizado exitosamente!')
-                return redirect('empresas:cargopredefinido_detail', pk=cargo.id_cargo_predefinido)
+                # ✅ DEBUGGING: Imprimir datos antes de guardar
+                print(f"DEBUG - Fecha inicio: {form.cleaned_data.get('fecha_inicio')}")
+                print(f"DEBUG - Fecha fin: {form.cleaned_data.get('fecha_fin')}")
+                
+                unidad = form.save(commit=False)
+                unidad.actualizado_en = timezone.now()
+                unidad.save()
+                
+                # ✅ GUARDAR RELACIONES M2M
+                form.save_m2m()
+                
+                messages.success(request, f'Unidad de negocio "{unidad.nombre}" actualizada exitosamente.')
+                return redirect('empresas:unidad_negocio_detail', pk=unidad.pk)
             else:
-                messages.error(request, 'Por favor corrige los errores en el formulario.')
+                # ✅ DEBUGGING: Imprimir errores del formulario
+                print(f"DEBUG - Errores del form: {form.errors}")
         else:
-            form = CargoPredefinidoForm(instance=cargo)
+            form = UnidadNegocioForm(instance=unidad, user=request.user)
         
         context = {
             'form': form,
-            'title': f'Editar Cargo: {cargo.nombre}',
-            'action': 'Actualizar',
-            'cargo': cargo
+            'object': unidad,
+            'title': f'Editar Unidad: {unidad.nombre}'
         }
+        return render(request, 'unidades/unidad_form.html', context)
         
     except Exception as e:
-        messages.error(request, f'Error al editar cargo predefinido: {str(e)}')
-        return redirect('empresas:cargopredefinido_list')
-    
-    return render(request, 'cargo/cargopredefinido_form.html', context)
+        print(f"DEBUG - Error en update: {e}")
+        messages.error(request, f'Error al actualizar unidad: {e}')
+        return redirect('empresas:unidades_negocio_list')
 
 @login_required
 def cargopredefinido_delete(request, pk):

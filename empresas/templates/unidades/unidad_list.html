@@ -1,0 +1,652 @@
+{% extends "admin/base_site.html" %}
+{% load i18n static %}
+
+{% block extrastyle %}
+{{ block.super }}
+<style>
+    /* Variables empresariales REGENCY */
+    :root {
+        --regency-red: #871F1B;
+        --regency-red-dark: #6b191b;
+        --regency-red-light: #a13832;
+        --regency-gray: #f8f9fa;
+        --regency-gray-dark: #64748b;
+        --regency-text: #333;
+        --border-radius: 8px;
+        --shadow-sm: 0 1px 3px rgba(0, 0, 0, 0.1);
+        --shadow-md: 0 4px 6px rgba(0, 0, 0, 0.1);
+    }
+
+    /* ========== OCULTAR BREADCRUMB DJANGO ADMIN ========== */
+    .breadcrumbs,
+    div.breadcrumbs {
+        display: none !important;
+    }
+
+    /* Tipografía empresarial consistente */
+    body {
+        font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+        font-size: 14px;
+        line-height: 1.5;
+        color: var(--regency-text);
+        background: var(--regency-gray);
+    }
+
+    /* Container principal */
+    .list-container {
+        padding: 1rem 1.5rem;
+        max-width: 1400px;
+        margin: 0 auto;
+    }
+
+    /* Header de la página */
+    .page-header {
+        background: var(--regency-red);
+        color: white;
+        padding: 1.25rem 1.5rem;
+        margin-bottom: 1.5rem;
+        border-radius: var(--border-radius);
+        box-shadow: var(--shadow-sm);
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        flex-wrap: wrap;
+        gap: 1rem;
+    }
+
+    .header-main {
+        flex: 1;
+        min-width: 0;
+    }
+
+    .page-header h1 {
+        font-size: 1.4rem;
+        font-weight: 600;
+        margin: 0 0 0.4rem 0;
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+        line-height: 1.2;
+    }
+
+    .page-subtitle {
+        font-size: 0.85rem;
+        opacity: 0.9;
+        margin: 0;
+        font-weight: 400;
+    }
+
+    .header-actions {
+        display: flex;
+        gap: 0.5rem;
+        flex-shrink: 0;
+    }
+
+    /* Card de filtros */
+    .filters-card {
+        background: white;
+        border-radius: var(--border-radius);
+        box-shadow: var(--shadow-sm);
+        border: 1px solid #e5e7eb;
+        margin-bottom: 1.5rem;
+        overflow: hidden;
+    }
+
+    .filters-header {
+        background: var(--regency-red);
+        color: white;
+        padding: 0.75rem 1rem;
+        font-weight: 600;
+        font-size: 0.9rem;
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+    }
+
+    .filters-content {
+        padding: 1rem;
+    }
+
+    .filters-form {
+        display: grid;
+        grid-template-columns: 2fr 1fr 1fr auto;
+        gap: 1rem;
+        align-items: end;
+    }
+
+    .form-group {
+        display: flex;
+        flex-direction: column;
+        gap: 0.25rem;
+    }
+
+    .form-label {
+        font-weight: 600;
+        color: var(--regency-text);
+        font-size: 0.85rem;
+    }
+
+    .form-control, .form-select {
+        padding: 0.5rem;
+        border: 1px solid #d1d5db;
+        border-radius: var(--border-radius);
+        font-size: 0.85rem;
+        transition: border-color 0.2s ease;
+    }
+
+    .form-control:focus, .form-select:focus {
+        outline: none;
+        border-color: var(--regency-red);
+        box-shadow: 0 0 0 3px rgba(135, 31, 27, 0.1);
+    }
+
+    /* Estadísticas */
+    .stats-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+        gap: 1rem;
+        margin-bottom: 1.5rem;
+    }
+
+    .stat-card {
+        background: white;
+        border-radius: var(--border-radius);
+        padding: 1rem;
+        box-shadow: var(--shadow-sm);
+        border: 1px solid #e5e7eb;
+        text-align: center;
+        transition: transform 0.2s ease;
+    }
+
+    .stat-card:hover {
+        transform: translateY(-2px);
+    }
+
+    .stat-value {
+        font-size: 2rem;
+        font-weight: 700;
+        color: var(--regency-red);
+        margin-bottom: 0.25rem;
+    }
+
+    .stat-label {
+        font-size: 0.85rem;
+        color: var(--regency-gray-dark);
+        font-weight: 500;
+    }
+
+    /* Tabla de unidades */
+    .unidades-card {
+        background: white;
+        border-radius: var(--border-radius);
+        overflow: hidden;
+        box-shadow: var(--shadow-sm);
+        border: 1px solid #e5e7eb;
+    }
+
+    .card-header-regency {
+        background: var(--regency-red);
+        color: white;
+        padding: 1rem 1.25rem;
+        font-weight: 600;
+        font-size: 1rem;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+    }
+
+    .table-container {
+        overflow-x: auto;
+    }
+
+    .unidades-table {
+        width: 100%;
+        border-collapse: collapse;
+        font-size: 0.85rem;
+    }
+
+    .unidades-table th {
+        background: #f8fafc;
+        padding: 0.75rem;
+        text-align: left;
+        font-weight: 600;
+        color: var(--regency-text);
+        border-bottom: 2px solid #e5e7eb;
+        white-space: nowrap;
+    }
+
+    .unidades-table td {
+        padding: 0.75rem;
+        border-bottom: 1px solid #f1f5f9;
+        vertical-align: middle;
+    }
+
+    .unidades-table tbody tr:hover {
+        background: #fafbfc;
+    }
+
+    .unidades-table tbody tr:nth-child(even) {
+        background: #fefefe;
+    }
+
+    .unidades-table tbody tr:nth-child(even):hover {
+        background: #f8fafc;
+    }
+
+    /* Estados y badges */
+    .badge {
+        padding: 0.25rem 0.5rem;
+        border-radius: 0.25rem;
+        font-size: 0.75rem;
+        font-weight: 600;
+        text-transform: uppercase;
+        letter-spacing: 0.025em;
+    }
+
+    .badge-success {
+        background: #dcfce7;
+        color: #166534;
+    }
+
+    .badge-danger {
+        background: #fee2e2;
+        color: #991b1b;
+    }
+
+    .badge-secondary {
+        background: #f1f5f9;
+        color: #475569;
+    }
+
+    /* Botones de acción */
+    .btn-actions {
+        display: flex;
+        gap: 0.25rem;
+        flex-wrap: wrap;
+    }
+
+    .btn-sm {
+        padding: 0.25rem 0.5rem;
+        font-size: 0.75rem;
+        border-radius: 0.25rem;
+        text-decoration: none;
+        font-weight: 500;
+        transition: all 0.2s ease;
+        display: inline-flex;
+        align-items: center;
+        gap: 0.25rem;
+        border: none;
+        cursor: pointer;
+    }
+
+    .btn-primary {
+        background: var(--regency-red);
+        color: white;
+    }
+
+    .btn-primary:hover {
+        background: var(--regency-red-dark);
+        color: white;
+        text-decoration: none;
+    }
+
+    .btn-info {
+        background: #0ea5e9;
+        color: white;
+    }
+
+    .btn-info:hover {
+        background: #0284c7;
+        color: white;
+        text-decoration: none;
+    }
+
+    .btn-warning {
+        background: #f59e0b;
+        color: white;
+    }
+
+    .btn-warning:hover {
+        background: #d97706;
+        color: white;
+        text-decoration: none;
+    }
+
+    .btn-danger {
+        background: #dc2626;
+        color: white;
+    }
+
+    .btn-danger:hover {
+        background: #b91c1c;
+        color: white;
+        text-decoration: none;
+    }
+
+    .btn-regency {
+        background: var(--regency-red);
+        color: white;
+        border: none;
+        padding: 0.75rem 1.5rem;
+        border-radius: var(--border-radius);
+        font-weight: 500;
+        font-size: 0.9rem;
+        cursor: pointer;
+        transition: all 0.2s ease;
+        text-decoration: none;
+        display: inline-flex;
+        align-items: center;
+        gap: 0.5rem;
+    }
+
+    .btn-regency:hover {
+        background: var(--regency-red-dark);
+        color: white;
+        text-decoration: none;
+        transform: translateY(-1px);
+    }
+
+    /* Paginación */
+    .pagination-container {
+        background: white;
+        padding: 1rem 1.25rem;
+        border-top: 1px solid #e5e7eb;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        flex-wrap: wrap;
+        gap: 1rem;
+    }
+
+    .pagination-info {
+        font-size: 0.85rem;
+        color: var(--regency-gray-dark);
+    }
+
+    .pagination {
+        display: flex;
+        gap: 0.25rem;
+        list-style: none;
+        margin: 0;
+        padding: 0;
+    }
+
+    .pagination a, .pagination span {
+        padding: 0.5rem 0.75rem;
+        border: 1px solid #d1d5db;
+        color: var(--regency-text);
+        text-decoration: none;
+        border-radius: 0.25rem;
+        font-size: 0.85rem;
+    }
+
+    .pagination a:hover {
+        background: var(--regency-gray);
+    }
+
+    .pagination .current {
+        background: var(--regency-red);
+        color: white;
+        border-color: var(--regency-red);
+    }
+
+    /* Estados de la tabla */
+    .empty-state {
+        text-align: center;
+        padding: 3rem 1rem;
+        color: var(--regency-gray-dark);
+    }
+
+    .empty-icon {
+        font-size: 3rem;
+        margin-bottom: 1rem;
+        opacity: 0.5;
+    }
+
+    /* Responsive */
+    @media (max-width: 768px) {
+        .list-container {
+            padding: 0.75rem 1rem;
+        }
+
+        .page-header {
+            padding: 1rem;
+            flex-direction: column;
+            align-items: stretch;
+            text-align: center;
+        }
+
+        .header-actions {
+            justify-content: center;
+            margin-top: 0.5rem;
+        }
+
+        .filters-form {
+            grid-template-columns: 1fr;
+        }
+
+        .stats-grid {
+            grid-template-columns: repeat(2, 1fr);
+        }
+
+        .unidades-table {
+            font-size: 0.8rem;
+        }
+
+        .unidades-table th,
+        .unidades-table td {
+            padding: 0.5rem 0.25rem;
+        }
+
+        .btn-actions {
+            flex-direction: column;
+        }
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="list-container">
+    <!-- Header de la página -->
+    <div class="page-header">
+        <div class="header-main">
+            <h1>
+                🏢 Unidades de Negocio
+            </h1>
+            <p class="page-subtitle">
+                Gestión de unidades de negocio del sistema REGENCY
+            </p>
+        </div>
+        <div class="header-actions">
+            <a href="{% url 'empresas:unidad_negocio_create' %}" class="btn-regency">
+                ➕ Nueva Unidad
+            </a>
+        </div>
+    </div>
+
+    <!-- Filtros de búsqueda -->
+    <div class="filters-card">
+        <div class="filters-header">
+            🔍 Filtros de Búsqueda
+        </div>
+        <div class="filters-content">
+            <form method="get" class="filters-form">
+                <div class="form-group">
+                    <label class="form-label">Búsqueda General</label>
+                    <input type="text" name="search" value="{{ search }}" 
+                           class="form-control" 
+                           placeholder="Buscar por código, nombre o descripción...">
+                </div>
+                
+                <div class="form-group">
+                    <label class="form-label">Estado</label>
+                    <select name="estado" class="form-select">
+                        <option value="">Todos los estados</option>
+                        <option value="activo" {% if estado == 'activo' %}selected{% endif %}>Solo activos</option>
+                        <option value="inactivo" {% if estado == 'inactivo' %}selected{% endif %}>Solo inactivos</option>
+                    </select>
+                </div>
+                
+                <div class="form-group">
+                    <label class="form-label">Fecha</label>
+                    <input type="date" name="fecha_desde" value="{{ fecha_desde }}" 
+                           class="form-control" placeholder="Desde">
+                </div>
+                
+                <div class="form-group">
+                    <button type="submit" class="btn-regency">🔍 Buscar</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Estadísticas -->
+    {% if not is_filtered %}
+    <div class="stats-grid">
+        <div class="stat-card">
+            <div class="stat-value">{{ total_unidades|default:0 }}</div>
+            <div class="stat-label">Total Unidades</div>
+        </div>
+        <div class="stat-card">
+            <div class="stat-value">{{ unidades_activas|default:0 }}</div>
+            <div class="stat-label">Activas</div>
+        </div>
+        <div class="stat-card">
+            <div class="stat-value">{{ unidades_inactivas|default:0 }}</div>
+            <div class="stat-label">Inactivas</div>
+        </div>
+    </div>
+    {% endif %}
+
+    <!-- Tabla de unidades de negocio -->
+    <div class="unidades-card">
+        <div class="card-header-regency">
+            <span>
+                {% if is_filtered %}
+                    📋 Resultados de búsqueda ({{ total_unidades|default:0 }})
+                {% else %}
+                    📋 Lista de Unidades de Negocio ({{ total_unidades|default:0 }})
+                {% endif %}
+            </span>
+            {% if is_filtered %}
+                <a href="{% url 'empresas:unidades_negocio_list' %}" class="btn-sm btn-info">
+                    ❌ Limpiar Filtros
+                </a>
+            {% endif %}
+        </div>
+
+        <div class="table-container">
+            {% if page_obj %}
+                <table class="unidades-table">
+                    <thead>
+                        <tr>
+                            <th>Código</th>
+                            <th>Unidad de Negocio</th>
+                            <th>Empresas</th>
+                            <th>Estado</th>
+                            <th>Acciones</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for unidad in page_obj %}
+                        <tr>
+                            <td>
+                                <span class="badge badge-secondary">
+                                    {{ unidad.id_uen }}
+                                </span>
+                            </td>
+                            <td>
+                                <div>
+                                    <strong>{{ unidad.nombre }}</strong>
+                                    {% if unidad.descripcion %}
+                                        <br><small style="color: var(--regency-gray-dark);">
+                                            {{ unidad.descripcion|truncatechars:60 }}
+                                        </small>
+                                    {% endif %}
+                                </div>
+                            </td>
+
+                            <td>
+                               {% if unidad.empresas.all %}
+                              {% for empresa in unidad.empresas.all %}
+                               <span class="badge badge-secondary" style="margin: 1px;">
+                                      🏢 {{ empresa.nombre }}
+                          </span>
+                              {% endfor %}
+                            {% else %}
+                               <span style="color: var(--regency-gray-dark); font-style: italic;">
+                             Sin empresas
+                               </span>
+                                   {% endif %}
+                            </td>
+                            <td>
+                                {% if unidad.activo == 1 %}
+                                    <span class="badge badge-success">✅ Activo</span>
+                                {% else %}
+                                    <span class="badge badge-danger">❌ Inactivo</span>
+                                {% endif %}
+                            </td>
+
+                            <td>    
+                                <div class="btn-actions">
+                                    <a href="{% url 'empresas:unidad_negocio_detail' unidad.id_uen %}" 
+                                       class="btn-sm btn-info" title="Ver detalle">
+                                        Ver
+                                    </a>
+                                    <a href="{% url 'empresas:unidad_negocio_update' unidad.id_uen %}" 
+                                       class="btn-sm btn-warning" title="Editar">
+                                        Editar
+                                    </a>
+                                    <a href="{% url 'empresas:unidad_negocio_delete' unidad.id_uen %}" 
+                                       class="btn-sm btn-danger" title="Eliminar">
+                                        Eliminar
+                                    </a>
+                                </div>
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            {% else %}
+                <div class="empty-state">
+                    <div class="empty-icon">🏢</div>
+                    <h3>No se encontraron unidades de negocio</h3>
+                    {% if is_filtered %}
+                        <p>No hay unidades que coincidan con los filtros aplicados.</p>
+                        <a href="{% url 'empresas:unidades_negocio_list' %}" class="btn-regency">
+                            ❌ Limpiar Filtros
+                        </a>
+                    {% else %}
+                        <p>Aún no hay unidades de negocio registradas en el sistema.</p>
+                        <a href="{% url 'empresas:unidad_negocio_create' %}" class="btn-regency">
+                            ➕ Crear Primera Unidad
+                        </a>
+                    {% endif %}
+                </div>
+            {% endif %}
+        </div>
+
+        <!-- Paginación -->
+        {% if page_obj.has_other_pages %}
+        <div class="pagination-container">
+            <div class="pagination-info">
+                Mostrando {{ page_obj.start_index }} - {{ page_obj.end_index }} de {{ page_obj.paginator.count }} unidades
+            </div>
+            <div class="pagination">
+                {% if page_obj.has_previous %}
+                    <a href="?page=1{% if search %}&search={{ search }}{% endif %}{% if estado %}&estado={{ estado }}{% endif %}{% if fecha_desde %}&fecha_desde={{ fecha_desde }}{% endif %}">« Primera</a>
+                    <a href="?page={{ page_obj.previous_page_number }}{% if search %}&search={{ search }}{% endif %}{% if estado %}&estado={{ estado }}{% endif %}{% if fecha_desde %}&fecha_desde={{ fecha_desde }}{% endif %}">‹ Anterior</a>
+                {% endif %}
+                
+                <span class="current">{{ page_obj.number }}</span>
+                
+                {% if page_obj.has_next %}
+                    <a href="?page={{ page_obj.next_page_number }}{% if search %}&search={{ search }}{% endif %}{% if estado %}&estado={{ estado }}{% endif %}{% if fecha_desde %}&fecha_desde={{ fecha_desde }}{% endif %}">Siguiente ›</a>
+                    <a href="?page={{ page_obj.paginator.num_pages }}{% if search %}&search={{ search }}{% endif %}{% if estado %}&estado={{ estado }}{% endif %}{% if fecha_desde %}&fecha_desde={{ fecha_desde }}{% endif %}">Última »</a>
+                {% endif %}
+            </div>
+        </div>
+        {% endif %}
+    </div>
+</div>
+{% endblock %}

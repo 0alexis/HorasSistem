@@ -29,11 +29,11 @@ urlpatterns = [
     path('centros-operativos/<int:pk>/eliminar/', views.centro_operativo_delete, name='centro_operativo_delete'),
 
     # ========== CRUD DE UNIDADES DE NEGOCIO ==========
-    path('unidades-negocio/', views.unidades_negocio_list, name='unidades_negocio_list'),
-    path('unidades-negocio/nueva/', views.unidad_negocio_create, name='unidad_negocio_create'),
-    path('unidades-negocio/<int:pk>/', views.unidad_negocio_detail, name='unidad_negocio_detail'),
-    path('unidades-negocio/<int:pk>/editar/', views.unidad_negocio_update, name='unidad_negocio_update'),
-    path('unidades-negocio/<int:pk>/eliminar/', views.unidad_negocio_delete, name='unidad_negocio_delete'),
+    path('unidades/', views.unidades_negocio_list, name='unidades_negocio_list'),
+    path('unidades/nueva/', views.unidad_negocio_create, name='unidad_negocio_create'),
+    path('unidades/<int:pk>/', views.unidad_negocio_detail, name='unidad_negocio_detail'),
+    path('unidades/<int:pk>/editar/', views.unidad_negocio_update, name='unidad_negocio_update'),
+    path('unidades/<int:pk>/eliminar/', views.unidad_negocio_delete, name='unidad_negocio_delete'),
     
     # ========== CRUD DE CARGOS PREDEFINIDOS ==========
     path('cargos/', views.CargoPredefinidoListView.as_view(), name='cargopredefinido_list'),

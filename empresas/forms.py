@@ -1,7 +1,7 @@
 from django import forms
 from django.core.exceptions import ValidationError
 import re
-from .models import Empresa, Proyecto, CentroOperativo, CargoPredefinido
+from .models import Empresa, Proyecto, CentroOperativo, CargoPredefinido, UnidadNegocio
 
 
 
@@ -525,4 +525,161 @@ class ProyectoForm(forms.ModelForm):
                 raise forms.ValidationError('Ya existe un proyecto con este nombre.')
         
         return nombre
+
+
+
+# =======================
+#    FORMULARIO DE UNIDAD DE NEGOCIO
+# =======================
+#
+
+class UnidadNegocioForm(forms.ModelForm):
+    """Formulario para crear y editar unidades de negocio"""
+    
+    # ✅ DEFINIR CAMPOS DE FECHA EXPLÍCITAMENTE
+    fecha_inicio = forms.DateField(
+        required=False,
+        widget=forms.DateInput(attrs={
+            'class': 'form-control',
+            'type': 'date'
+        }),
+        input_formats=['%Y-%m-%d'],  # Formato HTML5
+        label='Fecha de Inicio'
+    )
+    
+    fecha_fin = forms.DateField(
+        required=False,
+        widget=forms.DateInput(attrs={
+            'class': 'form-control',
+            'type': 'date'
+        }),
+        input_formats=['%Y-%m-%d'],  # Formato HTML5
+        label='Fecha de Fin'
+    )
+    
+    # ✅ EMPRESAS CON CHECKBOXES
+    empresas = forms.ModelMultipleChoiceField(
+        queryset=Empresa.objects.none(),
+        widget=forms.CheckboxSelectMultiple(attrs={
+            'class': 'empresa-checkbox-list'
+        }),
+        required=False,
+        label='Empresas Asociadas'
+    )
+    
+    class Meta:
+        model = UnidadNegocio
+        fields = [
+            'nombre',
+            'descripcion', 
+            'fecha_inicio',
+            'fecha_fin',
+            'activo',
+            'empresas'
+        ]
+        widgets = {
+            'nombre': forms.TextInput(attrs={
+                'class': 'form-control',
+                'placeholder': 'Nombre de la unidad de negocio',
+                'maxlength': 200
+            }),
+            'descripcion': forms.Textarea(attrs={
+                'class': 'form-control form-textarea',
+                'rows': 4,
+                'placeholder': 'Descripción detallada de la unidad de negocio',
+                'maxlength': 1000
+            }),
+            'activo': forms.CheckboxInput(attrs={
+                'class': 'form-check-input'
+            })
+            # ✅ NO incluir fecha_inicio/fecha_fin aquí (se definen arriba)
+        }
+
+    def __init__(self, *args, **kwargs):
+        self.user = kwargs.pop('user', None)
+        super().__init__(*args, **kwargs)
+        
+        # ✅ CONFIGURAR EMPRESAS ACTIVAS
+        self.fields['empresas'].queryset = Empresa.objects.filter(activo=True).order_by('nombre')
+        
+        # ✅ CORRECCIÓN: USAR self.initial EN LUGAR DE self.fields[].initial
+        if self.instance.pk:
+            print(f"DEBUG - Editando unidad ID: {self.instance.pk}")
+            print(f"DEBUG - Fecha inicio BD: {self.instance.fecha_inicio}")
+            print(f"DEBUG - Fecha fin BD: {self.instance.fecha_fin}")
+            
+            # ✅ EMPRESAS ASOCIADAS
+            empresas_asociadas = self.instance.empresas.all()
+            self.initial['empresas'] = empresas_asociadas
+            print(f"DEBUG - Empresas asociadas: {list(empresas_asociadas.values_list('nombre', flat=True))}")
+            
+            # ✅ FORMATEAR FECHAS CORRECTAMENTE
+            if self.instance.fecha_inicio:
+                fecha_formateada = self.instance.fecha_inicio.strftime('%Y-%m-%d')
+                self.initial['fecha_inicio'] = fecha_formateada
+                print(f"DEBUG - Fecha inicio formateada: {fecha_formateada}")
+            else:
+                print("DEBUG - No hay fecha_inicio en BD")
+                
+            if self.instance.fecha_fin:
+                fecha_formateada = self.instance.fecha_fin.strftime('%Y-%m-%d')
+                self.initial['fecha_fin'] = fecha_formateada
+                print(f"DEBUG - Fecha fin formateada: {fecha_formateada}")
+            else:
+                print("DEBUG - No hay fecha_fin en BD")
+    
+        # ✅ ACTIVO POR DEFECTO AL CREAR
+        if not self.instance.pk:
+            self.fields['activo'].initial = True
+            self.fields['activo'].widget = forms.HiddenInput()
+            print("DEBUG - Creando nueva unidad")
+
+    def clean_fecha_inicio(self):
+        """Validar fecha de inicio"""
+        fecha_inicio = self.cleaned_data.get('fecha_inicio')
+        print(f"DEBUG - Fecha inicio limpia: {fecha_inicio}")
+        return fecha_inicio
+
+    def clean_fecha_fin(self):
+        """Validar fecha de fin"""
+        fecha_fin = self.cleaned_data.get('fecha_fin')
+        print(f"DEBUG - Fecha fin limpia: {fecha_fin}")
+        return fecha_fin
+
+    def clean(self):
+        """Validar fechas"""
+        cleaned_data = super().clean()
+        fecha_inicio = cleaned_data.get('fecha_inicio')
+        fecha_fin = cleaned_data.get('fecha_fin')
+
+        if fecha_inicio and fecha_fin and fecha_fin <= fecha_inicio:
+            raise forms.ValidationError({
+                'fecha_fin': 'La fecha de fin debe ser posterior a la fecha de inicio.'
+            })
+        return cleaned_data
+
+    def save(self, commit=True):
+        """Guardar unidad con fechas y relaciones"""
+        instance = super().save(commit=False)
+        
+        # ✅ ASEGURAR QUE LAS FECHAS SE GUARDEN
+        fecha_inicio = self.cleaned_data.get('fecha_inicio')
+        fecha_fin = self.cleaned_data.get('fecha_fin')
+        
+        if fecha_inicio is not None:
+            instance.fecha_inicio = fecha_inicio
+            print(f"DEBUG - Guardando fecha_inicio: {fecha_inicio}")
+            
+        if fecha_fin is not None:
+            instance.fecha_fin = fecha_fin
+            print(f"DEBUG - Guardando fecha_fin: {fecha_fin}")
+        
+        if commit:
+            instance.save()
+            # ✅ GUARDAR EMPRESAS ASOCIADAS
+            empresas_seleccionadas = self.cleaned_data.get('empresas', [])
+            instance.empresas.set(empresas_seleccionadas)
+        
+        return instance
+
 

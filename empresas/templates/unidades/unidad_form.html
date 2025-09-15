@@ -1,0 +1,704 @@
+{% extends "admin/base_site.html" %}
+{% load i18n static %}
+
+{% block extrastyle %}
+{{ block.super }}
+<style>
+    /* ========== VARIABLES EMPRESARIALES REGENCY ========== */
+    :root {
+        --regency-red: #871F1B;
+        --regency-red-dark: #6b191b;
+        --regency-red-light: #a13832;
+        --regency-gray: #f8f9fa;
+        --regency-gray-dark: #64748b;
+        --regency-text: #333;
+        --border-radius: 8px;
+        --shadow-sm: 0 1px 3px rgba(0, 0, 0, 0.1);
+        --shadow-md: 0 4px 6px rgba(0, 0, 0, 0.1);
+    }
+
+    /* ========== OCULTAR BREADCRUMB DJANGO ADMIN ========== */
+    .breadcrumbs, div.breadcrumbs { display: none !important; }
+
+    /* ========== TIPOGRAFÍA EMPRESARIAL ========== */
+    body {
+        font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+        font-size: 14px;
+        line-height: 1.5;
+        color: var(--regency-text);
+        background: var(--regency-gray);
+    }
+
+    /* ========== CONTAINER PRINCIPAL ========== */
+    .form-container {
+        padding: 1rem 1.5rem;
+        max-width: 900px;
+        margin: 0 auto;
+    }
+
+    /* ========== HEADER ========== */
+    .page-header {
+        background: var(--regency-red);
+        color: white;
+        padding: 1.25rem 1.5rem;
+        margin-bottom: 1.5rem;
+        border-radius: var(--border-radius);
+        box-shadow: var(--shadow-sm);
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        flex-wrap: wrap;
+        gap: 1rem;
+    }
+
+    .page-header h1 {
+        font-size: 1.4rem;
+        font-weight: 600;
+        margin: 0;
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+    }
+
+    .page-subtitle {
+        font-size: 0.85rem;
+        opacity: 0.9;
+        margin: 0.25rem 0 0 0;
+        font-weight: 400;
+    }
+
+    /* ========== BREADCRUMB ========== */
+    .custom-breadcrumb {
+        background: white;
+        border: 1px solid #e5e7eb;
+        border-radius: var(--border-radius);
+        padding: 0.75rem 1rem;
+        margin-bottom: 1.5rem;
+        box-shadow: var(--shadow-sm);
+        font-size: 0.85rem;
+    }
+
+    .custom-breadcrumb a {
+        color: var(--regency-red);
+        text-decoration: none;
+        font-weight: 500;
+    }
+
+    .custom-breadcrumb a:hover {
+        text-decoration: underline;
+    }
+
+    /* ========== FORMULARIO ========== */
+    .form-card {
+        background: white;
+        border-radius: var(--border-radius);
+        overflow: hidden;
+        box-shadow: var(--shadow-sm);
+        border: 1px solid #e5e7eb;
+    }
+
+    .card-header-regency {
+        background: var(--regency-red);
+        color: white;
+        padding: 1rem 1.25rem;
+        font-weight: 600;
+        font-size: 1rem;
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+    }
+
+    .form-content {
+        padding: 1.5rem;
+    }
+
+    .form-section {
+        margin-bottom: 2rem;
+    }
+
+    .section-title {
+        font-size: 1.1rem;
+        font-weight: 600;
+        color: var(--regency-text);
+        margin-bottom: 1rem;
+        padding-bottom: 0.5rem;
+        border-bottom: 2px solid var(--regency-red);
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+    }
+
+    .form-grid {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 1.5rem;
+    }
+
+    .form-grid-full {
+        grid-column: 1 / -1;
+    }
+
+    .form-group {
+        margin-bottom: 1.5rem;
+    }
+
+    .form-label {
+        display: block;
+        font-weight: 600;
+        color: var(--regency-text);
+        margin-bottom: 0.5rem;
+        font-size: 0.9rem;
+    }
+
+    .form-label.required::after {
+        content: ' *';
+        color: var(--regency-red);
+        font-weight: 600;
+    }
+
+    .form-control, .form-select, .form-textarea {
+        width: 100%;
+        padding: 0.75rem;
+        border: 1px solid #d1d5db;
+        border-radius: var(--border-radius);
+        font-size: 0.9rem;
+        transition: all 0.2s ease;
+        background: white;
+    }
+
+    .form-control:focus, .form-select:focus, .form-textarea:focus {
+        outline: none;
+        border-color: var(--regency-red);
+        box-shadow: 0 0 0 3px rgba(135, 31, 27, 0.1);
+    }
+
+    .form-textarea {
+        resize: vertical;
+        min-height: 100px;
+    }
+
+    /* ========== CHECKBOXES DE EMPRESAS ========== */
+    .empresas-checklist {
+        background: #f8fafc;
+        border: 1px solid #e2e8f0;
+        border-radius: var(--border-radius);
+        padding: 1rem;
+        margin-top: 0.5rem;
+    }
+
+    .checklist-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 1rem;
+        padding-bottom: 0.5rem;
+        border-bottom: 1px solid #e5e7eb;
+    }
+
+    .checklist-controls {
+        display: flex;
+        gap: 0.5rem;
+    }
+
+    .btn-checklist {
+        background: var(--regency-red);
+        color: white;
+        border: none;
+        padding: 0.4rem 0.8rem;
+        border-radius: 0.25rem;
+        font-size: 0.8rem;
+        cursor: pointer;
+        transition: all 0.2s ease;
+    }
+
+    .btn-checklist:hover {
+        background: var(--regency-red-dark);
+    }
+
+    .checklist-counter {
+        font-size: 0.8rem;
+        color: var(--regency-gray-dark);
+        font-weight: 500;
+    }
+
+    .checklist-container {
+        display: grid;
+        grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+        gap: 0.75rem;
+        max-height: 300px;
+        overflow-y: auto;
+    }
+
+    .checklist-item {
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+        padding: 0.5rem;
+        background: white;
+        border: 1px solid #e5e7eb;
+        border-radius: 0.25rem;
+        transition: all 0.2s ease;
+    }
+
+    .checklist-item:hover {
+        background: #f1f5f9;
+        border-color: var(--regency-red);
+    }
+
+    .checklist-item input[type="checkbox"] {
+        width: 16px;
+        height: 16px;
+        accent-color: var(--regency-red);
+    }
+
+    .checklist-label {
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+        cursor: pointer;
+        font-size: 0.85rem;
+        font-weight: 500;
+        margin: 0;
+        flex: 1;
+    }
+
+    .checklist-empty {
+        text-align: center;
+        padding: 2rem;
+        color: var(--regency-gray-dark);
+        grid-column: 1 / -1;
+    }
+
+    /* ========== ESTADO VISUAL ========== */
+    .form-check {
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+        padding: 0.75rem;
+        background: #f8fafc;
+        border-radius: var(--border-radius);
+        border: 1px solid #e5e7eb;
+    }
+
+    .form-check input[type="checkbox"] {
+        width: 18px;
+        height: 18px;
+        accent-color: var(--regency-red);
+    }
+
+    .status-indicator {
+        background: #f0fdf4;
+        border: 1px solid #bbf7d0;
+        border-radius: var(--border-radius);
+        padding: 0.75rem;
+        color: #166534;
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+        font-size: 0.9rem;
+    }
+
+    /* ========== BOTONES ========== */
+    .form-actions {
+        padding: 1.25rem 1.5rem;
+        background: #f8fafc;
+        border-top: 1px solid #e5e7eb;
+        display: flex;
+        gap: 0.75rem;
+        justify-content: flex-end;
+        flex-wrap: wrap;
+    }
+
+    .btn-regency {
+        background: var(--regency-red);
+        color: white;
+        border: none;
+        padding: 0.75rem 1.5rem;
+        border-radius: var(--border-radius);
+        font-weight: 500;
+        font-size: 0.9rem;
+        cursor: pointer;
+        transition: all 0.2s ease;
+        text-decoration: none;
+        display: inline-flex;
+        align-items: center;
+        gap: 0.5rem;
+    }
+
+    .btn-regency:hover {
+        background: var(--regency-red-dark);
+        color: white;
+        text-decoration: none;
+        transform: translateY(-1px);
+    }
+
+    .btn-outline {
+        background: transparent;
+        color: var(--regency-gray-dark);
+        border: 1px solid #d1d5db;
+        padding: 0.75rem 1.5rem;
+        border-radius: var(--border-radius);
+        font-weight: 500;
+        cursor: pointer;
+        transition: all 0.2s ease;
+        text-decoration: none;
+        display: inline-flex;
+        align-items: center;
+        gap: 0.5rem;
+    }
+
+    .btn-outline:hover {
+        background: var(--regency-gray);
+        border-color: #9ca3af;
+        color: var(--regency-text);
+        text-decoration: none;
+    }
+
+    /* ========== AYUDAS ========== */
+    .help-text {
+        font-size: 0.8rem;
+        color: var(--regency-gray-dark);
+        margin-top: 0.25rem;
+        font-style: italic;
+    }
+
+    .error-message {
+        color: var(--regency-red);
+        font-size: 0.8rem;
+        margin-top: 0.25rem;
+        font-weight: 500;
+    }
+
+    /* ========== RESPONSIVE ========== */
+    @media (max-width: 768px) {
+        .form-container {
+            padding: 0.75rem 1rem;
+        }
+
+        .page-header {
+            padding: 1rem;
+            flex-direction: column;
+            align-items: stretch;
+            text-align: center;
+        }
+
+        .form-grid {
+            grid-template-columns: 1fr;
+            gap: 1rem;
+        }
+
+        .form-actions {
+            flex-direction: column;
+        }
+
+        .checklist-container {
+            grid-template-columns: 1fr;
+        }
+    }
+
+    /* ========== ANIMACIONES ========== */
+    .form-card {
+        animation: slideInUp 0.3s ease-out;
+    }
+
+    @keyframes slideInUp {
+        from {
+            opacity: 0;
+            transform: translateY(20px);
+        }
+        to {
+            opacity: 1;
+            transform: translateY(0);
+        }
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="form-container">
+    <!-- Header -->
+    <div class="page-header">
+        <div class="header-main">
+            <h1>
+                🏢 {% if object %}Editar{% else %}Nueva{% endif %} Unidad de Negocio
+            </h1>
+            <p class="page-subtitle">
+                {% if object %}
+                    Modifica la información de la unidad "{{ object.nombre }}"
+                {% else %}
+                    Complete la información para crear una nueva unidad de negocio
+                {% endif %}
+            </p>
+        </div>
+        <div class="header-actions">
+            <a href="{% url 'empresas:unidades_negocio_list' %}" class="btn-outline">
+                📋 Ver Lista
+            </a>
+        </div>
+    </div>
+
+    <!-- Breadcrumb -->
+    <div class="custom-breadcrumb">
+        <a href="/">🏠 Dashboard</a>
+        <span class="breadcrumb-separator">→</span>
+        <a href="{% url 'empresas:unidades_negocio_list' %}">🏢 Unidades de Negocio</a>
+        <span class="breadcrumb-separator">→</span>
+        <span style="color: var(--regency-gray-dark);">
+            {% if object %}✏️ Editar{% else %}🏢 Nueva{% endif %}
+        </span>
+    </div>
+
+    <!-- Formulario -->
+    <div class="form-card">
+        <div class="card-header-regency">
+            {% if object %}
+                ✏️ Editar: {{ object.nombre }}
+            {% else %}
+                🏢 Crear Nueva Unidad de Negocio
+            {% endif %}
+        </div>
+
+        <form method="post" class="unidad-form">
+            {% csrf_token %}
+            
+            <div class="form-content">
+                <!-- SECCIÓN: INFORMACIÓN BÁSICA -->
+                <div class="form-section">
+                    <h3 class="section-title">📋 Información Básica</h3>
+                    
+                    <div class="form-group">
+                        <label for="{{ form.nombre.id_for_label }}" class="form-label required">
+                            {{ form.nombre.label }}
+                        </label>
+                        {{ form.nombre }}
+                        {% if form.nombre.help_text %}
+                            <div class="help-text">{{ form.nombre.help_text }}</div>
+                        {% endif %}
+                        {% if form.nombre.errors %}
+                            {% for error in form.nombre.errors %}
+                                <div class="error-message">{{ error }}</div>
+                            {% endfor %}
+                        {% endif %}
+                    </div>
+
+                    <div class="form-group">
+                        <label for="{{ form.descripcion.id_for_label }}" class="form-label">
+                            {{ form.descripcion.label }}
+                        </label>
+                        {{ form.descripcion }}
+                        {% if form.descripcion.help_text %}
+                            <div class="help-text">{{ form.descripcion.help_text }}</div>
+                        {% endif %}
+                        {% if form.descripcion.errors %}
+                            {% for error in form.descripcion.errors %}
+                                <div class="error-message">{{ error }}</div>
+                            {% endfor %}
+                        {% endif %}
+                    </div>
+                </div>
+
+                <!-- SECCIÓN: FECHAS -->
+                <div class="form-section">
+                    <h3 class="section-title">📅 Fechas de Operación</h3>
+                    
+                    <div class="form-grid">
+                        <div class="form-group">
+                            <label for="{{ form.fecha_inicio.id_for_label }}" class="form-label">
+                                {{ form.fecha_inicio.label }}
+                            </label>
+                            {{ form.fecha_inicio }}
+                            {% if form.fecha_inicio.help_text %}
+                                <div class="help-text">{{ form.fecha_inicio.help_text }}</div>
+                            {% endif %}
+                            {% if form.fecha_inicio.errors %}
+                                {% for error in form.fecha_inicio.errors %}
+                                    <div class="error-message">{{ error }}</div>
+                                {% endfor %}
+                            {% endif %}
+                        </div>
+
+                        <div class="form-group">
+                            <label for="{{ form.fecha_fin.id_for_label }}" class="form-label">
+                                {{ form.fecha_fin.label }}
+                            </label>
+                            {{ form.fecha_fin }}
+                            {% if form.fecha_fin.help_text %}
+                                <div class="help-text">{{ form.fecha_fin.help_text }}</div>
+                            {% endif %}
+                            {% if form.fecha_fin.errors %}
+                                {% for error in form.fecha_fin.errors %}
+                                    <div class="error-message">{{ error }}</div>
+                                {% endfor %}
+                            {% endif %}
+                            <div class="help-text">Opcional - Dejar vacío si es indefinida</div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- SECCIÓN: EMPRESAS ASOCIADAS -->
+                <div class="form-section">
+                    <h3 class="section-title">🏭 Empresas Asociadas</h3>
+                    
+                    <div class="form-group">
+                        <label class="form-label">{{ form.empresas.label }}</label>
+                        {% if form.empresas.help_text %}
+                            <div class="help-text">{{ form.empresas.help_text }}</div>
+                        {% endif %}
+                        
+                        <div class="empresas-checklist">
+                            <div class="checklist-header">
+                                <div class="checklist-controls">
+                                    <button type="button" class="btn-checklist" id="selectAllEmpresas">
+                                        ✅ Seleccionar Todas
+                                    </button>
+                                    <button type="button" class="btn-checklist" id="clearAllEmpresas">
+                                        ❌ Limpiar Selección
+                                    </button>
+                                </div>
+                                <div class="checklist-counter">
+                                    <span id="empresasSelected">0</span> empresa(s) seleccionada(s)
+                                </div>
+                            </div>
+                            
+                            <div class="checklist-container">
+                                {% for choice in form.empresas %}
+                                    <div class="checklist-item">
+                                        {{ choice.tag }}
+                                        <label for="{{ choice.id_for_label }}" class="checklist-label">
+                                            <span class="checklist-icon">🏭</span>
+                                            <span class="checklist-text">{{ choice.choice_label }}</span>
+                                        </label>
+                                    </div>
+                                {% empty %}
+                                    <div class="checklist-empty">
+                                        <span class="empty-icon">🏭</span>
+                                        <p>No hay empresas disponibles.</p>
+                                        <small>Las empresas deben estar marcadas como activas para aparecer aquí.</small>
+                                    </div>
+                                {% endfor %}
+                            </div>
+                        </div>
+                        
+                        {% if form.empresas.errors %}
+                            {% for error in form.empresas.errors %}
+                                <div class="error-message">{{ error }}</div>
+                            {% endfor %}
+                        {% endif %}
+                    </div>
+                </div>
+
+                <!-- SECCIÓN: ESTADO -->
+                <div class="form-section">
+                    <h3 class="section-title">⚙️ Estado de la Unidad</h3>
+
+                    {% if object %}
+                        <div class="form-group">
+                            <div class="form-check">
+                                {{ form.activo }}
+                                <label for="{{ form.activo.id_for_label }}" class="form-check-label">
+                                    {{ form.activo.label }}
+                                </label>
+                            </div>
+                            {% if form.activo.help_text %}
+                                <div class="help-text">{{ form.activo.help_text }}</div>
+                            {% endif %}
+                            <div class="help-text">
+                                ⚠️ Desmarque esta opción para inactivar la unidad de negocio
+                            </div>
+                        </div>
+                    {% else %}
+                        {{ form.activo }}
+                        <div class="form-group">
+                            <div class="status-indicator">
+                                <span>✅</span>
+                                <strong>Estado:</strong> Esta unidad de negocio se creará como <strong>ACTIVA</strong> por defecto
+                            </div>
+                        </div>
+                    {% endif %}
+                </div>
+            </div>
+
+            <!-- Botones -->
+            <div class="form-actions">
+                <a href="{% url 'empresas:unidades_negocio_list' %}" class="btn-outline">
+                    ❌ Cancelar
+                </a>
+                {% if object %}
+                    <button type="submit" class="btn-regency">
+                        💾 Actualizar Unidad
+                    </button>
+                {% else %}
+                    <button type="submit" class="btn-regency">
+                        🏢 Crear Unidad
+                    </button>
+                {% endif %}
+            </div>
+        </form>
+    </div>
+</div>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // Enfocar primer campo
+    const firstInput = document.querySelector('.form-control');
+    if (firstInput) {
+        firstInput.focus();
+    }
+
+    // Funcionalidades del checklist de empresas
+    const empresasChecklist = document.querySelector('.empresas-checklist');
+    if (empresasChecklist) {
+        const selectAllBtn = document.getElementById('selectAllEmpresas');
+        const clearAllBtn = document.getElementById('clearAllEmpresas');
+        const empresasSelectedCounter = document.getElementById('empresasSelected');
+        
+        // Seleccionar todas las empresas
+        selectAllBtn.addEventListener('click', function() {
+            const allCheckboxes = empresasChecklist.querySelectorAll('.checklist-item input[type="checkbox"]');
+            allCheckboxes.forEach(checkbox => {
+                checkbox.checked = true;
+                checkbox.dispatchEvent(new Event('change'));
+            });
+        });
+        
+        // Limpiar selección de empresas
+        clearAllBtn.addEventListener('click', function() {
+            const allCheckboxes = empresasChecklist.querySelectorAll('.checklist-item input[type="checkbox"]');
+            allCheckboxes.forEach(checkbox => {
+                checkbox.checked = false;
+                checkbox.dispatchEvent(new Event('change'));
+            });
+        });
+        
+        // Actualizar contador de empresas seleccionadas
+        empresasChecklist.addEventListener('change', function() {
+            const selectedCount = empresasChecklist.querySelectorAll('.checklist-item input[type="checkbox"]:checked').length;
+            empresasSelectedCounter.textContent = selectedCount;
+        });
+        
+        // Inicializar contador
+        const initialCount = empresasChecklist.querySelectorAll('.checklist-item input[type="checkbox"]:checked').length;
+        empresasSelectedCounter.textContent = initialCount;
+    }
+
+    // Validación de fechas
+    const fechaInicio = document.getElementById('{{ form.fecha_inicio.id_for_label }}');
+    const fechaFin = document.getElementById('{{ form.fecha_fin.id_for_label }}');
+    
+    if (fechaInicio && fechaFin) {
+        function validarFechas() {
+            if (fechaInicio.value && fechaFin.value) {
+                if (new Date(fechaFin.value) <= new Date(fechaInicio.value)) {
+                    fechaFin.setCustomValidity('La fecha de fin debe ser posterior a la fecha de inicio');
+                } else {
+                    fechaFin.setCustomValidity('');
+                }
+            }
+        }
+        
+        fechaInicio.addEventListener('change', validarFechas);
+        fechaFin.addEventListener('change', validarFechas);
+    }
+});
+</script>
+{% endblock %}

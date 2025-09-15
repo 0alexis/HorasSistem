@@ -1,0 +1,394 @@
+{% extends "admin/base_site.html" %}
+{% load i18n static %}
+
+{% block extrastyle %}
+{{ block.super }}
+<style>
+    /* ========== VARIABLES EMPRESARIALES REGENCY ========== */
+    :root {
+        --regency-red: #871F1B;
+        --regency-red-dark: #6b191b;
+        --regency-red-light: #a13832;
+        --regency-gray: #f8f9fa;
+        --regency-gray-dark: #64748b;
+        --regency-text: #333;
+        --border-radius: 8px;
+        --shadow-sm: 0 1px 3px rgba(0, 0, 0, 0.1);
+        --shadow-md: 0 4px 6px rgba(0, 0, 0, 0.1);
+    }
+
+    /* ========== OCULTAR BREADCRUMB DJANGO ADMIN ========== */
+    .breadcrumbs, div.breadcrumbs { display: none !important; }
+
+    /* ========== TIPOGRAFÍA EMPRESARIAL ========== */
+    body {
+        font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+        font-size: 14px;
+        line-height: 1.5;
+        color: var(--regency-text);
+        background: var(--regency-gray);
+    }
+
+    /* ========== CONTAINER PRINCIPAL ========== */
+    .detail-container {
+        padding: 1rem 1.5rem;
+        max-width: 900px;
+        margin: 0 auto;
+    }
+
+    /* ========== HEADER ========== */
+    .page-header {
+        background: var(--regency-red);
+        color: white;
+        padding: 1.25rem 1.5rem;
+        margin-bottom: 1.5rem;
+        border-radius: var(--border-radius);
+        box-shadow: var(--shadow-sm);
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        flex-wrap: wrap;
+        gap: 1rem;
+    }
+
+    .page-header h1 {
+        font-size: 1.4rem;
+        font-weight: 600;
+        margin: 0;
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+    }
+
+    .page-subtitle {
+        font-size: 0.85rem;
+        opacity: 0.9;
+        margin: 0.25rem 0 0 0;
+        font-weight: 400;
+    }
+
+    /* ========== BREADCRUMB ========== */
+    .custom-breadcrumb {
+        background: white;
+        border: 1px solid #e5e7eb;
+        border-radius: var(--border-radius);
+        padding: 0.75rem 1rem;
+        margin-bottom: 1.5rem;
+        box-shadow: var(--shadow-sm);
+        font-size: 0.85rem;
+    }
+
+    .custom-breadcrumb a {
+        color: var(--regency-red);
+        text-decoration: none;
+        font-weight: 500;
+    }
+
+    .custom-breadcrumb a:hover {
+        text-decoration: underline;
+    }
+
+    /* ========== CARD DE DETALLE ========== */
+    .detail-card {
+        background: white;
+        border-radius: var(--border-radius);
+        overflow: hidden;
+        box-shadow: var(--shadow-sm);
+        border: 1px solid #e5e7eb;
+    }
+
+    .card-header-regency {
+        background: var(--regency-red);
+        color: white;
+        padding: 1rem 1.25rem;
+        font-weight: 600;
+        font-size: 1rem;
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+    }
+
+    .detail-content {
+        padding: 1.5rem;
+    }
+
+    .detail-section {
+        margin-bottom: 2rem;
+    }
+
+    .section-title {
+        font-size: 1.1rem;
+        font-weight: 600;
+        color: var(--regency-text);
+        margin-bottom: 1rem;
+        padding-bottom: 0.5rem;
+        border-bottom: 2px solid var(--regency-red);
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+    }
+
+    .detail-item {
+        margin-bottom: 1rem;
+    }
+
+    .detail-label {
+        display: block;
+        font-weight: 600;
+        color: var(--regency-text);
+        margin-bottom: 0.5rem;
+        font-size: 0.9rem;
+    }
+
+    .detail-value {
+        font-size: 1rem;
+        color: var(--regency-gray-dark);
+    }
+
+    /* ========== LISTA DE EMPRESAS ========== */
+    .empresas-list {
+        list-style: none;
+        padding: 0;
+        margin: 0;
+        display: flex;
+        flex-wrap: wrap;
+        gap: 0.75rem;
+    }
+
+    .empresa-item {
+        background: #f8fafc;
+        border: 1px solid #e2e8f0;
+        border-radius: var(--border-radius);
+        padding: 0.5rem 0.75rem;
+        font-size: 0.85rem;
+        color: var(--regency-gray-dark);
+        font-weight: 500;
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+    }
+
+    /* ========== BOTONES ========== */
+    .detail-actions {
+        padding: 1.25rem 1.5rem;
+        background: #f8fafc;
+        border-top: 1px solid #e5e7eb;
+        display: flex;
+        gap: 0.75rem;
+        justify-content: flex-end;
+        flex-wrap: wrap;
+    }
+
+    .btn-regency {
+        background: var(--regency-red);
+        color: white;
+        border: none;
+        padding: 0.75rem 1.5rem;
+        border-radius: var(--border-radius);
+        font-weight: 500;
+        font-size: 0.9rem;
+        cursor: pointer;
+        transition: all 0.2s ease;
+        text-decoration: none;
+        display: inline-flex;
+        align-items: center;
+        gap: 0.5rem;
+    }
+
+    .btn-regency:hover {
+        background: var(--regency-red-dark);
+        color: white;
+        text-decoration: none;
+        transform: translateY(-1px);
+    }
+
+    .btn-outline {
+        background: transparent;
+        color: var(--regency-gray-dark);
+        border: 1px solid #d1d5db;
+        padding: 0.75rem 1.5rem;
+        border-radius: var(--border-radius);
+        font-weight: 500;
+        cursor: pointer;
+        transition: all 0.2s ease;
+        text-decoration: none;
+        display: inline-flex;
+        align-items: center;
+        gap: 0.5rem;
+    }
+
+    .btn-outline:hover {
+        background: var(--regency-gray);
+        border-color: #9ca3af;
+        color: var(--regency-text);
+        text-decoration: none;
+    }
+
+    /* ========== RESPONSIVE ========== */
+    @media (max-width: 768px) {
+        .detail-container {
+            padding: 0.75rem 1rem;
+        }
+
+        .page-header {
+            padding: 1rem;
+            flex-direction: column;
+            align-items: stretch;
+            text-align: center;
+        }
+
+        .detail-actions {
+            flex-direction: column;
+        }
+    }
+
+    /* ========== ANIMACIONES ========== */
+    .detail-card {
+        animation: slideInUp 0.3s ease-out;
+    }
+
+    @keyframes slideInUp {
+        from {
+            opacity: 0;
+            transform: translateY(20px);
+        }
+        to {
+            opacity: 1;
+            transform: translateY(0);
+        }
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="detail-container">
+    <!-- Header -->
+    <div class="page-header">
+        <div class="header-main">
+            <h1>
+                🏢 Detalle de Unidad de Negocio
+            </h1>
+            <p class="page-subtitle">
+                Información completa de la unidad "{{ unidad.nombre }}"
+            </p>
+        </div>
+        <div class="header-actions">
+            <a href="{% url 'empresas:unidades_negocio_list' %}" class="btn-outline">
+                📋 Ver Listado
+            </a>
+        </div>
+    </div>
+
+
+    <!-- Card de Detalle -->
+    <div class="detail-card">
+        <div class="card-header-regency">
+            🏢 {{ unidad.nombre }}
+        </div>
+
+        <div class="detail-content">
+            <!-- SECCIÓN: INFORMACIÓN BÁSICA -->
+            <div class="detail-section">
+                <h3 class="section-title">
+                    📋 Información Básica
+                </h3>
+                <div class="detail-item">
+                    <span class="detail-label">Nombre:</span>
+                    <span class="detail-value">{{ unidad.nombre }}</span>
+                </div>
+                <div class="detail-item">
+                    <span class="detail-label">Descripción:</span>
+                    <span class="detail-value">{{ unidad.descripcion|default:"Sin descripción" }}</span>
+                </div>
+            </div>
+
+            <!-- SECCIÓN: RESPONSABLE Y FECHAS -->
+            <div class="detail-section">
+                <h3 class="section-title">
+                    👤 Responsable y Fechas
+                </h3>
+                <div class="detail-item">
+                    <span class="detail-label">Responsable:</span>
+                    <span class="detail-value">
+                        {% if unidad.responsable %}
+                            {{ unidad.responsable.get_full_name }}
+                        {% else %}
+                            Sin responsable asignado
+                        {% endif %}
+                    </span>
+                </div>
+                <div class="detail-item">
+                    <span class="detail-label">Fecha de Creación:</span>
+                    <span class="detail-value">{{ unidad.creado_en|date:"d/m/Y H:i" }}</span>
+                </div>
+                <div class="detail-item">
+                    <span class="detail-label">Fecha de Inicio:</span>
+                    <span class="detail-value">
+                        {% if unidad.fecha_inicio %}
+                            {{ unidad.fecha_inicio|date:"d/m/Y" }}
+                        {% else %}
+                            Sin fecha de inicio
+                        {% endif %}
+                    </span>
+                </div>
+                <div class="detail-item">
+                    <span class="detail-label">Fecha de Fin:</span>
+                    <span class="detail-value">
+                        {% if unidad.fecha_fin %}
+                            {{ unidad.fecha_fin|date:"d/m/Y" }}
+                        {% else %}
+                            Sin fecha de fin
+                        {% endif %}
+                    </span>
+                </div>
+            </div>
+
+            <!-- SECCIÓN: EMPRESAS RELACIONADAS -->
+            <div class="detail-section">
+                <h3 class="section-title">
+                    🏭 Empresas Relacionadas
+                </h3>
+                {% if unidad.empresas.exists %}
+                    <ul class="empresas-list">
+                        {% for empresa in unidad.empresas.all %}
+                            <li class="empresa-item">
+                                <span>🏭</span>
+                                {{ empresa.nombre }}
+                            </li>
+                        {% endfor %}
+                    </ul>
+                {% else %}
+                    <p>No hay empresas relacionadas con esta unidad.</p>
+                {% endif %}
+            </div>
+
+            <!-- SECCIÓN: ESTADO -->
+            <div class="detail-section">
+                <h3 class="section-title">
+                    ⚙️ Estado
+                </h3>
+                <div class="detail-item">
+                    <span class="detail-label">Estado:</span>
+                    <span class="detail-value">
+                        {% if unidad.activo %}
+                            Activa
+                        {% else %}
+                            Inactiva
+                        {% endif %}
+                    </span>
+                </div>
+            </div>
+        </div>
+
+        <!-- Botones -->
+        <div class="detail-actions">
+            <a href="{% url 'empresas:unidad_negocio_update' pk=unidad.pk %}" class="btn-regency">
+                ✏️ Editar
+            </a>
+            <a href="{% url 'empresas:unidades_negocio_list' %}" class="btn-outline">
+                ← Volver al Listado
+            </a>
+        </div>
+    </div>
+</div>
+{% endblock %}
