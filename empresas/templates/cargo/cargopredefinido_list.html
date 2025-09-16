@@ -397,105 +397,156 @@
 
     .col-acciones {
         text-align: center;
-        min-width: 200px;
+        min-width: 220px;
+        padding: 0.5rem !important;
     }
 
-    /* Badge de estado */
-    .badge-activo {
-        background: #dcfce7;
-        color: #166534;
-        padding: 0.25rem 0.5rem;
-        border-radius: 12px;
+    /* Contenedor de botones */
+    .action-buttons {
+        display: flex;
+        gap: 0.4rem;
+        justify-content: center;
+        align-items: center;
+        flex-wrap: wrap;
+    }
+
+    /* Estilos base para botones pequeños */
+    .btn-sm {
+        padding: 0.4rem 0.8rem;
         font-size: 0.75rem;
+        border-radius: 6px;
         font-weight: 500;
-        border: 1px solid #bbf7d0;
+        text-decoration: none;
+        display: inline-flex;
+        align-items: center;
+        gap: 0.3rem;
+        transition: all 0.2s ease;
+        border: none;
+        cursor: pointer;
+        text-transform: uppercase;
+        letter-spacing: 0.3px;
+        min-width: 60px;
+        justify-content: center;
     }
 
-    .badge-inactivo {
-        background: #fee2e2;
-        color: #991b1b;
-        padding: 0.25rem 0.5rem;
-        border-radius: 12px;
-        font-size: 0.75rem;
-        font-weight: 500;
-        border: 1px solid #fecaca;
+    /* Botón Ver - Azul */
+    .btn-info {
+        background: linear-gradient(135deg, #0ea5e9, #0284c7);
+        color: white;
+        box-shadow: 0 2px 4px rgba(14, 165, 233, 0.2);
     }
 
-    /* Estado vacío */
-    .empty-state {
-        text-align: center;
-        padding: 3rem 2rem;
-        color: var(--regency-gray-dark);
+    .btn-info:hover {
+        background: linear-gradient(135deg, #0284c7, #0369a1);
+        color: white;
+        text-decoration: none;
+        transform: translateY(-1px);
+        box-shadow: 0 4px 8px rgba(14, 165, 233, 0.3);
     }
 
-    .empty-state-icon {
-        font-size: 3rem;
-        margin-bottom: 1rem;
-        opacity: 0.5;
+    /* Botón Editar - Naranja */
+    .btn-warning {
+        background: linear-gradient(135deg, #f59e0b, #d97706);
+        color: white;
+        box-shadow: 0 2px 4px rgba(245, 158, 11, 0.2);
     }
 
-    .empty-state h3 {
-        font-size: 1.1rem;
-        font-weight: 600;
-        margin-bottom: 0.5rem;
-        color: var(--regency-text);
+    .btn-warning:hover {
+        background: linear-gradient(135deg, #d97706, #b45309);
+        color: white;
+        text-decoration: none;
+        transform: translateY(-1px);
+        box-shadow: 0 4px 8px rgba(245, 158, 11, 0.3);
     }
 
-    .empty-state p {
-        font-size: 0.9rem;
-        margin-bottom: 1.5rem;
+    /* Botón Eliminar - Rojo */
+    .btn-danger {
+        background: linear-gradient(135deg, #dc2626, #b91c1c);
+        color: white;
+        box-shadow: 0 2px 4px rgba(220, 38, 38, 0.2);
     }
 
-    /* Responsive */
+    .btn-danger:hover {
+        background: linear-gradient(135deg, #b91c1c, #991b1b);
+        color: white;
+        text-decoration: none;
+        transform: translateY(-1px);
+        box-shadow: 0 4px 8px rgba(220, 38, 38, 0.3);
+    }
+
+    /* Iconos para los botones */
+    .btn-info::before {
+        content: '👁️';
+        font-size: 0.8rem;
+    }
+
+    .btn-warning::before {
+        content: '✏️';
+        font-size: 0.8rem;
+    }
+
+    .btn-danger::before {
+        content: '🗑️';
+        font-size: 0.8rem;
+    }
+
+    /* Estados focus para accesibilidad */
+    .btn-sm:focus {
+        outline: 2px solid currentColor;
+        outline-offset: 2px;
+    }
+
+    /* Responsive para botones */
     @media (max-width: 768px) {
-        .list-container {
-            padding: 0.75rem 1rem;
-        }
-
-        .page-header {
-            padding: 1rem;
+        .action-buttons {
             flex-direction: column;
-            align-items: stretch;
-            text-align: center;
+            gap: 0.3rem;
         }
+        
+        .btn-sm {
+            min-width: 80px;
+            font-size: 0.7rem;
+            padding: 0.35rem 0.6rem;
+        }
+        
+        .col-acciones {
+            min-width: 100px;
+        }
+    }
 
-        .page-header h1 {
-            font-size: 1.2rem;
-            justify-content: center;
-        }
+    /* Mejora para el badge de estado */
+    .badge-tipo {
+        background: linear-gradient(135deg, #e0f2fe, #b3e5fc);
+        color: #0277bd;
+        padding: 0.25rem 0.6rem;
+        border-radius: 12px;
+        font-size: 0.75rem;
+        font-weight: 500;
+        border: 1px solid #81d4fa;
+        text-transform: uppercase;
+        letter-spacing: 0.3px;
+    }
 
-        .header-actions {
-            justify-content: center;
-            margin-top: 0.5rem;
-        }
+    /* Mejora para el salario */
+    .salary-value {
+        font-family: 'SF Mono', 'Monaco', 'Inconsolata', 'Roboto Mono', monospace;
+        font-weight: 700;
+        color: var(--regency-red);
+        background: rgba(135, 31, 27, 0.1);
+        padding: 0.2rem 0.5rem;
+        border-radius: 4px;
+        border-left: 3px solid var(--regency-red);
+    }
 
-        .toolbar {
-            padding: 0.75rem;
-            flex-direction: column;
-            align-items: stretch;
-        }
+    /* Animación para hover de filas */
+    .table-regency tbody tr {
+        transition: all 0.2s ease;
+    }
 
-        .toolbar-left,
-        .toolbar-right {
-            justify-content: center;
-        }
-
-        .search-box {
-            min-width: 100%;
-        }
-
-        .table-regency {
-            font-size: 0.8rem;
-        }
-
-        .table-regency th,
-        .table-regency td {
-            padding: 0.5rem 0.75rem;
-        }
-
-        .stats-grid {
-            grid-template-columns: repeat(2, 1fr);
-        }
+    .table-regency tbody tr:hover {
+        background: #f8fafc;
+        transform: translateY(-1px);
+        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
     }
 
     /* Efectos de carga */
@@ -576,7 +627,7 @@
                     <td class="col-nombre">
                         <div style="display: flex; align-items: center; gap: 0.5rem;">
                             <span style="color: var(--regency-red); font-size: 1.1rem;">👔</span>
-                            {{ cargo.nombre }}
+                            <strong>{{ cargo.nombre }}</strong>
                         </div>
                     </td>
                     <td class="col-descripcion">
@@ -588,7 +639,7 @@
                     </td>
                     <td class="col-salario">
                         {% if cargo.salario %}
-                            <span style="font-family: monospace; font-weight: 600; color: var(--regency-red);">
+                            <span class="salary-value">
                                 ${{ cargo.salario|floatformat:0 }}
                             </span>
                         {% else %}
@@ -617,19 +668,21 @@
                         {% endif %}
                     </td>
                     <td class="col-acciones">
-                        <a href="{% url 'empresas:cargopredefinido_detail' cargo.id_cargo_predefinido %}" 
-                           class="btn-info btn-sm" title="Ver detalles">
-                             Ver
-                        </a>
-                        <a href="{% url 'empresas:cargopredefinido_update' cargo.id_cargo_predefinido %}" 
-                           class="btn-warning btn-sm" title="Editar cargo">
-                             Editar
-                        </a>
-                        <a href="{% url 'empresas:cargopredefinido_delete' cargo.id_cargo_predefinido %}" 
-                           class="btn-danger btn-sm" title="Eliminar cargo"
-                           onclick="return confirm('¿Está seguro de eliminar este cargo predefinido?')">
-                             Eliminar
-                        </a>
+                        <div class="action-buttons">
+                            <a href="{% url 'empresas:cargopredefinido_detail' cargo.id_cargo_predefinido %}" 
+                               class="btn-info btn-sm" title="Ver detalles del cargo">
+                                Ver
+                            </a>
+                            <a href="{% url 'empresas:cargopredefinido_update' cargo.id_cargo_predefinido %}" 
+                               class="btn-warning btn-sm" title="Editar cargo">
+                                Editar
+                            </a>
+                            <a href="{% url 'empresas:cargopredefinido_delete' cargo.id_cargo_predefinido %}" 
+                               class="btn-danger btn-sm" title="Eliminar cargo"
+                               onclick="return confirm('⚠️ ¿Está seguro de eliminar este cargo predefinido?\n\nEsta acción no se puede deshacer.')">
+                                Eliminar
+                            </a>
+                        </div>
                     </td>
                 </tr>
                 {% endfor %}

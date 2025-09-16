@@ -3,6 +3,8 @@
 
 {% block extrastyle %}
 {{ block.super }}
+
+<link rel="stylesheet" href="{% static 'admin/css/components/ui-components.css' %}">
 <style>
     /* Variables consistentes con el proyecto */
     :root {
@@ -170,92 +172,6 @@
         font-size: 0.75rem;
         color: var(--regency-gray-dark);
         margin-top: 0.25rem;
-    }
-
-    /* Botones */
-    .btn-regency {
-        background: var(--regency-red);
-        color: white;
-        border: none;
-        padding: 0.6rem 1rem;
-        border-radius: var(--border-radius);
-        font-weight: 500;
-        font-size: 0.85rem;
-        cursor: pointer;
-        transition: all 0.2s ease;
-        text-decoration: none;
-        display: inline-flex;
-        align-items: center;
-        justify-content: center;
-        gap: 0.5rem;
-        box-shadow: var(--shadow-sm);
-    }
-
-    .btn-regency:hover {
-        background: var(--regency-red-dark);
-        color: white;
-        text-decoration: none;
-        transform: translateY(-1px);
-        box-shadow: var(--shadow-md);
-    }
-
-    .btn-regency-outline {
-        background: transparent;
-        color: var(--regency-red);
-        border: 1px solid var(--regency-red);
-        padding: 0.6rem 1rem;
-        border-radius: var(--border-radius);
-        font-weight: 500;
-        font-size: 0.85rem;
-        cursor: pointer;
-        transition: all 0.2s ease;
-        text-decoration: none;
-        display: inline-flex;
-        align-items: center;
-        justify-content: center;
-        gap: 0.5rem;
-    }
-
-    .btn-regency-outline:hover {
-        background: var(--regency-red);
-        color: white;
-        text-decoration: none;
-        transform: translateY(-1px);
-    }
-
-    .btn-secondary {
-        background: #6b7280;
-        color: white;
-        border: 1px solid #6b7280;
-        padding: 0.6rem 1rem;
-        border-radius: var(--border-radius);
-        font-weight: 500;
-        font-size: 0.85rem;
-        cursor: pointer;
-        transition: all 0.2s ease;
-        text-decoration: none;
-        display: inline-flex;
-        align-items: center;
-        gap: 0.5rem;
-    }
-
-    .btn-secondary:hover {
-        background: #4b5563;
-        border-color: #4b5563;
-        color: white;
-        text-decoration: none;
-    }
-
-    .btn-lg {
-        padding: 0.75rem 1.25rem;
-        font-size: 0.95rem;
-        font-weight: 600;
-    }
-
-    .btn-sm {
-        padding: 0.35rem 0.6rem;
-        font-size: 0.75rem;
-        border-radius: 4px;
     }
 
     /* Grid de empresas */
@@ -652,6 +568,12 @@
         display: flex;
         gap: 0.25rem;
     }
+    .mini-actions .btn-action {
+    padding: 0.4rem;
+    min-width: 28px;
+    height: 28px;
+    font-size: 0.75rem;
+}
 
     .mini-btn {
         background: var(--regency-red);
@@ -717,7 +639,7 @@
             <p class="list-subtitle">Gestión completa del directorio empresarial REGENCY</p>
         </div>
         <div class="header-actions">
-            <a href="{% url 'empresas:empresa_create' %}" class="btn-regency btn-lg">
+            <a href="{% url 'empresas:empresa_create' %}" class="btn-regency btn-lg btn-create">
                 ➕ Nueva Empresa
             </a>
         </div>
@@ -809,8 +731,8 @@
                         {% endif %}
                     </div>
                     <div class="mini-actions">
-                        <a href="{% url 'empresas:empresa_detail' empresa.pk %}" class="mini-btn view">👁️</a>
-                        <a href="{% url 'empresas:empresa_update' empresa.pk %}" class="mini-btn edit">✏️</a>
+                        <a href="{% url 'empresas:empresa_detail' empresa.pk %}" class="btn-action btn-view">Ver</a>
+                        <a href="{% url 'empresas:empresa_update' empresa.pk %}" class="btn-action btn-edit">Editar</a>
                     </div>
                 </div>
             {% endfor %}
@@ -822,7 +744,7 @@
                 <div class="pagination">
                     {% if empresas.has_previous %}
                         <a href="?{% for key, value in request.GET.items %}{% if key != 'page' %}{{ key }}={{ value }}&{% endif %}{% endfor %}page={{ empresas.previous_page_number }}" 
-                           class="page-btn">
+                           class="btn-action btn-back">
                             ← Anterior
                         </a>
                     {% endif %}
@@ -852,7 +774,7 @@
                     <a href="{% url 'empresas:empresas_list' %}" class="btn-regency-outline">
                         🗑️ Limpiar Filtros
                     </a>
-                    <a href="{% url 'empresas:empresa_create' %}" class="btn-regency">
+                    <a href="{% url 'empresas:empresa_create' %}" class="btn-regency btn-lg btn-create">
                         ➕ Crear Nueva Empresa
                     </a>
                 </div>
@@ -860,7 +782,7 @@
                 <div class="empty-state-icon">🏢</div>
                 <h3>No hay empresas registradas</h3>
                 <p>Comience creando la primera empresa en el sistema REGENCY.</p>
-                <a href="{% url 'empresas:empresa_create' %}" class="btn-regency btn-lg">
+                <a href="{% url 'empresas:empresa_create' %}" class="btn-regency btn-lg btn-create">
                     ➕ Crear Primera Empresa
                 </a>
             {% endif %}

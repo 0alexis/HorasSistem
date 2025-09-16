@@ -32,14 +32,29 @@
         min-height: calc(100vh - 60px);
     }
 
-    /* Header de la página */
+    /* Header de la página - MEJORADO */
     .page-header {
-        background: var(--regency-red);
+        background: linear-gradient(135deg, var(--regency-red), var(--regency-red-dark));
         color: white;
-        padding: 2rem;
-        border-radius: var(--border-radius);
+        padding: 2.5rem 2rem;
+        border-radius: 12px;
         margin-bottom: 2rem;
         box-shadow: var(--shadow-md);
+        position: relative;
+        overflow: hidden;
+    }
+
+    /* Efecto decorativo en el header */
+    .page-header::before {
+        content: '';
+        position: absolute;
+        top: -50%;
+        right: -10%;
+        width: 40%;
+        height: 200%;
+        background: rgba(255, 255, 255, 0.05);
+        transform: rotate(15deg);
+        pointer-events: none;
     }
 
     .header-main {
@@ -47,44 +62,55 @@
         justify-content: space-between;
         align-items: center;
         flex-wrap: wrap;
-        gap: 1rem;
+        gap: 1.5rem;
+        position: relative;
+        z-index: 2;
     }
 
     .page-header h1 {
-        font-size: 2rem;
+        font-size: 2.2rem;
         font-weight: 700;
         margin: 0;
         display: flex;
         align-items: center;
-        gap: 0.5rem;
+        gap: 0.75rem;
+        text-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+    }
+
+    .page-header h1 span {
+        font-size: 2.5rem;
+        filter: drop-shadow(0 2px 4px rgba(0, 0, 0, 0.2));
     }
 
     .page-subtitle {
         color: rgba(255, 255, 255, 0.9);
-        margin: 0.5rem 0 0 0;
-        font-size: 1rem;
+        margin: 0.75rem 0 0 0;
+        font-size: 1.1rem;
+        font-weight: 400;
     }
 
     .header-actions {
         display: flex;
-        gap: 0.75rem;
+        gap: 1rem;
         flex-wrap: wrap;
     }
 
-    /* Breadcrumb personalizado */
+    /* Breadcrumb personalizado - MEJORADO */
     .custom-breadcrumb {
         background: white;
         padding: 1rem 1.5rem;
         border-radius: var(--border-radius);
-        margin-bottom: 1.5rem;
+        margin-bottom: 2rem;
         box-shadow: var(--shadow-sm);
         font-size: 0.9rem;
+        border-left: 4px solid var(--regency-red);
     }
 
     .custom-breadcrumb a {
         color: var(--regency-red);
         text-decoration: none;
         font-weight: 500;
+        transition: color 0.2s ease;
     }
 
     .custom-breadcrumb a:hover {
@@ -93,105 +119,138 @@
     }
 
     .breadcrumb-separator {
-        margin: 0 0.5rem;
+        margin: 0 0.75rem;
         color: var(--regency-gray-dark);
+        font-weight: 600;
     }
 
-    /* Card del detalle */
+    /* Card del detalle - MEJORADO */
     .detail-card {
         background: white;
-        border-radius: var(--border-radius);
+        border-radius: 12px;
         box-shadow: var(--shadow-md);
         overflow: hidden;
         margin-bottom: 2rem;
+        border: 1px solid #e9ecef;
     }
 
     .card-header-regency {
         background: linear-gradient(135deg, var(--regency-gray), #e9ecef);
-        border-bottom: 1px solid #dee2e6;
-        padding: 1.5rem;
+        border-bottom: 2px solid var(--regency-red);
+        padding: 1.5rem 2rem;
     }
 
     .card-header-regency h3 {
         margin: 0;
         color: var(--regency-text);
-        font-size: 1.25rem;
+        font-size: 1.4rem;
         font-weight: 600;
         display: flex;
         align-items: center;
-        gap: 0.5rem;
+        gap: 0.75rem;
     }
 
     .detail-content {
-        padding: 2rem;
+        padding: 2.5rem 2rem;
     }
 
-    /* Información del cargo */
+    /* Información del cargo - MEJORADO */
     .info-grid {
         display: grid;
-        grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
-        gap: 2rem;
-        margin-bottom: 2rem;
+        grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+        gap: 1.5rem;
+        margin-bottom: 2.5rem;
     }
 
     .info-item {
         display: flex;
         flex-direction: column;
-        padding: 1.5rem;
-        background: var(--regency-gray);
+        padding: 1.75rem;
+        background: linear-gradient(135deg, var(--regency-gray), #ffffff);
         border-radius: var(--border-radius);
         border-left: 4px solid var(--regency-red);
+        box-shadow: var(--shadow-sm);
+        transition: transform 0.2s ease, box-shadow 0.2s ease;
+    }
+
+    .info-item:hover {
+        transform: translateY(-2px);
+        box-shadow: var(--shadow-md);
     }
 
     .info-label {
-        font-weight: 600;
-        color: var(--regency-text);
-        font-size: 0.9rem;
+        font-weight: 700;
+        color: var(--regency-red);
+        font-size: 0.85rem;
         text-transform: uppercase;
-        letter-spacing: 0.5px;
-        margin-bottom: 0.5rem;
+        letter-spacing: 1px;
+        margin-bottom: 0.75rem;
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+    }
+
+    .info-label::before {
+        content: '▸';
+        color: var(--regency-red);
+        font-weight: bold;
     }
 
     .info-value {
-        font-size: 1.1rem;
+        font-size: 1.2rem;
         color: #2c3e50;
-        font-weight: 500;
+        font-weight: 600;
+        line-height: 1.4;
     }
 
     .info-value.empty {
         color: var(--regency-gray-dark);
         font-style: italic;
+        font-weight: 400;
     }
 
-    /* Badge de estado */
+    /* Badge de estado - MEJORADO */
     .estado-badge {
-        padding: 0.5rem 1rem;
-        border-radius: 20px;
-        font-weight: 600;
-        font-size: 0.85rem;
+        padding: 0.6rem 1.2rem;
+        border-radius: 25px;
+        font-weight: 700;
+        font-size: 0.8rem;
         text-transform: uppercase;
         letter-spacing: 0.5px;
-        display: inline-block;
+        display: inline-flex;
+        align-items: center;
+        gap: 0.5rem;
+        box-shadow: var(--shadow-sm);
     }
 
     .estado-badge.activo {
-        background: #d4edda;
+        background: linear-gradient(135deg, #d4edda, #c3e6cb);
         color: #155724;
-        border: 1px solid #c3e6cb;
+        border: 2px solid #28a745;
+    }
+
+    .estado-badge.activo::before {
+        content: '✓';
+        font-weight: bold;
     }
 
     .estado-badge.inactivo {
-        background: #f8d7da;
+        background: linear-gradient(135deg, #f8d7da, #f5c6cb);
         color: #721c24;
-        border: 1px solid #f5c6cb;
+        border: 2px solid #dc3545;
     }
 
-    /* Botones de acción */
+    .estado-badge.inactivo::before {
+        content: '✗';
+        font-weight: bold;
+    }
+
+    /* Botones de acción - MEJORADOS */
     .btn-regency {
-        background: var(--regency-red);
+        background: linear-gradient(135deg, var(--regency-red), var(--regency-red-dark));
         color: white;
         border: none;
-        padding: 0.75rem 1.5rem;
+        padding: 0.85rem 1.75rem;
         border-radius: var(--border-radius);
         font-weight: 600;
         text-decoration: none;
@@ -201,13 +260,16 @@
         transition: all 0.3s ease;
         cursor: pointer;
         font-size: 0.9rem;
+        box-shadow: var(--shadow-sm);
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
     }
 
     .btn-regency:hover {
-        background: var(--regency-red-dark);
+        background: linear-gradient(135deg, var(--regency-red-dark), #4a1416);
         color: white;
         text-decoration: none;
-        transform: translateY(-1px);
+        transform: translateY(-2px);
         box-shadow: var(--shadow-md);
     }
 
@@ -215,7 +277,7 @@
         background: transparent;
         color: var(--regency-red);
         border: 2px solid var(--regency-red);
-        padding: 0.75rem 1.5rem;
+        padding: 0.85rem 1.75rem;
         border-radius: var(--border-radius);
         font-weight: 600;
         text-decoration: none;
@@ -225,50 +287,88 @@
         transition: all 0.3s ease;
         cursor: pointer;
         font-size: 0.9rem;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
     }
 
     .btn-regency-outline:hover {
         background: var(--regency-red);
         color: white;
         text-decoration: none;
-        transform: translateY(-1px);
+        transform: translateY(-2px);
         box-shadow: var(--shadow-sm);
     }
 
     .btn-danger {
-        background: #dc3545;
-        color: white;
-        border: 2px solid #dc3545;
+        color: #dc3545;
+        border-color: #dc3545;
     }
 
     .btn-danger:hover {
-        background: #c82333;
-        border-color: #bd2130;
+        background: #dc3545;
+        border-color: #dc3545;
         color: white;
     }
 
-    /* Alert de éxito */
+    /* Alert de éxito - MEJORADO */
     .alert-success {
-        background: #d4edda;
+        background: linear-gradient(135deg, #d4edda, #c3e6cb);
         color: #155724;
-        padding: 1rem 1.5rem;
+        padding: 1.25rem 1.75rem;
         border-radius: var(--border-radius);
-        border: 1px solid #c3e6cb;
-        margin-bottom: 1.5rem;
+        border: 2px solid #28a745;
+        margin-bottom: 2rem;
         display: flex;
         align-items: center;
-        gap: 0.5rem;
+        gap: 0.75rem;
+        box-shadow: var(--shadow-sm);
+        font-weight: 500;
     }
 
-    /* Responsive */
+    .alert-success .alert-icon {
+        font-size: 1.5rem;
+        animation: bounce 0.6s ease-in-out;
+    }
+
+    @keyframes bounce {
+        0%, 20%, 60%, 100% { transform: translateY(0); }
+        40% { transform: translateY(-10px); }
+        80% { transform: translateY(-5px); }
+    }
+
+    /* Sección de acciones - MEJORADA */
+    .actions-section {
+        display: flex;
+        gap: 1rem;
+        flex-wrap: wrap;
+        margin-top: 2.5rem;
+        padding-top: 2rem;
+        border-top: 2px solid #e9ecef;
+        background: linear-gradient(135deg, #fafafa, #ffffff);
+        padding: 2rem;
+        border-radius: var(--border-radius);
+        margin: 2rem -2rem -2.5rem -2rem;
+    }
+
+    /* Responsive - MEJORADO */
     @media (max-width: 768px) {
         .detail-container {
-            padding: 1rem;
+            padding: 1rem 0.5rem;
+        }
+        
+        .page-header {
+            padding: 2rem 1.5rem;
+            margin-bottom: 1.5rem;
+        }
+        
+        .page-header h1 {
+            font-size: 1.8rem;
         }
         
         .header-main {
             flex-direction: column;
             align-items: flex-start;
+            gap: 1rem;
         }
         
         .info-grid {
@@ -276,9 +376,19 @@
             gap: 1rem;
         }
         
-        .header-actions {
+        .header-actions,
+        .actions-section {
             width: 100%;
             justify-content: flex-start;
+        }
+        
+        .detail-content {
+            padding: 1.5rem 1rem;
+        }
+        
+        .actions-section {
+            margin: 1.5rem -1rem -1.5rem -1rem;
+            padding: 1.5rem 1rem;
         }
     }
 </style>
@@ -290,8 +400,8 @@
     {% if messages %}
         {% for message in messages %}
             <div class="alert-success">
-                <span>✅</span>
-                {{ message }}
+                <span class="alert-icon">🎉</span>
+                <strong>¡Éxito!</strong> {{ message }}
             </div>
         {% endfor %}
     {% endif %}
@@ -302,21 +412,21 @@
             <div>
                 <h1>
                     <span>💼</span>
-                    {{ cargo.nombre }}
+                    {{ cargo.nombre|upper }}
                 </h1>
                 <p class="page-subtitle">
-                    Cargo Predefinido - Creado el {{ cargo.creado_en|date:"d/m/Y" }}
+                    📅 Cargo Predefinido • Creado el {{ cargo.creado_en|date:"d/m/Y" }}
                 </p>
             </div>
             
             <div class="header-actions">
                 <a href="{% url 'empresas:cargopredefinido_update' cargo.id_cargo_predefinido %}" class="btn-regency">
                     <span>✏️</span>
-                    Editar Cargo
+                    Editar
                 </a>
                 <a href="{% url 'empresas:cargopredefinido_list' %}" class="btn-regency-outline">
                     <span>📋</span>
-                    Ver Todos los Cargos
+                    Ver Lista
                 </a>
             </div>
         </div>
@@ -327,8 +437,8 @@
     <div class="detail-card">
         <div class="card-header-regency">
             <h3>
-                <span>ℹ️</span>
-                Información del Cargo
+                <span>📋</span>
+                Información Detallada del Cargo
             </h3>
         </div>
         
@@ -340,7 +450,7 @@
                 </div>
 
                 <div class="info-item">
-                    <div class="info-label">Estado del Cargo</div>
+                    <div class="info-label">Estado Actual</div>
                     <div class="info-value">
                         {% if cargo.activo %}
                             <span class="estado-badge activo">Activo</span>
@@ -351,16 +461,23 @@
                 </div>
 
                 <div class="info-item">
-                    <div class="info-label">Estado Específico</div>
+                    <div class="info-label">Estado del Cargo</div>
                     <div class="info-value">
-                        {{ cargo.estado_cargo|default:"No especificado" }}
+                        {% if cargo.estado_cargo %}
+                            {{ cargo.estado_cargo }}
+                        {% else %}
+                            <span class="empty">No especificado</span>
+                        {% endif %}
                     </div>
                 </div>
 
                 <div class="info-item">
                     <div class="info-label">Fecha de Creación</div>
                     <div class="info-value">
-                        {{ cargo.creado_en|date:"d/m/Y H:i" }}
+                        📅 {{ cargo.creado_en|date:"d/m/Y" }} <br>
+                        <small style="color: var(--regency-gray-dark); font-size: 0.9rem;">
+                            🕐 {{ cargo.creado_en|date:"H:i" }}
+                        </small>
                     </div>
                 </div>
 
@@ -373,22 +490,22 @@
             </div>
 
             <!-- Acciones adicionales -->
-            <div style="display: flex; gap: 1rem; flex-wrap: wrap; margin-top: 2rem; padding-top: 2rem; border-top: 1px solid #dee2e6;">
+            <div class="actions-section">
                 <a href="{% url 'empresas:cargopredefinido_create' %}" class="btn-regency">
                     <span>➕</span>
-                    Crear Otro Cargo
+                    Crear Nuevo Cargo
                 </a>
                 
                 <a href="{% url 'empresas:cargopredefinido_update' cargo.id_cargo_predefinido %}" class="btn-regency-outline">
                     <span>✏️</span>
-                    Editar
+                    Editar Cargo
                 </a>
                 
                 <a href="{% url 'empresas:cargopredefinido_delete' cargo.id_cargo_predefinido %}" 
                    class="btn-regency-outline btn-danger"
-                   onclick="return confirm('¿Estás seguro de que deseas eliminar este cargo?')">
+                   onclick="return confirm('⚠️ ¿Estás seguro de que deseas eliminar este cargo?\n\nEsta acción no se puede deshacer.')">
                     <span>🗑️</span>
-                    Eliminar
+                    Eliminar Cargo
                 </a>
             </div>
         </div>
@@ -398,14 +515,26 @@
 <!-- Script para funcionalidades adicionales -->
 <script>
 document.addEventListener('DOMContentLoaded', function() {
-    // Auto-hide success messages after 5 seconds
+    // Auto-hide success messages after 6 seconds
     const successAlerts = document.querySelectorAll('.alert-success');
     successAlerts.forEach(alert => {
         setTimeout(() => {
             alert.style.opacity = '0';
-            alert.style.transform = 'translateY(-10px)';
-            setTimeout(() => alert.remove(), 300);
-        }, 5000);
+            alert.style.transform = 'translateY(-20px)';
+            setTimeout(() => alert.remove(), 400);
+        }, 6000);
+    });
+
+    // Agregar efecto hover a las cards de información
+    const infoItems = document.querySelectorAll('.info-item');
+    infoItems.forEach(item => {
+        item.addEventListener('mouseenter', function() {
+            this.style.borderLeftColor = 'var(--regency-red-light)';
+        });
+        
+        item.addEventListener('mouseleave', function() {
+            this.style.borderLeftColor = 'var(--regency-red)';
+        });
     });
 });
 </script>

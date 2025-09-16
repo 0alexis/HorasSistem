@@ -1,0 +1,302 @@
+/* ==========================================================================
+   SISTEMA DE COMPONENTES UI REGENCY
+   Versión 1.0 - Componentes reutilizables para todo el sistema
+   ========================================================================== */
+
+/* Variables globales - compatibles con las existentes */
+:root {
+    /* Colores corporativos */
+    --regency-red: #871F1B;
+    --regency-red-dark: #6b191b;
+    --regency-red-light: #a13832;
+    --regency-gray: #f8f9fa;
+    --regency-gray-dark: #64748b;
+    --regency-text: #333;
+
+    /* Colores de acción */
+    --action-edit: #64748b;    /* Azul para Editar */
+    --action-edit-dark: #475569;
+    --action-view: #871F1B;    /* Rojo para Ver */
+    --action-view-dark: #6b191b;
+    --action-delete: #dc2626;  /* Rojo para Eliminar */
+    --action-delete-dark: #b91c1c;
+    --action-back: #6b7280;    /* Gris para Volver */
+    --action-back-dark: #4b5563;
+    --action-success: #22c55e; /* Verde para Confirmar/Activo */
+    --action-success-dark: #16a34a;
+
+    /* Diseño */
+    --border-radius: 8px;
+    --border-radius-sm: 4px;
+    --shadow-sm: 0 1px 3px rgba(0, 0, 0, 0.1);
+    --shadow-md: 0 4px 6px rgba(0, 0, 0, 0.1);
+    --transition-speed: 0.2s;
+}
+
+/* ========== SISTEMA DE BOTONES ========== */
+
+/* Base - Todos los botones */
+.btn-regency {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.5rem;
+    font-weight: 500;
+    font-size: 0.85rem;
+    border-radius: var(--border-radius);
+    cursor: pointer;
+    transition: all var(--transition-speed) ease;
+    text-decoration: none;
+    border: none;
+    padding: 0.6rem 1rem;
+    background: var(--regency-red);
+    color: white;
+    box-shadow: var(--shadow-sm);
+}
+
+.btn-regency:hover {
+    background: var(--regency-red-dark);
+    color: white;
+    transform: translateY(-1px);
+    box-shadow: var(--shadow-md);
+    text-decoration: none;
+}
+
+/* Variante outline */
+.btn-regency-outline {
+    background: transparent;
+    color: var(--regency-red);
+    border: 1px solid var(--regency-red);
+    padding: 0.6rem 1rem;
+    border-radius: var(--border-radius);
+    font-weight: 500;
+    font-size: 0.85rem;
+    cursor: pointer;
+    transition: all var(--transition-speed) ease;
+    text-decoration: none;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.5rem;
+}
+
+.btn-regency-outline:hover {
+    background: var(--regency-red);
+    color: white;
+    text-decoration: none;
+    transform: translateY(-1px);
+}
+
+/* Botón secundario */
+.btn-secondary {
+    background: #6b7280;
+    color: white;
+    border: 1px solid #6b7280;
+    padding: 0.6rem 1rem;
+    border-radius: var(--border-radius);
+    font-weight: 500;
+    font-size: 0.85rem;
+    cursor: pointer;
+    transition: all var(--transition-speed) ease;
+    text-decoration: none;
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+.btn-secondary:hover {
+    background: #4b5563;
+    border-color: #4b5563;
+    color: white;
+    text-decoration: none;
+    transform: translateY(-1px);
+}
+
+/* ========== BOTONES DE ACCIÓN - VARIANTES ========== */
+
+/* Grupo de botones para acciones */
+.action-buttons {
+    display: flex;
+    gap: 0.25rem;
+    flex-wrap: wrap;
+}
+
+/* Base para botones de acción */
+.btn-action {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.25rem;
+    font-weight: 500;
+    font-size: 0.75rem;
+    border-radius: 4px;
+    cursor: pointer;
+    transition: all var(--transition-speed) ease;
+    text-decoration: none;
+    padding: 0.35rem 0.75rem;
+    background: white;
+    color: var(--regency-text);
+    border: 1px solid #d1d5db;
+    min-width: 70px;
+}
+
+/* Botón Ver */
+.btn-view {
+    color: var(--action-view);
+    border-color: var(--action-view);
+}
+
+.btn-view:hover {
+    background: var(--action-view);
+    color: white;
+    transform: translateY(-1px);
+    text-decoration: none;
+}
+
+/* Botón Editar */
+.btn-edit {
+    color: var(--action-edit);
+    border-color: var(--action-edit);
+}
+
+.btn-edit:hover {
+    background: var(--action-edit);
+    color: white;
+    transform: translateY(-1px);
+    text-decoration: none;
+}
+
+/* Botón Eliminar */
+.btn-delete {
+    color: var(--action-delete);
+    border-color: var(--action-delete);
+}
+
+.btn-delete:hover {
+    background: var(--action-delete);
+    color: white;
+    transform: translateY(-1px);
+    text-decoration: none;
+}
+
+/* Botón Volver */
+.btn-back {
+    color: var(--action-back);
+    border-color: var(--action-back);
+}
+
+.btn-back:hover {
+    background: var(--action-back);
+    color: white;
+    transform: translateY(-1px);
+    text-decoration: none;
+}
+
+/* Botón Crear/Nuevo */
+.btn-create {
+    color: var(--action-success);
+    border-color: var(--action-success);
+}
+
+.btn-create:hover {
+    background: var(--action-success);
+    color: white;
+    transform: translateY(-1px);
+    text-decoration: none;
+}
+
+/* ========== ICONOS PARA BOTONES ========== */
+
+/* Puedes descomentar esto si quieres iconos automáticos */
+/*
+.btn-view::before {
+    content: '👁️';
+    margin-right: 0.3rem;
+    font-size: 0.9em;
+}
+
+.btn-edit::before {
+    content: '✏️';
+    margin-right: 0.3rem;
+    font-size: 0.9em;
+}
+
+.btn-delete::before {
+    content: '🗑️';
+    margin-right: 0.3rem;
+    font-size: 0.9em;
+}
+
+.btn-back::before {
+    content: '←';
+    margin-right: 0.3rem;
+    font-weight: bold;
+}
+
+.btn-create::before {
+    content: '➕';
+    margin-right: 0.3rem;
+    font-size: 0.9em;
+}
+*/
+
+/* ========== TAMAÑOS DE BOTONES ========== */
+
+/* Pequeño */
+.btn-sm {
+    padding: 0.35rem 0.7rem;
+    font-size: 0.75rem;
+}
+
+/* Grande */
+.btn-lg {
+    padding: 0.75rem 1.25rem;
+    font-size: 0.95rem;
+    font-weight: 600;
+}
+
+/* ========== ESTADOS DE BOTONES ========== */
+
+/* Deshabilitado */
+.btn-regency:disabled,
+.btn-regency-outline:disabled,
+.btn-secondary:disabled,
+.btn-action:disabled,
+.disabled {
+    opacity: 0.6;
+    cursor: not-allowed;
+    pointer-events: none;
+}
+
+/* Estado activo */
+.btn-regency:active,
+.btn-regency-outline:active,
+.btn-secondary:active,
+.btn-action:active {
+    transform: translateY(1px);
+    box-shadow: none;
+}
+
+/* Estado de foco para accesibilidad */
+.btn-regency:focus,
+.btn-regency-outline:focus,
+.btn-secondary:focus,
+.btn-action:focus {
+    outline: 2px solid rgba(135, 31, 27, 0.3);
+    outline-offset: 2px;
+}
+
+/* ========== UTILIDADES PARA BOTONES ========== */
+
+/* Botón ancho completo */
+.btn-block {
+    width: 100%;
+    display: flex;
+}
+
+/* Botón solo icono */
+.btn-icon-only {
+    padding: 0.5rem;
+    aspect-ratio: 1/1;
+    min-width: auto;
+}
