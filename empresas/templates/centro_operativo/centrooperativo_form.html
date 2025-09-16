@@ -514,28 +514,9 @@
         </div>
     </div>
 
-    <!-- Breadcrumb personalizado -->
-    <div class="custom-breadcrumb">
-        <a href="/">🏠 Dashboard</a>
-        <span class="breadcrumb-separator">→</span>
-        <a href="/empresas/">👔 Empresas</a>
-        <span class="breadcrumb-separator">→</span>
-        <a href="{% url 'empresas:centros_operativos_list' %}">🏭 Centros Operativos</a>
-        <span class="breadcrumb-separator">→</span>
-        <span style="color: var(--regency-gray-dark);">
-            {% if centro %}✏️ Editar{% else %}🏭 Nuevo{% endif %}
-        </span>
-    </div>
 
     <!-- Formulario -->
     <div class="form-card">
-        <div class="card-header-regency">
-            {% if centro %}
-                ✏️ Editar Centro: {{ centro.nombre }}
-            {% else %}
-                🏭 Crear Nuevo Centro Operativo
-            {% endif %}
-        </div>
 
         <!-- Mostrar errores del formulario si existen -->
         {% if form.errors %}

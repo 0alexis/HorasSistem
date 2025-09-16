@@ -634,18 +634,15 @@
                 </div>
                 <div class="card-body">
                     <div class="panel-buttons">
-                        <a href="{% url 'empresas:empresa_update' empresa.pk %}" class="btn-regency">
-                            ✏️ Editar Empresa
-                        </a>
-                        <a href="{% url 'empresas:dashboard' %}" class="btn-regency-outline">
-                            🏠 Ir al Dashboard
+                        <a href="{% url 'empresas:empresa_update' empresa.pk %}" class="btn-regency-outline">
+                             Editar 
                         </a>
                         <a href="{% url 'empresas:empresas_list' %}" class="btn-regency-outline">
-                            📋 Lista de Empresas
+                            📋 Lista
                         </a>
                         <hr style="margin: 0.75rem 0; border-color: #e5e7eb;">
-                        <a href="{% url 'empresas:empresa_create' %}" class="btn-success">
-                            ➕ Nueva Empresa
+                        <a href="{% url 'empresas:empresa_create' %}" class="btn-regency btn-new btn-lg">
+                            ➕ Nueva 
                         </a>
                     </div>
                 </div>
@@ -658,17 +655,11 @@
                 </div>
                 <div class="card-body">
                     <div class="panel-buttons">
-                        <a href="#" class="btn-regency-outline">
-                            📁 Ver Proyectos
+                        <a href="{% url 'empresas:proyectos_list' %}" class="btn-regency-outline">
+                             Ver Proyectos
                         </a>
-                        <a href="#" class="btn-regency-outline">
-                            🏭 Centros Operativos
-                        </a>
-                        <a href="#" class="btn-regency-outline">
-                            👥 Empleados
-                        </a>
-                        <a href="#" class="btn-regency-outline">
-                            📊 Reportes
+                        <a href="{% url 'empresas:centros_operativos_list' %}" class="btn-regency-outline">
+                             Centros Operativos
                         </a>
                     </div>
                 </div>

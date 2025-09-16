@@ -3,6 +3,8 @@
 
 {% block extrastyle %}
 {{ block.super }}
+
+<link rel="stylesheet" href="{% static 'admin/css/components/ui-components.css' %}">
 <style>
     /* Variables empresariales REGENCY */
     :root {
@@ -159,85 +161,6 @@
     .search-box .search-icon {
         color: var(--regency-gray-dark);
         margin-right: 0.5rem;
-    }
-
-    /* Botones empresariales */
-    .btn-regency {
-        background: var(--regency-red);
-        color: white;
-        border: none;
-        padding: 0.75rem 1.25rem;
-        border-radius: var(--border-radius);
-        font-weight: 500;
-        font-size: 0.9rem;
-        cursor: pointer;
-        transition: all 0.2s ease;
-        text-decoration: none;
-        display: inline-flex;
-        align-items: center;
-        justify-content: center;
-        gap: 0.5rem;
-        box-shadow: var(--shadow-sm);
-    }
-
-    .btn-regency:hover {
-        background: var(--regency-red-dark);
-        color: white;
-        text-decoration: none;
-        transform: translateY(-1px);
-        box-shadow: var(--shadow-md);
-    }
-
-    .btn-secondary {
-        background: #6b7280;
-        color: white;
-        border: 1px solid #6b7280;
-        padding: 0.75rem 1.25rem;
-        border-radius: var(--border-radius);
-        font-weight: 500;
-        font-size: 0.9rem;
-        cursor: pointer;
-        transition: all 0.2s ease;
-        text-decoration: none;
-        display: inline-flex;
-        align-items: center;
-        gap: 0.5rem;
-    }
-
-    .btn-secondary:hover {
-        background: #4b5563;
-        border-color: #4b5563;
-        color: white;
-        text-decoration: none;
-    }
-
-    .btn-sm {
-        padding: 0.4rem 0.75rem;
-        font-size: 0.8rem;
-    }
-
-    .btn-info {
-        background: #0ea5e9;
-        color: white;
-        border: 1px solid #0ea5e9;
-    }
-
-    .btn-info:hover {
-        background: #0284c7;
-        border-color: #0284c7;
-        color: white;
-    }
-
-    .btn-warning {
-        background: #f59e0b;
-        color: white;
-        border: 1px solid #f59e0b;
-    }
-
-    .btn-warning:hover {
-        background: #d97706;
-        border-color: #d97706;
-        color: white;
     }
 
     /* Card de la tabla */
@@ -543,7 +466,7 @@
                     <td class="col-acciones">
 
                         <a href="{% url 'usuarios:codigoturno_update' codigo.pk %}" 
-                           class="btn-warning btn-sm" title="Editar código">
+                           class="btn-regency-outline btn-edit" title="Editar código">
                              Editar
                         </a>
                     </td>

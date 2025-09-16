@@ -3,6 +3,8 @@
 
 {% block extrastyle %}
 {{ block.super }}
+
+<link rel="stylesheet" href="{% static 'admin/css/components/ui-components.css' %}">
 <style>
     /* Variables consistentes con el proyecto */
     :root {
@@ -568,7 +570,7 @@
                             <a href="{% url 'empresas:empresas_list' %}" class="btn-secondary">
                                 ← Cancelar
                             </a>
-                            <button type="submit" class="btn-regency btn-lg">
+                            <button type="submit" class="btn-regency btn-new btn-lg">
                                 {% if form.instance.pk %}
                                     💾 Actualizar Empresa
                                 {% else %}
@@ -610,16 +612,16 @@
             <!-- Acciones Rápidas -->
             <div class="form-card">
                 <div class="card-header-regency">
-                    ⚡ Acciones Rápidas
+                     Acciones Rápidas
                 </div>
                 <div class="card-body">
                     <div class="panel-buttons">
 
-                        <a href="{% url 'empresas:empresas_list' %}" class="btn-regency-outline">
+                        <a href="{% url 'empresas:empresas_list' %}" class="btn-action btn-list">
                             📋 Lista 
                         </a>
                         {% if form.instance.pk %}
-                            <a href="{% url 'empresas:empresa_detail' form.instance.pk %}" class="btn-regency-outline">
+                            <a href="{% url 'empresas:empresa_detail' form.instance.pk %}" class="btn-action btn-details">
                                  Ver Detalles
                             </a>
                         {% endif %}

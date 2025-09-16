@@ -3,6 +3,8 @@
 
 {% block extrastyle %}
 {{ block.super }}
+
+<link rel="stylesheet" href="{% static 'admin/css/components/ui-components.css' %}">
 <style>
     /* Variables empresariales REGENCY */
     :root {
@@ -364,76 +366,6 @@
         gap: 0.75rem;
     }
 
-    .btn-action {
-        padding: 0.75rem 1rem;
-        border-radius: var(--border-radius);
-        font-weight: 500;
-        font-size: 0.9rem;
-        cursor: pointer;
-        transition: all 0.2s ease;
-        text-decoration: none;
-        display: inline-flex;
-        align-items: center;
-        justify-content: center;
-        gap: 0.5rem;
-        border: 1px solid;
-        text-align: center;
-    }
-
-    .btn-primary {
-        background: var(--regency-red);
-        color: white;
-        border-color: var(--regency-red);
-    }
-
-    .btn-primary:hover {
-        background: var(--regency-red-dark);
-        border-color: var(--regency-red-dark);
-        color: white;
-        text-decoration: none;
-        transform: translateY(-1px);
-    }
-
-    .btn-warning {
-        background: #f59e0b;
-        color: white;
-        border-color: #f59e0b;
-    }
-
-    .btn-warning:hover {
-        background: #d97706;
-        border-color: #d97706;
-        color: white;
-        text-decoration: none;
-        transform: translateY(-1px);
-    }
-
-    .btn-danger {
-        background: #dc2626;
-        color: white;
-        border-color: #dc2626;
-    }
-
-    .btn-danger:hover {
-        background: #b91c1c;
-        border-color: #b91c1c;
-        color: white;
-        text-decoration: none;
-        transform: translateY(-1px);
-    }
-
-    .btn-secondary {
-        background: #6b7280;
-        color: white;
-        border-color: #6b7280;
-    }
-
-    .btn-secondary:hover {
-        background: #4b5563;
-        border-color: #4b5563;
-        color: white;
-        text-decoration: none;
-    }
 
     /* Información adicional */
     .additional-info {
@@ -529,25 +461,12 @@
             </p>
         </div>
         <div class="header-actions">
-            <a href="{% url 'empresas:centros_operativos_list' %}" class="btn-action btn-secondary">
+            <a href="{% url 'empresas:centros_operativos_list' %}" class="btn-regency btn-list">
                 📋 Ver Lista
-            </a>
-            <a href="{% url 'empresas:centro_operativo_update' centro.id_centro %}" class="btn-action btn-warning">
-                ✏️ Editar
             </a>
         </div>
     </div>
 
-    <!-- Breadcrumb personalizado -->
-    <div class="custom-breadcrumb">
-        <a href="/">🏠 Dashboard</a>
-        <span class="breadcrumb-separator">→</span>
-        <a href="/empresas/">👔 Empresas</a>
-        <span class="breadcrumb-separator">→</span>
-        <a href="{% url 'empresas:centros_operativos_list' %}">🏭 Centros Operativos</a>
-        <span class="breadcrumb-separator">→</span>
-        <span style="color: var(--regency-gray-dark);">{{ centro.nombre|truncatechars:30 }}</span>
-    </div>
 
     <!-- Banner de estado -->
     {% if centro.activo %}
@@ -727,17 +646,14 @@
                     ⚡ Acciones Disponibles
                 </div>
                 <div class="actions-content">
-                    <a href="{% url 'empresas:centro_operativo_update' centro.id_centro %}" class="btn-action btn-warning">
-                        ✏️ Editar Centro
+                    <a href="{% url 'empresas:centro_operativo_update' centro.id_centro %}" class="btn-regency-outline btn-edit">
+                        Editar Centro
                     </a>
                     
-                    <a href="{% url 'empresas:centro_operativo_delete' centro.id_centro %}" class="btn-action btn-danger">
+                    <a href="{% url 'empresas:centro_operativo_delete' centro.id_centro %}" class="btn-regency-outline btn-delete">
                         🗑️ Eliminar Centro
                     </a>
                     
-                    <a href="{% url 'empresas:centros_operativos_list' %}" class="btn-action btn-secondary">
-                        📋 Volver a Lista
-                    </a>
                 </div>
             </div>
 

@@ -14,16 +14,16 @@
     --regency-text: #333;
 
     /* Colores de acción */
-    --action-edit: #64748b;    /* Azul para Editar */
+    --action-edit: #64748b;    /* Gris para Editar */
     --action-edit-dark: #475569;
-    --action-view: #871F1B;    /* Rojo para Ver */
+    --action-view: #871F1B;    /* Rojo Regency para Ver */
     --action-view-dark: #6b191b;
     --action-delete: #dc2626;  /* Rojo para Eliminar */
     --action-delete-dark: #b91c1c;
     --action-back: #6b7280;    /* Gris para Volver */
     --action-back-dark: #4b5563;
-    --action-success: #22c55e; /* Verde para Confirmar/Activo */
-    --action-success-dark: #16a34a;
+    --action-success: #64748b; /* CAMBIO: Gris empresarial para Crear */
+    --action-success-dark: #475569; /* CAMBIO: Gris oscuro para hover */
 
     /* Diseño */
     --border-radius: 8px;
@@ -206,7 +206,11 @@
 }
 
 /* ========== ICONOS PARA BOTONES ========== */
-
+.btn-create::before {
+    content: '➕';
+    margin-right: 0.3rem;
+    font-size: 0.9em;
+}
 /* Puedes descomentar esto si quieres iconos automáticos */
 /*
 .btn-view::before {
@@ -233,11 +237,7 @@
     font-weight: bold;
 }
 
-.btn-create::before {
-    content: '➕';
-    margin-right: 0.3rem;
-    font-size: 0.9em;
-}
+
 */
 
 /* ========== TAMAÑOS DE BOTONES ========== */
@@ -299,4 +299,172 @@
     padding: 0.5rem;
     aspect-ratio: 1/1;
     min-width: auto;
+}
+
+/* ========== BOTONES ADICIONALES ========== */
+
+/* Botón Lista */
+.btn-list {
+    color: var(--action-back);
+    border-color: var(--action-back);
+}
+
+.btn-list:hover {
+    background: var(--action-back);
+    color: white;
+    transform: translateY(-1px);
+    text-decoration: none;
+}
+
+/* Botón Ver Detalles (variante más explícita de Ver) */
+.btn-details {
+    color: var(--action-view);
+    border-color: var(--action-view);
+}
+
+.btn-details:hover {
+    background: var(--action-view);
+    color: white;
+    transform: translateY(-1px);
+    text-decoration: none;
+}
+
+/* Botón Actualizar */
+.btn-update {
+    color: var(--action-edit);
+    border-color: var(--action-edit);
+}
+
+.btn-update:hover {
+    background: var(--action-edit);
+    color: white;
+    transform: translateY(-1px);
+    text-decoration: none;
+}
+
+/* Botón Crear Nuevo (alias de btn-create para mayor claridad) */
+.btn-new {
+    color: var(--action-success);
+    border-color: var(--action-success);
+}
+
+.btn-new:hover {
+    background: var(--action-success);
+    color: white;
+    transform: translateY(-1px);
+    text-decoration: none;
+}
+
+/* ========== ICONOS PARA NUEVOS BOTONES ========== */
+
+/* Descomentar si quieres iconos automáticos */
+/*
+.btn-list::before {
+    content: '📋';
+    margin-right: 0.3rem;
+    font-size: 0.9em;
+}
+
+.btn-details::before {
+    content: '🔍';
+    margin-right: 0.3rem;
+    font-size: 0.9em;
+}
+
+.btn-update::before {
+    content: '🔄';
+    margin-right: 0.3rem;
+    font-size: 0.9em;
+}
+
+.btn-new::before {
+    content: '✨';
+    margin-right: 0.3rem;
+    font-size: 0.9em;
+}
+*/
+
+/* ========== VARIANTES DE BOTONES PRINCIPALES ========== */
+
+/* Para usar como botones principales (no outline) */
+.btn-regency.btn-list {
+    background: var(--action-back);
+    color: white;
+    border-color: var(--action-back);
+}
+
+.btn-regency.btn-list:hover {
+    background: var(--action-back-dark);
+    color: white;
+}
+
+.btn-regency.btn-details {
+    background: var(--action-view);
+    color: white;
+    border-color: var(--action-view);
+}
+
+.btn-regency.btn-details:hover {
+    background: var(--action-view-dark);
+    color: white;
+}
+
+.btn-regency.btn-update {
+    background: var(--action-edit);
+    color: white;
+    border-color: var(--action-edit);
+}
+
+.btn-regency.btn-update:hover {
+    background: var(--action-edit-dark);
+    color: white;
+}
+
+.btn-regency.btn-new {
+    background: var(--action-success);
+    color: white;
+    border-color: var(--action-success);
+}
+
+.btn-regency.btn-new:hover {
+    background: var(--action-success-dark);
+    color: white;
+}
+
+/* Agregar esta regla faltante */
+.btn-regency.btn-create {
+    background: var(--action-success);
+    color: white;
+    border-color: var(--action-success);
+}
+
+.btn-regency.btn-create:hover {
+    background: var(--action-success-dark);
+    color: white;
+}
+
+/* ========== GRUPOS DE BOTONES PREDEFINIDOS ========== */
+
+/* Grupo típico para páginas de detalle */
+.detail-actions {
+    display: flex;
+    gap: 0.75rem;
+    flex-wrap: wrap;
+    align-items: center;
+}
+
+/* Grupo típico para headers de listas */
+.list-header-actions {
+    display: flex;
+    gap: 0.5rem;
+    flex-wrap: wrap;
+    align-items: center;
+}
+
+/* Grupo típico para tablas */
+.table-actions {
+    display: flex;
+    gap: 0.25rem;
+    justify-content: center;
+    flex-wrap: wrap;
 }

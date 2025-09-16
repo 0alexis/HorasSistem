@@ -3,6 +3,8 @@
 
 {% block extrastyle %}
 {{ block.super }}
+
+<link rel="stylesheet" href="{% static 'admin/css/components/ui-components.css' %}">
 <style>
     /* Variables empresariales REGENCY */
     :root {
@@ -286,93 +288,6 @@
         color: #475569;
     }
 
-    /* Botones de acción */
-    .btn-actions {
-        display: flex;
-        gap: 0.25rem;
-        flex-wrap: wrap;
-    }
-
-    .btn-sm {
-        padding: 0.25rem 0.5rem;
-        font-size: 0.75rem;
-        border-radius: 0.25rem;
-        text-decoration: none;
-        font-weight: 500;
-        transition: all 0.2s ease;
-        display: inline-flex;
-        align-items: center;
-        gap: 0.25rem;
-        border: none;
-        cursor: pointer;
-    }
-
-    .btn-primary {
-        background: var(--regency-red);
-        color: white;
-    }
-
-    .btn-primary:hover {
-        background: var(--regency-red-dark);
-        color: white;
-        text-decoration: none;
-    }
-
-    .btn-info {
-        background: #0ea5e9;
-        color: white;
-    }
-
-    .btn-info:hover {
-        background: #0284c7;
-        color: white;
-        text-decoration: none;
-    }
-
-    .btn-warning {
-        background: #f59e0b;
-        color: white;
-    }
-
-    .btn-warning:hover {
-        background: #d97706;
-        color: white;
-        text-decoration: none;
-    }
-
-    .btn-danger {
-        background: #dc2626;
-        color: white;
-    }
-
-    .btn-danger:hover {
-        background: #b91c1c;
-        color: white;
-        text-decoration: none;
-    }
-
-    .btn-regency {
-        background: var(--regency-red);
-        color: white;
-        border: none;
-        padding: 0.75rem 1.5rem;
-        border-radius: var(--border-radius);
-        font-weight: 500;
-        font-size: 0.9rem;
-        cursor: pointer;
-        transition: all 0.2s ease;
-        text-decoration: none;
-        display: inline-flex;
-        align-items: center;
-        gap: 0.5rem;
-    }
-
-    .btn-regency:hover {
-        background: var(--regency-red-dark);
-        color: white;
-        text-decoration: none;
-        transform: translateY(-1px);
-    }
 
     /* Paginación */
     .pagination-container {
@@ -486,7 +401,7 @@
             </p>
         </div>
         <div class="header-actions">
-            <a href="{% url 'empresas:centro_operativo_create' %}" class="btn-regency">
+            <a href="{% url 'empresas:centro_operativo_create' %}" class="btn-regency btn-new">
                 ➕ Nuevo Centro
             </a>
         </div>
@@ -565,9 +480,6 @@
                 {% endif %}
             </span>
             {% if is_filtered %}
-                <a href="{% url 'empresas:centros_operativos_list' %}" class="btn-sm btn-info">
-                    ❌ Limpiar Filtros
-                </a>
             {% endif %}
         </div>
 
@@ -647,15 +559,15 @@
                             <td>
                                 <div class="btn-actions">
                                     <a href="{% url 'empresas:centro_operativo_detail' centro.id_centro %}" 
-                                       class="btn-sm btn-info" title="Ver detalle">
+                                       class="btn-action btn-view" title="Ver detalle">
                                         Ver
                                     </a>
                                     <a href="{% url 'empresas:centro_operativo_update' centro.id_centro %}" 
-                                       class="btn-sm btn-warning" title="Editar">
+                                       class="btn-action btn-edit" title="Editar">
                                         Editar
                                     </a>
                                     <a href="{% url 'empresas:centro_operativo_delete' centro.id_centro %}" 
-                                       class="btn-sm btn-danger" title="Eliminar">
+                                       class="btn-action btn-delete" title="Eliminar">
                                         Eliminar
                                     </a>
                                 </div>
