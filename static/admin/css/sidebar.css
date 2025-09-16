@@ -166,20 +166,23 @@
     color: var(--sidebar-text);
 }
 
-/* ========== CONTENIDO PRINCIPAL - ÚNICA DEFINICIÓN ========== */
+/* ========== CONTENIDO PRINCIPAL - MEJORADO ========== */
 .regency-main-content,
 .main-content,
 .content-container,
 main {
     margin-left: var(--sidebar-width) !important;
     width: calc(100% - var(--sidebar-width)) !important;
+    max-width: calc(100% - var(--sidebar-width)) !important; /* AGREGADO */
     padding: 12px 16px !important;
     transition: all 0.3s ease !important;
     box-sizing: border-box !important;
     min-height: calc(100vh - var(--header-height)) !important;
+    position: relative !important; /* AGREGADO */
+    overflow-x: hidden !important; /* AGREGADO */
 }
 
-/* ========== ESTADO COLAPSADO DEL CONTENIDO ========== */
+/* ========== ESTADO COLAPSADO DEL CONTENIDO - MEJORADO ========== */
 .sidebar.collapsed ~ .regency-main-content,
 .sidebar.collapsed ~ .main-content,
 .sidebar.collapsed ~ .content-container,
@@ -190,6 +193,7 @@ body:has(.sidebar.collapsed) .content-container,
 body:has(.sidebar.collapsed) main {
     margin-left: var(--sidebar-collapsed-width) !important;
     width: calc(100% - var(--sidebar-collapsed-width)) !important;
+    max-width: calc(100% - var(--sidebar-collapsed-width)) !important; /* AGREGADO */
 }
 
 /* ========== RESPONSIVE - ÚNICA REGLA ========== */
@@ -248,5 +252,128 @@ div.breadcrumbs {
     padding: 0 !important;
     font-size: 1.8rem !important;
     line-height: 1.2 !important;
+}
+
+/* ========== TU CSS ACTUAL ARRIBA ========== */
+
+/* ========== SOLUCIÓN PARA ELEMENTOS DESBORDADOS ========== */
+/* Forzar que todos los elementos respeten los límites del contenedor */
+.regency-main-content,
+.regency-main-content * {
+    box-sizing: border-box !important;
+    max-width: 100% !important;
+}
+
+/* Controlar elementos con posición absoluta */
+.regency-main-content *::before,
+.regency-main-content *::after {
+    max-width: 100% !important;
+    overflow: hidden !important;
+    box-sizing: border-box !important;
+    /* Evitar que se salgan del contenedor padre */
+    right: 0 !important;
+    clip-path: inset(0) !important;
+}
+
+/* Elementos decorativos específicos */
+.regency-main-content .welcome-container,
+.regency-main-content .dashboard-container,
+.regency-main-content [class*="container"] {
+    position: relative !important;
+    overflow: hidden !important;
+    width: 100% !important;
+    max-width: 100% !important;
+}
+
+/* Forzar recálculo cuando el sidebar cambie */
+.sidebar.collapsed ~ .regency-main-content,
+body:has(.sidebar.collapsed) .regency-main-content {
+    /* Trigger para recálculo del layout */
+    transform: translateZ(0);
+}
+
+/* Elementos con background decorativo */
+.regency-main-content [style*="background"],
+.regency-main-content .bg-pattern,
+.regency-main-content .decorative {
+    background-size: contain !important;
+    background-repeat: no-repeat !important;
+    background-position: center right !important;
+}
+
+/* ========== DEPURACIÓN TEMPORAL ========== */
+/* Agregar esto temporalmente para identificar el problema */
+.regency-main-content * {
+    /* outline: 1px solid red !important; */  /* Descomenta para debug */
+}
+
+.regency-main-content *::before,
+.regency-main-content *::after {
+    /* background: rgba(255, 0, 0, 0.2) !important; */ /* Descomenta para debug */
+}
+
+/* ========== SOLUCIÓN ESPECÍFICA PARA ELEMENTOS DECORATIVOS ========== */
+/* Agregar al final de tu sidebar.css */
+
+/* Contenedor principal más restrictivo */
+.regency-main-content {
+    position: relative !important;
+    overflow-x: hidden !important;
+    contain: layout !important;
+}
+
+/* Elementos decorativos específicos - Fondo de página */
+.regency-main-content::before,
+.regency-main-content::after,
+.page-content::before,
+.page-content::after,
+.dashboard-layout::before,
+.dashboard-layout::after {
+    position: absolute !important;
+    max-width: 100% !important;
+    width: 100% !important;
+    right: 0 !important;
+    left: 0 !important;
+    overflow: hidden !important;
+    clip-path: inset(0) !important;
+    contain: strict !important;
+}
+
+/* Elementos con fondos decorativos tipo gradiente */
+.regency-main-content [style*="background: linear-gradient"],
+.regency_main-content [style*="background-image"],
+.regency-main-content .bg-decoration,
+.regency-main-content .decorative-bg {
+    background-size: contain !important;
+    background-repeat: no-repeat !important;
+    background-position: right center !important;
+    max-width: 100% !important;
+    overflow: hidden !important;
+}
+
+/* Cualquier elemento absolute que cause desbordamiento */
+.regency-main-content [style*="position: absolute"] {
+    max-width: calc(100% - 32px) !important;
+    right: 16px !important;
+    overflow: hidden !important;
+    contain: layout !important;
+}
+
+/* Elementos SVG o Canvas que puedan desbordarse */
+.regency-main-content svg,
+.regency-main-content canvas {
+    max-width: 100% !important;
+    width: auto !important;
+    height: auto !important;
+}
+
+/* Contenedores de layout específicos */
+.dashboard-layout,
+.welcome-layout,
+.content-wrapper {
+    position: relative !important;
+    overflow: hidden !important;
+    width: 100% !important;
+    max-width: 100% !important;
 }
 
