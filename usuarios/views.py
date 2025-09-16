@@ -252,61 +252,84 @@ def codigoturno_detail(request, pk):
 
 ############USUARIOS QUE USARAN EL SISTEMA############
 
+
 @login_required
 def user_list(request):
     """Listado de usuarios del sistema"""
     try:
-        # ✅ AGREGAR select_related para evitar consultas N+1
-        users = Usuario.objects.select_related(
+        # ✅ USAR all_objects para incluir usuarios inactivos también
+        users = Usuario.all_objects.select_related(
             'tercero', 
             'cargo_predefinido', 
             'centro_operativo'
         ).order_by('-fecha_creacion')
         
-        # Filtro de búsqueda
-        search_query = request.GET.get('search', '')
+        # ✅ FILTRO DE BÚSQUEDA
+        search_query = request.GET.get('search', '').strip()
         if search_query:
             users = users.filter(
-                Q(nombre_usuario__icontains=search_query) |
                 Q(username__icontains=search_query) |
+                Q(nombre_usuario__icontains=search_query) |
                 Q(email__icontains=search_query) |
                 Q(tercero__nombre_tercero__icontains=search_query) |
                 Q(tercero__apellido_tercero__icontains=search_query) |
                 Q(tercero__correo_tercero__icontains=search_query)
             )
         
-        # Filtro por estado
-        status_filter = request.GET.get('status', '')
+        # ✅ FILTRO POR ESTADO - CORREGIR LÓGICA
+        status_filter = request.GET.get('status', '').strip()
         if status_filter == 'active':
             users = users.filter(estado=True)
         elif status_filter == 'inactive':
             users = users.filter(estado=False)
+        # Si no hay filtro, mostrar todos (activos e inactivos)
         
-        # Paginación
+        # ✅ FILTRO POR TIPO DE USUARIO
+        tipo_filter = request.GET.get('tipo', '').strip()
+        if tipo_filter == 'superuser':
+            users = users.filter(is_superuser=True)
+        elif tipo_filter == 'staff':
+            users = users.filter(is_staff=True, is_superuser=False)
+        elif tipo_filter == 'normal':
+            users = users.filter(is_staff=False, is_superuser=False)
+        
+        # ✅ PAGINACIÓN
         paginator = Paginator(users, 10)
         page_number = request.GET.get('page')
         page_obj = paginator.get_page(page_number)
         
-        # ✅ ESTADÍSTICAS
-        total_users = Usuario.all_objects.count()  # Usar all_objects para contar todos
+        # ✅ ESTADÍSTICAS ACTUALIZADAS
+        total_users = Usuario.all_objects.count()
         active_users = Usuario.all_objects.filter(estado=True).count()
         inactive_users = Usuario.all_objects.filter(estado=False).count()
+        superusers = Usuario.all_objects.filter(is_superuser=True).count()
+        staff_users = Usuario.all_objects.filter(is_staff=True, is_superuser=False).count()
         
         context = {
             'users': page_obj,
             'search_query': search_query,
             'status_filter': status_filter,
+            'tipo_filter': tipo_filter,
             'total_users': total_users,
             'active_users': active_users,
             'inactive_users': inactive_users,
+            'superusers': superusers,
+            'staff_users': staff_users,
         }
         
         return render(request, 'usuario_acess/user_list.html', context)
         
     except Exception as e:
         messages.error(request, f'Error al cargar usuarios: {str(e)}')
-        return render(request, 'usuario_acess/user_list.html', {'users': []})
-
+        return render(request, 'usuario_acess/user_list.html', {
+            'users': Usuario.objects.none(),
+            'search_query': '',
+            'status_filter': '',
+            'tipo_filter': '',
+            'total_users': 0,
+            'active_users': 0,
+            'inactive_users': 0,
+        })
 @login_required
 def user_create(request):
     """Crear nuevo usuario del sistema"""

@@ -68,14 +68,11 @@
     }
 
     /* ========== ESTADÍSTICAS ========== */
-    .stats-grid {
-        display: grid;
-        grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-        gap: 1rem;
+    .stats-cards {
         margin-bottom: 1.5rem;
     }
 
-    .stat-card {
+    .stats-card {
         background: white;
         padding: 1rem;
         border-radius: var(--border-radius);
@@ -83,19 +80,85 @@
         border-left: 4px solid var(--regency-red);
     }
 
-    .stat-number {
+    .stats-number {
         font-size: 1.5rem;
         font-weight: 700;
         color: var(--regency-red);
         margin-bottom: 0.25rem;
     }
 
-    .stat-label {
+    .stats-label {
         font-size: 0.85rem;
         color: var(--regency-gray-dark);
         font-weight: 500;
     }
 
+    /* ========== ESTADÍSTICAS HORIZONTALES ========== */
+    .stats-info-card {
+        background: white;
+        border-radius: var(--border-radius);
+        box-shadow: var(--shadow-sm);
+        border: 1px solid #e5e7eb;
+        margin-bottom: 1.5rem;
+        padding: 1rem 1.5rem;
+    }
+
+    .stats-title {
+        font-size: 1rem;
+        font-weight: 600;
+        color: var(--regency-text);
+        margin: 0 0 1rem 0;
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+    }
+
+    .stats-horizontal {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        flex-wrap: wrap;
+        gap: 0.5rem;
+    }
+
+    .stat-item {
+        text-align: center;
+        flex: 1;
+        min-width: 80px;
+    }
+
+    .stat-number {
+        font-size: 1.5rem;
+        font-weight: 700;
+        color: var(--regency-red);
+        margin-bottom: 0.25rem;
+        line-height: 1;
+    }
+
+    .stat-label {
+        font-size: 0.75rem;
+        color: var(--regency-gray-dark);
+        font-weight: 500;
+        margin: 0;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+    }
+
+    .stat-divider {
+        width: 1px;
+        height: 40px;
+        background: #e5e7eb;
+        margin: 0 0.5rem;
+    }
+
+    /* Colores para diferentes tipos de estadísticas */
+    .stat-success .stat-number { color: #16a34a; }
+    .stat-danger .stat-number { color: #dc2626; }
+    .stat-warning .stat-number { color: #d97706; }
+    .stat-info .stat-number { color: #0284c7; }
+    .stat-secondary .stat-number { color: #64748b; }
+
+  
     /* ========== FILTROS ========== */
     .filters-card {
         background: white;
@@ -105,38 +168,60 @@
         box-shadow: var(--shadow-sm);
         border: 1px solid #e5e7eb;
     }
-
+    
     .filters-grid {
         display: grid;
         grid-template-columns: 2fr 1fr 1fr auto;
         gap: 1rem;
         align-items: end;
+        max-width: 1000px;
+        margin: 0 auto;
     }
-
+    
+    .filters-actions {
+        display: flex;
+        gap: 0.5rem;
+        align-items: center;
+        justify-content: flex-end;
+    }
+    
     .form-group {
         display: flex;
         flex-direction: column;
         gap: 0.25rem;
     }
-
+    
     .form-label {
         font-size: 0.85rem;
         font-weight: 600;
         color: var(--regency-text);
+        margin-bottom: 0.25rem;
     }
-
+    
     .form-control {
         padding: 0.5rem 0.75rem;
         border: 1px solid #d1d5db;
         border-radius: var(--border-radius);
         font-size: 0.9rem;
         transition: border-color 0.2s ease;
+        background: white;
+        width: 100%;
     }
-
+    
     .form-control:focus {
         outline: none;
         border-color: var(--regency-red);
         box-shadow: 0 0 0 3px rgba(135, 31, 27, 0.1);
+    }
+    
+    select.form-control {
+        cursor: pointer;
+        appearance: none;
+        background-image: url('data:image/svg+xml;charset=US-ASCII,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 4 5"><path fill="%23666" d="M2 0L0 2h4zm0 5L0 3h4z"/></svg>');
+        background-repeat: no-repeat;
+        background-position: right 0.7rem center;
+        background-size: 0.65rem auto;
+        padding-right: 2.5rem;
     }
 
     /* ========== TABLA ========== */
@@ -308,28 +393,92 @@
         .list-container {
             padding: 0.75rem 1rem;
         }
-
+    
         .page-header {
             flex-direction: column;
-            align-items: stretch;
+            align-items: center;
+            text-align: center;
+            gap: 1rem;
+        }
+    
+        .header-main {
             text-align: center;
         }
-
+    
+        .header-actions {
+            width: 100%;
+            display: flex;
+            justify-content: center;
+        }
+    
+        .stats-horizontal {
+            flex-direction: column;
+            gap: 0.75rem;
+        }
+    
+        .stat-divider {
+            width: 100%;
+            height: 1px;
+            margin: 0;
+        }
+    
+        .stat-item {
+            padding: 0.75rem;
+            background: #f8fafc;
+            border-radius: 6px;
+            min-width: auto;
+        }
+    
         .filters-grid {
             grid-template-columns: 1fr;
+            gap: 1rem;
+            text-align: center;
         }
-
-        .stats-grid {
-            grid-template-columns: repeat(2, 1fr);
+    
+        .filters-actions {
+            justify-content: center;
         }
-
+    
         .users-table {
             font-size: 0.8rem;
         }
-
+    
         .users-table th,
         .users-table td {
             padding: 0.5rem;
+        }
+    
+        .actions-group {
+            justify-content: center;
+        }
+    }
+    
+    @media (max-width: 480px) {
+        .stats-info-card {
+            padding: 0.75rem 1rem;
+        }
+        
+        .stats-title {
+            font-size: 0.9rem;
+            margin-bottom: 0.75rem;
+            justify-content: center;
+        }
+        
+        .stat-number {
+            font-size: 1.25rem;
+        }
+        
+        .stat-label {
+            font-size: 0.7rem;
+        }
+    
+        .filters-card {
+            padding: 1rem;
+        }
+    
+        .btn {
+            font-size: 0.8rem;
+            padding: 0.5rem 1rem;
         }
     }
 
@@ -371,54 +520,103 @@
     </div>
 
     <!-- Estadísticas -->
-    <div class="stats-grid">
-        <div class="stat-card">
-            <div class="stat-number">{{ total_users }}</div>
-            <div class="stat-label">Total Usuarios</div>
-        </div>
-        <div class="stat-card">
-            <div class="stat-number">{{ active_users }}</div>
-            <div class="stat-label">Usuarios Activos</div>
-        </div>
-        <div class="stat-card">
-            <div class="stat-number">{{ inactive_users }}</div>
-            <div class="stat-label">Usuarios Inactivos</div>
+    <div class="stats-info-card">
+        <h3 class="stats-title">📊 Estadísticas de Usuarios</h3>
+        <div class="stats-horizontal">
+            <div class="stat-item">
+                <div class="stat-number">{{ total_users|default:0 }}</div>
+                <div class="stat-label">Total</div>
+            </div>
+            
+            <div class="stat-divider"></div>
+            
+            <div class="stat-item stat-success">
+                <div class="stat-number">{{ active_users|default:0 }}</div>
+                <div class="stat-label">Activos</div>
+            </div>
+            
+            <div class="stat-divider"></div>
+            
+            <div class="stat-item stat-danger">
+                <div class="stat-number">{{ inactive_users|default:0 }}</div>
+                <div class="stat-label">Inactivos</div>
+            </div>
+            
+            <div class="stat-divider"></div>
+            
+            <div class="stat-item stat-warning">
+                <div class="stat-number">{{ superusers|default:0 }}</div>
+                <div class="stat-label">Superusuarios</div>
+            </div>
+            
+            <div class="stat-divider"></div>
+            
+            <div class="stat-item stat-info">
+                <div class="stat-number">{{ staff_users|default:0 }}</div>
+                <div class="stat-label">Staff</div>
+            </div>
+            
+            <div class="stat-divider"></div>
+            
+            <div class="stat-item stat-secondary">
+                <div class="stat-number">
+                    {% if users.paginator %}{{ users.paginator.count }}{% else %}0{% endif %}
+                </div>
+                <div class="stat-label">Filtrados</div>
+            </div>
         </div>
     </div>
-
-    <!-- Filtros -->
-    <div class="filters-card">
-        <form method="get">
-            <div class="filters-grid">
-                <div class="form-group">
-                    <label class="form-label">Buscar Usuario</label>
-                    <input type="text" name="search" class="form-control" 
-                           placeholder="Nombre, usuario o email..." 
-                           value="{{ search_query }}">
-                </div>
-                <div class="form-group">
-                    <label class="form-label">Estado</label>
-                    <select name="status" class="form-control">
-                        <option value="">Todos</option>
-                        <option value="active" {% if status_filter == 'active' %}selected{% endif %}>Activos</option>
-                        <option value="inactive" {% if status_filter == 'inactive' %}selected{% endif %}>Inactivos</option>
-                    </select>
-                </div>
-                <div class="form-group">
-                    <label class="form-label">Tipo</label>
-                    <select name="user_type" class="form-control">
-                        <option value="">Todos</option>
-                        <option value="superuser">Superusuarios</option>
-                        <option value="staff">Staff</option>
-                        <option value="normal">Normales</option>
-                    </select>
-                </div>
-                <div class="form-group">
-                    <button type="submit" class="btn btn-primary">🔍 Buscar</button>
+<!-- ✅ REEMPLAZAR LA SECCIÓN DE FILTROS (líneas 450-490): -->
+<!-- Filtros -->
+<div class="filters-card">
+    <form method="get" id="filtersForm">
+        <div class="filters-grid">
+            <!-- Campo de búsqueda -->
+            <div class="form-group">
+                <label for="searchInput" class="form-label">Buscar Usuario</label>
+                <input type="text" 
+                       class="form-control" 
+                       id="searchInput" 
+                       name="search" 
+                       value="{{ search_query }}"
+                       placeholder="Nombre, usuario o email...">
+            </div>
+            
+            <!-- Filtro Estado -->
+            <div class="form-group">
+                <label for="statusFilter" class="form-label">Estado</label>
+                <select class="form-control" id="statusFilter" name="status">
+                    <option value="" {% if not status_filter %}selected{% endif %}>Todos los estados</option>
+                    <option value="active" {% if status_filter == 'active' %}selected{% endif %}>✅ Solo activos</option>
+                    <option value="inactive" {% if status_filter == 'inactive' %}selected{% endif %}>❌ Solo inactivos</option>
+                </select>
+            </div>
+            
+            <!-- Filtro Tipo -->
+            <div class="form-group">
+                <label for="tipoFilter" class="form-label">Tipo</label>
+                <select class="form-control" id="tipoFilter" name="tipo">
+                    <option value="" {% if not tipo_filter %}selected{% endif %}>Todos los tipos</option>
+                    <option value="superuser" {% if tipo_filter == 'superuser' %}selected{% endif %}>🔑 Superusuarios</option>
+                    <option value="staff" {% if tipo_filter == 'staff' %}selected{% endif %}>⚙️ Staff</option>
+                    <option value="normal" {% if tipo_filter == 'normal' %}selected{% endif %}>👤 Usuarios normales</option>
+                </select>
+            </div>
+            
+            <!-- Botones -->
+            <div class="form-group">
+                <div class="filters-actions">
+                    <button type="submit" class="btn btn-primary">
+                        🔍 Buscar
+                    </button>
+                    <a href="{% url 'usuarios:user_list' %}" class="btn btn-outline" title="Limpiar filtros">
+                        🔄 Limpiar
+                    </a>
                 </div>
             </div>
-        </form>
-    </div>
+        </div>
+    </form>
+</div>
 
     <!-- Tabla -->
     <div class="table-card">
@@ -549,3 +747,53 @@
     </div>
 </div>
 {% endblock %}
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // ✅ FILTROS AUTOMÁTICOS AL CAMBIAR
+    const searchInput = document.getElementById('searchInput');
+    const statusFilter = document.getElementById('statusFilter');
+    const tipoFilter = document.getElementById('tipoFilter');
+    const filtersForm = document.getElementById('filtersForm');
+    
+    // Función para aplicar filtros automáticamente
+    function applyFilters() {
+        filtersForm.submit();
+    }
+    
+    // ✅ FILTRAR AL CAMBIAR SELECTS
+    if (statusFilter) {
+        statusFilter.addEventListener('change', applyFilters);
+    }
+    
+    if (tipoFilter) {
+        tipoFilter.addEventListener('change', applyFilters);
+    }
+    
+    // ✅ FILTRAR AL ESCRIBIR (con debounce)
+    if (searchInput) {
+        let searchTimeout;
+        searchInput.addEventListener('input', function() {
+            clearTimeout(searchTimeout);
+            searchTimeout = setTimeout(function() {
+                applyFilters();
+            }, 500); // Esperar 500ms después de dejar de escribir
+        });
+    }
+    
+    // ✅ LIMPIAR FORMULARIO
+    document.querySelectorAll('[title="Limpiar filtros"]').forEach(function(btn) {
+        btn.addEventListener('click', function(e) {
+            e.preventDefault();
+            
+            // Limpiar todos los campos
+            if (searchInput) searchInput.value = '';
+            if (statusFilter) statusFilter.value = '';
+            if (tipoFilter) tipoFilter.value = '';
+            
+            // Aplicar filtros (vacíos)
+            applyFilters();
+        });
+    });
+});
+</script>

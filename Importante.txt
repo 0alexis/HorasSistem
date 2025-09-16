@@ -1,0 +1,50 @@
+Orden del proyecto
+
+# Codigo para crear la base de datos
+DROP DATABASE IF EXISTS horassistema;
+CREATE DATABASE horassistema CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
+
+realiza las migraciones
+python manage.py makemigrations
+
+aplica las migraciones
+python manage.py migrate        
+    
+venv\Scripts\actívate (este solo es cuando se trabaja en un entorno virtual)
+
+
+código para generar migraciones independientes
+python manage.py makemigrations empresas
+python manage.py makemigrations usuarios
+python manage.py makemigrations programacion_models
+
+código para aplicar migraciones independientes
+python manage.py migrate empresas
+python manage.py migrate usuarios
+python manage.py migrate programacion_models
+
+
+Para crear el super usuario una ves se aplique las migraciones a la base de datos
+python manage.py createsuperuser
+
+python manage.py showmigrations
+
+python manage.py runserver  
+
+python manage.py check
+
+
+# Limpiar caché de Python
+Remove-Item -Path "**\__pycache__" -Force -Recurse
+
+
+
+# Eliminar migraciones
+Remove-Item -Path "usuarios\migrations\*.py" -Exclude "__init__.py" -Force
+
+Remove-Item -Path "empresas\migrations\*.py" -Exclude "__init__.py" -Force
+
+Remove-Item -Path "programacion_models\migrations\*.py" -Exclude "__init__.py" -Force
+
+URL: http://127.0.0.1:8000/
+Admin Panel: http://127.0.0.1:8000/admin/
