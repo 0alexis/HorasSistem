@@ -1,0 +1,412 @@
+{% extends "admin/base_site.html" %}
+{% load i18n static %}
+
+{% block extrastyle %}
+{{ block.super }}
+<style>
+    /* Variables empresariales REGENCY */
+    :root {
+        --regency-red: #871F1B;
+        --regency-red-dark: #6b191b;
+        --regency-red-light: #a13832;
+        --regency-gray: #f8f9fa;
+        --regency-gray-dark: #64748b;
+        --regency-text: #333;
+        --border-radius: 8px;
+        --shadow-sm: 0 1px 3px rgba(0, 0, 0, 0.1);
+        --shadow-md: 0 4px 6px rgba(0, 0, 0, 0.1);
+    }
+
+    /* ========== OCULTAR BREADCRUMB DJANGO ADMIN ========== */
+    .breadcrumbs,
+    div.breadcrumbs {
+        display: none !important;
+    }
+
+    /* Container principal */
+    .detail-container {
+        padding: 1.5rem;
+        max-width: 1200px;
+        margin: 0 auto;
+        background: var(--regency-gray);
+        min-height: calc(100vh - 60px);
+    }
+
+    /* Header de la página */
+    .page-header {
+        background: var(--regency-red);
+        color: white;
+        padding: 2rem;
+        border-radius: var(--border-radius);
+        margin-bottom: 2rem;
+        box-shadow: var(--shadow-md);
+    }
+
+    .header-main {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        flex-wrap: wrap;
+        gap: 1rem;
+    }
+
+    .page-header h1 {
+        font-size: 2rem;
+        font-weight: 700;
+        margin: 0;
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+    }
+
+    .page-subtitle {
+        color: rgba(255, 255, 255, 0.9);
+        margin: 0.5rem 0 0 0;
+        font-size: 1rem;
+    }
+
+    .header-actions {
+        display: flex;
+        gap: 0.75rem;
+        flex-wrap: wrap;
+    }
+
+    /* Breadcrumb personalizado */
+    .custom-breadcrumb {
+        background: white;
+        padding: 1rem 1.5rem;
+        border-radius: var(--border-radius);
+        margin-bottom: 1.5rem;
+        box-shadow: var(--shadow-sm);
+        font-size: 0.9rem;
+    }
+
+    .custom-breadcrumb a {
+        color: var(--regency-red);
+        text-decoration: none;
+        font-weight: 500;
+    }
+
+    .custom-breadcrumb a:hover {
+        color: var(--regency-red-dark);
+        text-decoration: underline;
+    }
+
+    .breadcrumb-separator {
+        margin: 0 0.5rem;
+        color: var(--regency-gray-dark);
+    }
+
+    /* Card del detalle */
+    .detail-card {
+        background: white;
+        border-radius: var(--border-radius);
+        box-shadow: var(--shadow-md);
+        overflow: hidden;
+        margin-bottom: 2rem;
+    }
+
+    .card-header-regency {
+        background: linear-gradient(135deg, var(--regency-gray), #e9ecef);
+        border-bottom: 1px solid #dee2e6;
+        padding: 1.5rem;
+    }
+
+    .card-header-regency h3 {
+        margin: 0;
+        color: var(--regency-text);
+        font-size: 1.25rem;
+        font-weight: 600;
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+    }
+
+    .detail-content {
+        padding: 2rem;
+    }
+
+    /* Información del cargo */
+    .info-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+        gap: 2rem;
+        margin-bottom: 2rem;
+    }
+
+    .info-item {
+        display: flex;
+        flex-direction: column;
+        padding: 1.5rem;
+        background: var(--regency-gray);
+        border-radius: var(--border-radius);
+        border-left: 4px solid var(--regency-red);
+    }
+
+    .info-label {
+        font-weight: 600;
+        color: var(--regency-text);
+        font-size: 0.9rem;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+        margin-bottom: 0.5rem;
+    }
+
+    .info-value {
+        font-size: 1.1rem;
+        color: #2c3e50;
+        font-weight: 500;
+    }
+
+    .info-value.empty {
+        color: var(--regency-gray-dark);
+        font-style: italic;
+    }
+
+    /* Badge de estado */
+    .estado-badge {
+        padding: 0.5rem 1rem;
+        border-radius: 20px;
+        font-weight: 600;
+        font-size: 0.85rem;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+        display: inline-block;
+    }
+
+    .estado-badge.activo {
+        background: #d4edda;
+        color: #155724;
+        border: 1px solid #c3e6cb;
+    }
+
+    .estado-badge.inactivo {
+        background: #f8d7da;
+        color: #721c24;
+        border: 1px solid #f5c6cb;
+    }
+
+    /* Botones de acción */
+    .btn-regency {
+        background: var(--regency-red);
+        color: white;
+        border: none;
+        padding: 0.75rem 1.5rem;
+        border-radius: var(--border-radius);
+        font-weight: 600;
+        text-decoration: none;
+        display: inline-flex;
+        align-items: center;
+        gap: 0.5rem;
+        transition: all 0.3s ease;
+        cursor: pointer;
+        font-size: 0.9rem;
+    }
+
+    .btn-regency:hover {
+        background: var(--regency-red-dark);
+        color: white;
+        text-decoration: none;
+        transform: translateY(-1px);
+        box-shadow: var(--shadow-md);
+    }
+
+    .btn-regency-outline {
+        background: transparent;
+        color: var(--regency-red);
+        border: 2px solid var(--regency-red);
+        padding: 0.75rem 1.5rem;
+        border-radius: var(--border-radius);
+        font-weight: 600;
+        text-decoration: none;
+        display: inline-flex;
+        align-items: center;
+        gap: 0.5rem;
+        transition: all 0.3s ease;
+        cursor: pointer;
+        font-size: 0.9rem;
+    }
+
+    .btn-regency-outline:hover {
+        background: var(--regency-red);
+        color: white;
+        text-decoration: none;
+        transform: translateY(-1px);
+        box-shadow: var(--shadow-sm);
+    }
+
+    .btn-danger {
+        background: #dc3545;
+        color: white;
+        border: 2px solid #dc3545;
+    }
+
+    .btn-danger:hover {
+        background: #c82333;
+        border-color: #bd2130;
+        color: white;
+    }
+
+    /* Alert de éxito */
+    .alert-success {
+        background: #d4edda;
+        color: #155724;
+        padding: 1rem 1.5rem;
+        border-radius: var(--border-radius);
+        border: 1px solid #c3e6cb;
+        margin-bottom: 1.5rem;
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+    }
+
+    /* Responsive */
+    @media (max-width: 768px) {
+        .detail-container {
+            padding: 1rem;
+        }
+        
+        .header-main {
+            flex-direction: column;
+            align-items: flex-start;
+        }
+        
+        .info-grid {
+            grid-template-columns: 1fr;
+            gap: 1rem;
+        }
+        
+        .header-actions {
+            width: 100%;
+            justify-content: flex-start;
+        }
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="detail-container">
+    <!-- Alert de éxito -->
+    {% if messages %}
+        {% for message in messages %}
+            <div class="alert-success">
+                <span>✅</span>
+                {{ message }}
+            </div>
+        {% endfor %}
+    {% endif %}
+
+    <!-- Header de la página -->
+    <div class="page-header">
+        <div class="header-main">
+            <div>
+                <h1>
+                    <span>💼</span>
+                    {{ cargo.nombre }}
+                </h1>
+                <p class="page-subtitle">
+                    Cargo Predefinido - Creado el {{ cargo.creado_en|date:"d/m/Y" }}
+                </p>
+            </div>
+            
+            <div class="header-actions">
+                <a href="{% url 'empresas:cargopredefinido_update' cargo.id_cargo_predefinido %}" class="btn-regency">
+                    <span>✏️</span>
+                    Editar Cargo
+                </a>
+                <a href="{% url 'empresas:cargopredefinido_list' %}" class="btn-regency-outline">
+                    <span>📋</span>
+                    Ver Todos los Cargos
+                </a>
+            </div>
+        </div>
+    </div>
+
+
+    <!-- Card con información del cargo -->
+    <div class="detail-card">
+        <div class="card-header-regency">
+            <h3>
+                <span>ℹ️</span>
+                Información del Cargo
+            </h3>
+        </div>
+        
+        <div class="detail-content">
+            <div class="info-grid">
+                <div class="info-item">
+                    <div class="info-label">Nombre del Cargo</div>
+                    <div class="info-value">{{ cargo.nombre }}</div>
+                </div>
+
+                <div class="info-item">
+                    <div class="info-label">Estado del Cargo</div>
+                    <div class="info-value">
+                        {% if cargo.activo %}
+                            <span class="estado-badge activo">Activo</span>
+                        {% else %}
+                            <span class="estado-badge inactivo">Inactivo</span>
+                        {% endif %}
+                    </div>
+                </div>
+
+                <div class="info-item">
+                    <div class="info-label">Estado Específico</div>
+                    <div class="info-value">
+                        {{ cargo.estado_cargo|default:"No especificado" }}
+                    </div>
+                </div>
+
+                <div class="info-item">
+                    <div class="info-label">Fecha de Creación</div>
+                    <div class="info-value">
+                        {{ cargo.creado_en|date:"d/m/Y H:i" }}
+                    </div>
+                </div>
+
+                {% if cargo.descripcion %}
+                <div class="info-item" style="grid-column: 1 / -1;">
+                    <div class="info-label">Descripción</div>
+                    <div class="info-value">{{ cargo.descripcion }}</div>
+                </div>
+                {% endif %}
+            </div>
+
+            <!-- Acciones adicionales -->
+            <div style="display: flex; gap: 1rem; flex-wrap: wrap; margin-top: 2rem; padding-top: 2rem; border-top: 1px solid #dee2e6;">
+                <a href="{% url 'empresas:cargopredefinido_create' %}" class="btn-regency">
+                    <span>➕</span>
+                    Crear Otro Cargo
+                </a>
+                
+                <a href="{% url 'empresas:cargopredefinido_update' cargo.id_cargo_predefinido %}" class="btn-regency-outline">
+                    <span>✏️</span>
+                    Editar
+                </a>
+                
+                <a href="{% url 'empresas:cargopredefinido_delete' cargo.id_cargo_predefinido %}" 
+                   class="btn-regency-outline btn-danger"
+                   onclick="return confirm('¿Estás seguro de que deseas eliminar este cargo?')">
+                    <span>🗑️</span>
+                    Eliminar
+                </a>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Script para funcionalidades adicionales -->
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // Auto-hide success messages after 5 seconds
+    const successAlerts = document.querySelectorAll('.alert-success');
+    successAlerts.forEach(alert => {
+        setTimeout(() => {
+            alert.style.opacity = '0';
+            alert.style.transform = 'translateY(-10px)';
+            setTimeout(() => alert.remove(), 300);
+        }, 5000);
+    });
+});
+</script>
+{% endblock %}

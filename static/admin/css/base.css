@@ -247,7 +247,7 @@ body.regency-admin {
 .page-content {
     background: var(--regency-white);
     border-radius: 12px;
-    padding: 2rem;
+    /*padding: 2rem;*/
     box-shadow: var(--regency-shadow);
     border: 1px solid var(--regency-gray-200);
 }
