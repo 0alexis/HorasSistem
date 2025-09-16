@@ -458,16 +458,7 @@
         </p>
     </div>
 
-    <!-- Breadcrumb personalizado -->
-    <div class="custom-breadcrumb">
-        <a href="{% url 'empresas:dashboard' %}">🏠 Dashboard</a>
-        <span class="breadcrumb-separator">→</span>
-        <a href="{% url 'empresas:empresas_list' %}">📋 Lista de Empresas</a>
-        <span class="breadcrumb-separator">→</span>
-        <span style="color: var(--regency-gray-dark);">
-            {% if form.instance.pk %}✏️ Editar{% else %}➕ Nueva{% endif %}
-        </span>
-    </div>
+ 
 
     <!-- Layout principal -->
     <div class="form-layout">
@@ -623,15 +614,13 @@
                 </div>
                 <div class="card-body">
                     <div class="panel-buttons">
-                        <a href="{% url 'empresas:dashboard' %}" class="btn-regency-outline">
-                            🏠 Ir al Dashboard
-                        </a>
+
                         <a href="{% url 'empresas:empresas_list' %}" class="btn-regency-outline">
-                            📋 Lista de Empresas
+                            📋 Lista 
                         </a>
                         {% if form.instance.pk %}
                             <a href="{% url 'empresas:empresa_detail' form.instance.pk %}" class="btn-regency-outline">
-                                👁️ Ver Detalles
+                                 Ver Detalles
                             </a>
                         {% endif %}
                     </div>

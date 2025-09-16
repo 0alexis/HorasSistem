@@ -535,21 +535,7 @@
         <p class="dashboard-subtitle">REGENCY SERVICES DE COLOMBIA S.A.S - Panel de Control y Gestión</p>
     </div>
 
-    <!-- Acciones principales -->
-    <div class="actions-section">
-        <div class="actions-header">Acciones Principales</div>
-        <div class="actions-grid">
-            <a href="{% url 'empresas:empresa_create' %}" class="btn-regency">
-                ➕ Nueva Empresa
-            </a>
-            <a href="{% url 'empresas:empresas_list' %}" class="btn-regency-outline">
-                📋 Lista Completa
-            </a>
-            <a href="#" class="btn-regency-outline">
-                📊 Reportes
-            </a>
-        </div>
-    </div>
+
 
     <!-- Layout principal con métricas integradas -->
     <div class="main-layout">
@@ -636,24 +622,22 @@
         <div class="sidebar-panel">
             <!-- Menú rápido -->
             <div class="panel-card">
-                <div class="panel-header">⚡ Menú Rápido</div>
+                <div class="panel-header"> Menú Rápido</div>
                 <div class="panel-body">
                     <div class="panel-buttons">
-                        <a href="{% url 'empresas:empresa_create' %}" class="btn-regency">
-                            ➕ Crear Empresa
-                        </a>
+
                         <a href="{% url 'empresas:empresas_list' %}" class="btn-regency-outline">
                             📋 Lista Completa
                         </a>
                         <hr>
-                        <a href="#" class="btn-regency-outline">
-                            📁 Proyectos
+                        <a href="{% url 'empresas:proyectos_list' %}" class="btn-regency-outline">
+                             Proyectos
                         </a>
-                        <a href="#" class="btn-regency-outline">
-                            🏭 Centros Operativos
+                        <a href="{% url 'empresas:centros_operativos_list' %}" class="btn-regency-outline">
+                             Centros Operativos
                         </a>
-                        <a href="#" class="btn-regency-outline">
-                            📊 Reportes
+                        <a href="{% url 'bitacora_dashboard' %}" class="btn-regency-outline">
+                            Reportes
                         </a>
                     </div>
                 </div>
@@ -661,13 +645,13 @@
 
             <!-- Búsqueda rápida -->
             <div class="panel-card">
-                <div class="panel-header secondary">🔍 Búsqueda Rápida</div>
+                <div class="panel-header secondary">🔍 Búsqueda </div>
                 <div class="panel-body">
                     <form method="get" action="{% url 'empresas:empresas_list' %}" class="search-form">
                         <input type="text" name="search" class="search-input" 
                                placeholder="Buscar por nombre o NIT...">
                         <button type="submit" class="btn-regency">
-                            🔍 Buscar Empresa
+                            Buscar Empresa
                         </button>
                     </form>
                 </div>

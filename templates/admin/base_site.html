@@ -19,7 +19,7 @@
     {% endif %}
 </head>
 
-<body class="regency-admin">
+<body class="regency-admin with-sidebar">
     
     <!-- Header Corporativo Regency -->
     <header class="regency-header-admin">
@@ -54,6 +54,9 @@
         </div>
     </header>
 
+    <!-- INCLUIR SIDEBAR GLOBAL - IGUAL QUE EL HEADER -->
+    {% include 'admin/menu/sidebar_menu.html' %}
+
     <!-- Navegación Breadcrumb -->
     {% block breadcrumbs %}
     {% if title %}
@@ -61,7 +64,7 @@
     {% endif %}
     {% endblock %}
 
-    <!-- Contenido Principal -->
+    <!-- Contenido Principal - AJUSTADO PARA SIDEBAR -->
     <main class="regency-main-content">
         <div class="content-container">
             

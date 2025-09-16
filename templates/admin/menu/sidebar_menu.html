@@ -142,7 +142,75 @@
     </div>
 </nav>
 
+
 <script>
+// Variables globales para persistencia
+let sidebarState = {
+    collapsed: false,
+    openSubmenus: []
+};
+
+// Función para cargar estado desde localStorage (SINCRONIZADA)
+function loadSidebarState() {
+    try {
+        const saved = localStorage.getItem('regency_sidebar_state');
+        if (saved) {
+            sidebarState = JSON.parse(saved);
+            console.log('Sidebar state loaded:', sidebarState);
+        }
+    } catch (e) {
+        console.warn('Error loading sidebar state:', e);
+        sidebarState = { collapsed: false, openSubmenus: [] };
+    }
+}
+
+// CARGAR ESTADO INMEDIATAMENTE (antes del DOMContentLoaded)
+loadSidebarState();
+
+// Función para guardar estado en localStorage
+function saveSidebarState() {
+    try {
+        localStorage.setItem('regency_sidebar_state', JSON.stringify(sidebarState));
+        console.log('Sidebar state saved:', sidebarState);
+    } catch (e) {
+        console.warn('Error saving sidebar state:', e);
+    }
+}
+
+// Función para generar ID único para submenús
+function getSubmenuId(element) {
+    const navText = element.querySelector('.nav-text');
+    if (navText) {
+        const text = navText.textContent.trim();
+        return 'submenu-' + text.toLowerCase()
+            .replace(/\s+/g, '-')
+            .replace(/[^a-z0-9-]/g, '');
+    }
+    return 'submenu-' + Date.now(); // Fallback
+}
+
+// Función para restaurar submenús abiertos
+function restoreOpenSubmenus() {
+    const sidebar = document.getElementById('sidebar');
+    
+    // Solo restaurar si el sidebar no está colapsado
+    if (!sidebar.classList.contains('collapsed')) {
+        sidebarState.openSubmenus.forEach(submenuId => {
+            // Buscar el elemento de navegación correspondiente
+            const navLinks = document.querySelectorAll('.nav-link');
+            navLinks.forEach(link => {
+                const generatedId = getSubmenuId(link);
+                if (generatedId === submenuId) {
+                    const submenu = link.nextElementSibling;
+                    if (submenu && submenu.classList && submenu.classList.contains('submenu')) {
+                        submenu.style.display = 'block';
+                    }
+                }
+            });
+        });
+    }
+}
+
 function toggleSidebar() {
     const sidebar = document.getElementById('sidebar');
     const sidebarContent = document.getElementById('sidebarContent');
@@ -151,25 +219,28 @@ function toggleSidebar() {
     // Toggle el estado colapsado
     sidebar.classList.toggle('collapsed');
     
-    // Buscar el contenido principal
-const mainContent = document.querySelector('.regency-main-content') || 
-                   document.querySelector('.main-content') || 
-                   document.querySelector('.content-container') ||
-                   document.querySelector('main');
+    // Actualizar estado global
+    sidebarState.collapsed = sidebar.classList.contains('collapsed');
     
-    if (sidebar.classList.contains('collapsed')) {
+    // Buscar el contenido principal
+    const mainContent = document.querySelector('.regency-main-content') || 
+                       document.querySelector('.main-content') || 
+                       document.querySelector('.content-container') ||
+                       document.querySelector('main');
+    
+    if (sidebarState.collapsed) {
         // Sidebar colapsado - ajustar contenido para usar más espacio
         sidebarContent.style.display = 'none';
         toggleIcon.style.transform = 'rotate(90deg)';
         
         // Ajustar margen del contenido principal
         if (mainContent) {
-            mainContent.style.marginLeft = '48px'; // Ancho del sidebar colapsado
+            mainContent.style.marginLeft = '48px';
             mainContent.style.width = 'calc(100% - 48px)';
             mainContent.style.transition = 'all 0.3s ease';
         }
         
-        // Cerrar todos los submenús
+        // Cerrar todos los submenús pero recordar cuáles estaban abiertos
         document.querySelectorAll('.submenu').forEach(sm => {
             sm.style.display = 'none';
         });
@@ -181,15 +252,19 @@ const mainContent = document.querySelector('.regency-main-content') ||
         
         // Ajustar margen del contenido principal
         if (mainContent) {
-            mainContent.style.marginLeft = '200px'; // Ancho del sidebar expandido
+            mainContent.style.marginLeft = '200px';
             mainContent.style.width = 'calc(100% - 200px)';
             mainContent.style.transition = 'all 0.3s ease';
         }
+        
+        // Restaurar submenús que estaban abiertos
+        setTimeout(() => {
+            restoreOpenSubmenus();
+        }, 50);
     }
     
-    // Guardar estado en localStorage
-    const isCollapsed = sidebar.classList.contains('collapsed');
-    localStorage.setItem('sidebarCollapsed', isCollapsed);
+    // Guardar estado actualizado
+    saveSidebarState();
     
     // Disparar evento resize para que otros componentes se ajusten
     setTimeout(() => {
@@ -205,49 +280,146 @@ function toggleSubmenu(element) {
     }
     
     const submenu = element.nextElementSibling;
+    const submenuId = getSubmenuId(element);
     const isOpen = submenu.style.display === 'block';
     
-    // Cerrar todos los otros submenús
+    // Cerrar todos los otros submenús y actualizar estado
     document.querySelectorAll('.submenu').forEach(sm => {
         if (sm !== submenu) {
             sm.style.display = 'none';
         }
     });
     
+    // Limpiar todos los submenús del estado excepto el actual
+    sidebarState.openSubmenus = sidebarState.openSubmenus.filter(id => id === submenuId);
+    
     // Toggle actual submenu
     if (isOpen) {
         submenu.style.display = 'none';
+        // Remover del estado
+        sidebarState.openSubmenus = sidebarState.openSubmenus.filter(id => id !== submenuId);
     } else {
         submenu.style.display = 'block';
+        // Añadir al estado si no existe
+        if (!sidebarState.openSubmenus.includes(submenuId)) {
+            sidebarState.openSubmenus.push(submenuId);
+        }
     }
+    
+    // Guardar estado actualizado
+    saveSidebarState();
 }
 
-document.addEventListener('DOMContentLoaded', function () {
-  // Buscar el header corporativo (ajustar selectores si difieren)
-  var header = document.querySelector('.regency-header-admin') || document.querySelector('header') || document.querySelector('.site-header');
-  var sidebar = document.getElementById('sidebar');
-  function applyHeaderHeight() {
-    var h = header ? header.offsetHeight : 0;
-    // guarda variable CSS global
-    document.documentElement.style.setProperty('--header-height', h + 'px');
-    // aplica top y height al sidebar (fallback si CSS no usa variable)
-    if (sidebar) {
-      sidebar.style.top = h + 'px';
-      sidebar.style.height = 'calc(100vh - ' + h + 'px)';
+// Función INMEDIATA para aplicar estado inicial (SIN DELAY)
+function applySidebarInitialStateImmediate() {
+    const sidebar = document.getElementById('sidebar');
+    const sidebarContent = document.getElementById('sidebarContent');
+    const toggleIcon = document.querySelector('.toggle-icon');
+    
+    if (!sidebar || !sidebarContent || !toggleIcon) {
+        return; // Elementos no disponibles aún
     }
-    // ajustar main-content si existe
-    var main = document.querySelector('.main-content') || document.querySelector('.regency-main-content') || document.querySelector('.content-container');
-    if (main) {
-      main.style.marginLeft = 'var(--sidebar-width,200px)';
-      main.style.boxSizing = 'border-box';
+    
+    // APLICAR ESTADO INMEDIATAMENTE SIN TRANSICIONES
+    sidebar.style.transition = 'none';
+    sidebarContent.style.transition = 'none';
+    
+    // Buscar el contenido principal
+    const mainContent = document.querySelector('.regency-main-content') || 
+                       document.querySelector('.main-content') || 
+                       document.querySelector('.content-container') ||
+                       document.querySelector('main');
+    
+    if (sidebarState.collapsed) {
+        // Aplicar estado colapsado INMEDIATAMENTE
+        sidebar.classList.add('collapsed');
+        sidebarContent.style.display = 'none';
+        toggleIcon.style.transform = 'rotate(90deg)';
+        
+        if (mainContent) {
+            mainContent.style.marginLeft = '48px';
+            mainContent.style.width = 'calc(100% - 48px)';
+            mainContent.style.transition = 'none';
+        }
+    } else {
+        // Aplicar estado expandido INMEDIATAMENTE
+        sidebar.classList.remove('collapsed');
+        sidebarContent.style.display = 'block';
+        toggleIcon.style.transform = 'rotate(0deg)';
+        
+        if (mainContent) {
+            mainContent.style.marginLeft = '200px';
+            mainContent.style.width = 'calc(100% - 200px)';
+            mainContent.style.transition = 'none';
+        }
+        
+        // Restaurar submenús inmediatamente
+        restoreOpenSubmenus();
     }
-  }
-  // aplicar primero
-  applyHeaderHeight();
-  // reaplicar al cambiar tamaño de ventana (responsive)
-  window.addEventListener('resize', applyHeaderHeight);
-});
+    
+    // Marcar como inicializado y restaurar transiciones
+    sidebar.classList.add('js-initialized');
+    
+    // Restaurar transiciones después de aplicar estado
+    setTimeout(() => {
+        sidebar.style.transition = '';
+        sidebarContent.style.transition = '';
+        if (mainContent) {
+            mainContent.style.transition = 'all 0.3s ease';
+        }
+    }, 50);
+}
+
+// EJECUTAR INMEDIATAMENTE cuando esté disponible el DOM básico
+if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', initializeSidebar);
+} else {
+    // DOM ya está listo
+    initializeSidebar();
+}
+
+function initializeSidebar() {
+    // Aplicar estado inmediatamente
+    applySidebarInitialStateImmediate();
+    
+    // Buscar el header corporativo
+    var header = document.querySelector('.regency-header-admin') || 
+                 document.querySelector('header') || 
+                 document.querySelector('.site-header');
+    var sidebar = document.getElementById('sidebar');
+    
+    function applyHeaderHeight() {
+        var h = header ? header.offsetHeight : 0;
+        document.documentElement.style.setProperty('--header-height', h + 'px');
+        if (sidebar) {
+            sidebar.style.top = h + 'px';
+            sidebar.style.height = 'calc(100vh - ' + h + 'px)';
+        }
+    }
+    
+    // Aplicar header height
+    applyHeaderHeight();
+    window.addEventListener('resize', applyHeaderHeight);
+    
+    console.log('Sidebar initialized with state:', sidebarState);
+}
+
+// Función de utilidad para resetear el estado (para debug)
+function resetSidebarState() {
+    localStorage.removeItem('regency_sidebar_state');
+    sidebarState = { collapsed: false, openSubmenus: [] };
+    applySidebarInitialStateImmediate();
+    console.log('Sidebar state reset');
+}
+
+// Exponer funciones globalmente para debug
+window.regencySidebar = {
+    resetState: resetSidebarState,
+    getState: () => sidebarState,
+    saveState: saveSidebarState,
+    loadState: loadSidebarState
+};
 </script>
 
 <!-- Incluir CSS -->
-<link rel="stylesheet" href="{% static 'admin/css/sidebar.css' %}?v=1.0">
+<link rel="stylesheet" href="{% static 'admin/css/sidebar.css' %}?v=1.1">
