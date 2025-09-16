@@ -19,24 +19,64 @@
                     <span class="nav-text">Inicio</span>
                 </a>
             </li>
-            
+                                <li>
+                        <a href="{% url 'programacion_dashboard' %}" class="submenu-link">
+                            <span class="submenu-icon">📅</span>
+                            Programaciones
+                        </a>
+                    </li>
             <!-- Gestión de Empresas, Proyectos - Desplegable -->
             <li class="nav-item has-submenu">
-                <a href="#" class="nav-link" onclick="toggleSubmenu(this)" data-tooltip="Empresas">
-                    <span class="nav-icon">🏢</span>
-                    <span class="nav-text">Empresas</span>
+                <a href="#" class="nav-link" onclick="toggleSubmenu(this)" data-tooltip="Configuración General">
+                    <span class="nav-text">Configuración General</span>
                 </a>
                 <ul class="submenu">
                     <li>
                         <a href="{% url 'empresas:empresas_list' %}" class="submenu-link">
-                            <span class="submenu-icon">📋</span>
-                            Lista de Empresas
+                            <span class="submenu-icon">🏢</span>
+                            Empresas
                         </a>
                     </li>
                     <li>
-                        <a href="{% url 'empresas:empresa_create' %}" class="submenu-link">
-                            <span class="submenu-icon">➕</span>
-                            Nueva Empresa
+                        <a href="{% url 'empresas:centros_operativos_list' %}" class="submenu-link">
+                            <span class="submenu-icon">🏭</span>
+                            Centros Operativos
+                        </a>
+                    </li>
+                    <li>
+                        <a href="{% url 'empresas:proyectos_list' %}" class="submenu-link">
+                            <span class="submenu-icon">📁</span>
+                            Proyectos
+                        </a>
+                    </li>
+                    <li>
+                        <a href="{% url 'empresas:cargopredefinido_list' %}" class="submenu-link">
+                            <span class="submenu-icon">💼</span>
+                            Cargos
+                        </a>
+                    </li>
+                    <li>
+                        <a href="{% url 'empresas:unidades_negocio_list' %}" class="submenu-link">
+                            <span class="submenu-icon">🏪</span>
+                            Unidades de Negocio
+                        </a>
+                    </li>
+                    <li>
+                        <a href="{% url 'usuarios:centrodecosto_list' %}" class="submenu-link">
+                            <span class="submenu-icon">💰</span>
+                            Centro de Costo
+                        </a>
+                    </li>
+                    <li>
+                        <a href="{% url 'bitacora_dashboard' %}" class="submenu-link">
+                            <span class="submenu-icon">📝</span>
+                            Bitácora
+                        </a>
+                    </li>
+                    <li>
+                        <a href="{% url 'usuarios:tercero_list' %}" class="submenu-link">
+                            <span class="submenu-icon">👥</span>
+                            Terceros
                         </a>
                     </li>
                 </ul>
@@ -44,53 +84,32 @@
                 
             <!-- Gestión de Usuarios - Desplegable -->
             <li class="nav-item has-submenu">
-                <a href="#" class="nav-link" onclick="toggleSubmenu(this)" data-tooltip="Usuarios">
-                   
+                <a href="#" class="nav-link" onclick="toggleSubmenu(this)" data-tooltip="Configuración Usuarios">
                     <span class="nav-text">Configuración Usuarios</span>
                 </a>
                 <ul class="submenu">
+                    <!-- Lista de Usuarios (Terceros) -->
                     <li>
-                        <a href="{% url 'usuarios:tercero_list' %}" class="submenu-link">
-                            <span class="submenu-icon">📋</span>
-                            Lista de Usuarios
+                        <a href="{% url 'usuarios:user_list' %}" class="submenu-link">
+                            <span class="submenu-icon"></span>
+                            Usuarios
+                        </a>
+                    </li>                   
+                    <!-- Grupos de Permisos -->
+                    <li>
+                        <a href="{% url 'usuarios:group_list' %}" class="submenu-link">
+                            <span class="submenu-icon"></span>
+                            Grupos de Permisos
                         </a>
                     </li>
-                    <li>
-                        <a href="{% url 'usuarios:tercero_create' %}" class="submenu-link">
-                            <span class="submenu-icon">➕</span>
-                            Crear Usuario
-                        </a>
-                    </li>
-                     
-
+                    
                 </ul>
             </li>
-         <!-- Gestión de Centro de costo - Desplegable -->
 
-            <li class="nav-item has-submenu">
-                <a href="#" class="nav-link" onclick="toggleSubmenu(this)">
-                    <span class="nav-icon">🏢</span>
-                    <span class="nav-text">Configuración Centro de Costo</span>
-                </a>
-                <ul class="submenu">
-                    <li>
-                        <a href="{% url 'usuarios:centrodecosto_list' %}" class="submenu-link">
-                            <span class="submenu-icon">📋</span>
-                            Lista de Centros de Costo
-                        </a>
-                    </li>
-                    <li>
-                        <a href="{% url 'usuarios:centrodecosto_create' %}" class="submenu-link">
-                            <span class="submenu-icon">➕</span>
-                            Nuevo Centro de Costo
-                        </a>
-                    </li>
-                </ul>
-            </li>
             <!-- Gestión de Turnos - Desplegable -->
             <li class="nav-item has-submenu">
                 <a href="#" class="nav-link" onclick="toggleSubmenu(this)" data-tooltip="Turnos">
-                    <span class="nav-text">Configuración Turnos</span>
+                    <span class="nav-text">Configuración Programacion</span>
                 </a>
                 <ul class="submenu">
                     <li>
@@ -104,13 +123,7 @@
             <li>
                 <a href="{% url 'usuarios:codigoturno_list' %}" class="submenu-link">
                     <span class="submenu-icon">📋</span>
-                    Lista de Códigos de Turno
-                </a>
-            </li>
-            <li>
-                <a href="{% url 'usuarios:codigoturno_create' %}" class="submenu-link">
-                    <span class="submenu-icon">➕</span>
-                    Nuevo Código de Turno
+                    Códigos de Turno
                 </a>
             </li>
         
@@ -121,55 +134,10 @@
                             Programaciones
                         </a>
                     </li>
-                    <li>
-                        <a href="/admin/turnos/asignacion/" class="submenu-link">
-                            <span class="submenu-icon">📌</span>
-                            Asignaciones
-                        </a>
-                    </li>
-                </ul>
-            </li>
-             <!-- Gestión de grupos de permisos - Desplegable -->
-            <li class="nav-item has-submenu">
-                <a href="#" class="nav-link" onclick="toggleSubmenu(this)" data-tooltip="Grupos de Permisos">
-                    <span class="nav-text">Grupos de Permisos</span>
-                </a>
-                <ul class="submenu">
-                    <li>
-                        <a href="{% url 'usuarios:group_list' %}" class="submenu-link">
-                            <span class="submenu-icon">📋</span>
-                            Lista de Grupos
-                        </a>
-                    </li>
-                    <li>
-                        <a href="{% url 'usuarios:group_create' %}" class="submenu-link">
-                            <span class="submenu-icon">➕</span>
-                            Crear Grupo
-                        </a>
-                    </li>
                 </ul>
             </li>
 
-            <li class="nav-item">
-                <a href="/admin/" class="nav-link" data-tooltip="Panel Admin">
-                    <span class="nav-icon">⚙️</span>
-                    <span class="nav-text">Panel Admin</span>
-                </a>
-            </li>
-            
-            <li class="nav-item">
-                <a href="#" class="nav-link" data-tooltip="Reportes">
-                    <span class="nav-icon">📊</span>
-                    <span class="nav-text">Reportes</span>
-                </a>
-            </li>
-            
-            <li class="nav-item">
-                <a href="#" class="nav-link" data-tooltip="Configuración">
-                    <span class="nav-icon">⚙️</span>
-                    <span class="nav-text">Configuración</span>
-                </a>
-            </li>
+
         </ul>
     </div>
 </nav>
