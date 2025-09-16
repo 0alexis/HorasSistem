@@ -681,7 +681,7 @@ def asignacion_turno_edit_view(request, llave):
     
     if request.method == 'POST':
         nueva_letra = request.POST.get('letra_turno')
-        if nueva_letra and nueva_letra.isalpha():
+        if nueva_letra and CodigoTurno.objects.filter(letra_turno=nueva_letra, estado_codigo=1).exists():
             asignacion.letra_turno = nueva_letra
             asignacion.save()
             centro_id = getattr(asignacion.programacion.centro_operativo, 'id_centro', None)

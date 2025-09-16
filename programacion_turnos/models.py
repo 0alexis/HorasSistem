@@ -5,6 +5,8 @@ from django.conf import settings
 from programacion_models.models import ModeloTurno, LetraTurno
 from usuarios.models import Tercero, CodigoTurno
 from empresas.models import CargoPredefinido
+from django.core.exceptions import ValidationError
+import re
 
 # Manager personalizado para soft delete de ProgramacionHorario
 class ActivoProgramacionManager(models.Manager):
@@ -48,11 +50,40 @@ class AsignacionTurno(models.Model):
     programacion = models.ForeignKey(ProgramacionHorario, on_delete=models.CASCADE, related_name='asignaciones')
     tercero = models.ForeignKey('usuarios.Tercero', on_delete=models.CASCADE)
     dia = models.DateField()
-    letra_turno = models.CharField(max_length=2)
+    letra_turno = models.CharField(max_length=10)
     fila = models.PositiveIntegerField(null= False)
     columna = models.PositiveIntegerField(null= False)
+
+    class Meta:
+        verbose_name = 'Asignación de Turno'
+        verbose_name_plural = 'Asignaciones de Turno'
+        unique_together = ['programacion', 'tercero', 'dia']
+
+
+    def clean(self):
+        """Validación personalizada"""
+        super().clean()
+
+        if self.letra_turno:
+            # ✅ PERMITIR CARACTERES ALFANUMÉRICOS Y ALGUNOS ESPECIALES
+            patron_valido = r'^[A-Za-z0-9+\-*/&@#.]+$'
+            
+            if not re.match(patron_valido, self.letra_turno):
+                raise ValidationError({
+                    'letra_turno': f'El código "{self.letra_turno}" contiene caracteres no válidos. Solo se permiten letras, números y símbolos: + - * / & @ # .'
+                })
+            
+
+        
+    def save(self, *args, **kwargs):
+        """Override save para ejecutar validaciones"""
+        self.full_clean()
+        super().save(*args, **kwargs)
+        
     def __str__(self):
         return f"{self.tercero} - {self.dia}: {self.letra_turno}"
+
+
 
 class Bitacora(models.Model):
     TIPOS_ACCION = [
