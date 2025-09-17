@@ -1,0 +1,627 @@
+<!-- ✅ REEMPLAZAR COMPLETAMENTE horarios_tercero.html: -->
+{% extends "admin/base_site.html" %}
+{% load static %}
+
+{% block title %}Horarios de {{ tercero.nombre_tercero }} {{ tercero.apellido_tercero }} | Sistema de Horas{% endblock %}
+
+{% block extrastyle %}
+{{ block.super }}
+
+
+<link rel="stylesheet" href="{% static 'admin/css/components/ui-components.css' %}">
+<style>
+    /* ========== VARIABLES CSS ========== */
+    :root {
+        --regency-red: #871b1f;
+        --regency-red-light: #a52429;
+        --regency-red-dark: #6d1317;
+        --regency-gray: #f8f9fa;
+        --regency-gray-dark: #6c757d;
+        --regency-text: #2d3748;
+        --border-radius: 8px;
+        --shadow-sm: 0 2px 4px rgba(0, 0, 0, 0.1);
+        --shadow-md: 0 4px 8px rgba(0, 0, 0, 0.15);
+    }
+
+    /* ========== CONTAINER PRINCIPAL ========== */
+    .horarios-container {
+        padding: 1rem 1.5rem;
+        max-width: 1400px;
+        margin: 0 auto;
+        width: 100%;
+    }
+
+    /* ========== HEADER ========== */
+    .page-header {
+        background: linear-gradient(135deg, var(--regency-red), var(--regency-red-dark));
+        color: white;
+        padding: 1.5rem;
+        margin-bottom: 2rem;
+        border-radius: var(--border-radius);
+        box-shadow: var(--shadow-md);
+    }
+
+    .header-content {
+        display: flex;
+        justify-content: space-between;
+        align-items: flex-start;
+        flex-wrap: wrap;
+        gap: 1rem;
+    }
+
+    .employee-info h1 {
+        font-size: 1.75rem;
+        font-weight: 700;
+        margin: 0 0 0.5rem 0;
+        display: flex;
+        align-items: center;
+        gap: 0.75rem;
+    }
+
+    .employee-details {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+        gap: 1rem;
+        margin-top: 1rem;
+    }
+
+    .employee-detail {
+        background: rgba(255, 255, 255, 0.1);
+        padding: 0.75rem;
+        border-radius: 6px;
+        backdrop-filter: blur(10px);
+    }
+
+    .detail-label {
+        font-size: 0.8rem;
+        opacity: 0.9;
+        margin-bottom: 0.25rem;
+        font-weight: 500;
+    }
+
+    .detail-value {
+        font-size: 0.95rem;
+        font-weight: 600;
+    }
+
+    .header-actions {
+        display: flex;
+        gap: 0.75rem;
+        flex-wrap: wrap;
+    }
+
+    /* ========== FILTROS ========== */
+    .filters-section {
+        background: white;
+        border-radius: var(--border-radius);
+        padding: 1.25rem;
+        margin-bottom: 1.5rem;
+        box-shadow: var(--shadow-sm);
+        border: 1px solid #e5e7eb;
+    }
+
+    .filters-title {
+        font-size: 1rem;
+        font-weight: 600;
+        color: var(--regency-text);
+        margin-bottom: 1rem;
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+    }
+
+    .filters-form {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)) auto;
+        gap: 1rem;
+        align-items: end;
+    }
+
+    /* Barra de filtros compacta y sofisticada */
+    .filters-bar {
+        padding: 0.5rem 1rem;
+        margin-bottom: 1.25rem;
+        background: #fff;
+        border-radius: var(--border-radius);
+        box-shadow: var(--shadow-sm);
+        border: 1px solid #e5e7eb;
+    }
+
+    .filters-form-bar {
+        display: flex;
+        flex-wrap: wrap;
+        align-items: flex-end;
+        justify-content: space-between;
+        gap: 1rem;
+    }
+
+    .filters-fields {
+        display: flex;
+        gap: 1rem;
+        flex-wrap: wrap;
+    }
+
+    .filters-actions {
+        display: flex;
+        gap: 0.5rem;
+    }
+
+    .form-group {
+        display: flex;
+        flex-direction: column;
+        gap: 0.25rem;
+        margin-bottom: 0;
+    }
+
+    .form-label {
+        font-size: 0.85rem;
+        font-weight: 600;
+        color: var(--regency-text);
+    }
+
+    .form-control {
+        padding: 0.5rem 0.75rem;
+        border: 1px solid #d1d5db;
+        border-radius: var(--border-radius);
+        font-size: 0.9rem;
+        transition: border-color 0.2s ease;
+    }
+
+    .form-control:focus {
+        outline: none;
+        border-color: var(--regency-red);
+        box-shadow: 0 0 0 3px rgba(135, 27, 31, 0.1);
+    }
+
+    /* ========== ESTADÍSTICAS ========== */
+    .stats-section {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+        gap: 1rem;
+        margin-bottom: 1.5rem;
+    }
+
+    .stat-card {
+        background: white;
+        padding: 1.25rem;
+        border-radius: var(--border-radius);
+        box-shadow: var(--shadow-sm);
+        border-left: 4px solid var(--regency-red);
+        text-align: center;
+        transition: transform 0.2s ease;
+    }
+
+    .stat-card:hover {
+        transform: translateY(-2px);
+        box-shadow: var(--shadow-md);
+    }
+
+    .stat-number {
+        font-size: 1.75rem;
+        font-weight: 700;
+        color: var(--regency-red);
+        margin-bottom: 0.25rem;
+    }
+
+    .stat-label {
+        font-size: 0.8rem;
+        color: var(--regency-gray-dark);
+        font-weight: 500;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+    }
+
+    /* ========== HORARIOS GRID ========== */
+    .horarios-section {
+        background: white;
+        border-radius: var(--border-radius);
+        box-shadow: var(--shadow-sm);
+        overflow: hidden;
+        border: 1px solid #e5e7eb;
+    }
+
+    .section-header {
+        background: var(--regency-gray);
+        padding: 1rem 1.5rem;
+        border-bottom: 1px solid #e5e7eb;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+    }
+
+    .section-title {
+        font-size: 1.1rem;
+        font-weight: 600;
+        color: var(--regency-text);
+        margin: 0;
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+    }
+
+    .horarios-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+        gap: 1rem;
+        padding: 1.5rem;
+    }
+
+    .horario-card {
+        border: 1px solid #e5e7eb;
+        border-radius: var(--border-radius);
+        padding: 1.25rem;
+        background: #fefefe;
+        transition: all 0.2s ease;
+        position: relative;
+        overflow: hidden;
+    }
+
+    .horario-card:hover {
+        border-color: var(--regency-red);
+        box-shadow: var(--shadow-sm);
+        transform: translateY(-1px);
+    }
+
+    .horario-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: flex-start;
+        margin-bottom: 1rem;
+    }
+
+    .horario-fecha {
+        font-size: 1rem;
+        font-weight: 700;
+        color: var(--regency-red);
+    }
+
+    .horario-turno {
+        background: var(--regency-red);
+        color: white;
+        padding: 0.25rem 0.75rem;
+        border-radius: 20px;
+        font-size: 0.85rem;
+        font-weight: 600;
+    }
+
+    .horario-details {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 0.75rem;
+    }
+
+    .horario-detail {
+        background: var(--regency-gray);
+        padding: 0.75rem;
+        border-radius: 6px;
+    }
+
+    .detail-label-small {
+        font-size: 0.7rem;
+        color: var(--regency-gray-dark);
+        margin-bottom: 0.25rem;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+    }
+
+    .detail-value-small {
+        font-size: 0.9rem;
+        font-weight: 600;
+        color: var(--regency-text);
+    }
+
+    .programacion-info {
+        margin-top: 1rem;
+        padding-top: 1rem;
+        border-top: 1px solid #e5e7eb;
+        font-size: 0.85rem;
+        color: var(--regency-gray-dark);
+    }
+
+    /* ========== ESTADO VACÍO ========== */
+    .empty-state {
+        text-align: center;
+        padding: 3rem 1.5rem;
+        color: var(--regency-gray-dark);
+    }
+
+    .empty-icon {
+        font-size: 4rem;
+        margin-bottom: 1rem;
+        opacity: 0.5;
+    }
+
+    .empty-title {
+        font-size: 1.25rem;
+        font-weight: 600;
+        margin-bottom: 0.5rem;
+        color: var(--regency-text);
+    }
+
+    .empty-message {
+        font-size: 0.95rem;
+        margin-bottom: 1.5rem;
+    }
+
+    /* ========== EMPLOYEE CARD ========== */
+    .employee-card {
+        display: flex;
+        align-items: center;
+        background: rgba(255,255,255,0.13);
+        border-radius: 12px;
+        box-shadow: 0 2px 8px rgba(135,27,31,0.06);
+        padding: 1rem 1.5rem;
+        gap: 1.25rem;
+        min-width: 320px;
+        max-width: 520px;
+    }
+
+    .employee-avatar {
+        width: 56px;
+        height: 56px;
+        border-radius: 50%;
+        background: var(--regency-red);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 2rem;
+        color: #fff;
+        box-shadow: 0 2px 8px rgba(135,27,31,0.13);
+    }
+
+    .employee-main {
+        flex: 1;
+    }
+
+    .employee-name {
+        font-size: 1.25rem;
+        font-weight: 700;
+        color: #fff;
+        margin-bottom: 0.25rem;
+    }
+
+    .employee-meta {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 0.75rem 1.25rem;
+        font-size: 0.92rem;
+        color: #f3f4f6;
+        opacity: 0.95;
+    }
+
+    .meta-item {
+        background: rgba(255,255,255,0.08);
+        border-radius: 6px;
+        padding: 0.15rem 0.7rem;
+        font-size: 0.92rem;
+        color: #f3f4f6;
+    }
+
+    /* ========== RESPONSIVE ========== */
+    @media (max-width: 768px) {
+        .horarios-container {
+            padding: 1rem;
+        }
+
+        .header-content {
+            flex-direction: column;
+            text-align: center;
+        }
+
+        .employee-details {
+            grid-template-columns: 1fr;
+        }
+
+        .filters-form {
+            grid-template-columns: 1fr;
+        }
+
+        .stats-section {
+            grid-template-columns: repeat(2, 1fr);
+        }
+
+        .horarios-grid {
+            grid-template-columns: 1fr;
+            padding: 1rem;
+        }
+
+        .horario-details {
+            grid-template-columns: 1fr;
+        }
+    }
+
+    @media (max-width: 900px) {
+        .filters-form-bar, .filters-fields {
+            flex-direction: column;
+            align-items: stretch;
+            gap: 0.5rem;
+        }
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="horarios-container">
+    <!-- Header con información del empleado -->
+    <div class="page-header">
+        <div class="header-content">
+            <div class="employee-info">
+                <div class="employee-card">
+                    <div class="employee-avatar">
+                        <span class="avatar-icon">👤</span>
+                    </div>
+                    <div class="employee-main">
+                        <div class="employee-name">
+                            {{ tercero.nombre_tercero }} {{ tercero.apellido_tercero }}
+                        </div>
+                        <div class="employee-meta">
+                            <span class="meta-item"><b>Documento:</b> {{ tercero.documento|default:"No registrado" }}</span>
+                            <span class="meta-item"><b>Correo:</b> {{ tercero.correo_tercero|default:"No registrado" }}</span>
+                            <span class="meta-item"><b>Centro:</b> {{ tercero.centro_operativo.nombre|default:"No asignado" }}</span>
+                            <span class="meta-item"><b>Cargo:</b> {{ tercero.cargo_predefinido.nombre|default:"No asignado" }}</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="header-actions">
+                <a href="{% url 'usuarios:tercero_detail' tercero.pk %}" class="btn btn-secondary">
+                    Volver al Perfil
+                </a>
+                <button type="button" class="btn btn-secondary" onclick="window.print()">
+                    🖨️ Imprimir
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Filtros -->
+    <div class="filters-section filters-bar">
+        <form method="get" class="filters-form-bar" id="filtersForm">
+            <div class="filters-fields">
+                <div class="form-group">
+                    <label for="fecha_desde" class="form-label">Desde</label>
+                    <input type="date" class="form-control" id="fecha_desde" name="fecha_desde" value="{{ fecha_desde }}">
+                </div>
+                <div class="form-group">
+                    <label for="fecha_hasta" class="form-label">Hasta</label>
+                    <input type="date" class="form-control" id="fecha_hasta" name="fecha_hasta" value="{{ fecha_hasta }}">
+                </div>
+                <div class="form-group">
+                    <label for="programacion" class="form-label">Programación</label>
+                    <select class="form-control" id="programacion" name="programacion">
+                        <option value="">Todas</option>
+                        {% for prog in programaciones %}
+                            <option value="{{ prog.id }}" {% if programacion_filtro == prog.id|stringformat:"s" %}selected{% endif %}>
+                                {{ prog.nombre }}
+                            </option>
+                        {% endfor %}
+                    </select>
+                </div>
+            </div>
+            <div class="filters-actions">
+                <button type="submit" class="btn-action btn-view">
+                    🔍 Filtrar
+                </button>
+                <a href="{% url 'usuarios:horarios_tercero' tercero.pk %}" class="btn-action btn-view" title="Limpiar filtros">
+                    🔄 Limpiar
+                </a>
+            </div>
+        </form>
+    </div>
+
+    <!-- Estadísticas -->
+    <div class="stats-section stats-mini">
+        <div class="stat-mini-card">
+            <div class="stat-mini-number">{{ total_horarios }}</div>
+            <div class="stat-mini-label">Horarios</div>
+        </div>
+        <div class="stat-mini-card">
+            <div class="stat-mini-number">{{ programaciones_count }}</div>
+            <div class="stat-mini-label">Programaciones</div>
+        </div>
+        <div class="stat-mini-card">
+            <div class="stat-mini-number">{{ dias_trabajados }}</div>
+            <div class="stat-mini-label">Días</div>
+        </div>
+        <div class="stat-mini-card">
+            <div class="stat-mini-number">{{ turnos_unicos }}</div>
+            <div class="stat-mini-label">Turnos</div>
+        </div>
+    </div>
+
+    <!-- Horarios -->
+    <div class="horarios-section">
+        <div class="section-header">
+            <h3 class="section-title">
+                📅 Horarios Asignados
+                {% if is_filtered %}(Filtrados){% endif %}
+            </h3>
+            <span class="badge">{{ horarios|length }} registros</span>
+        </div>
+
+        {% if horarios %}
+            <div class="horarios-grid">
+                {% for horario in horarios %}
+                    <div class="horario-card">
+                        <div class="horario-header">
+                            <div class="horario-fecha">
+                                {{ horario.dia|date:"d/m/Y" }}
+                                <small style="display: block; font-size: 0.75rem; font-weight: normal; color: #6c757d;">
+                                    {{ horario.dia|date:"l" }}
+                                </small>
+                            </div>
+                            <div class="horario-turno">
+                                {{ horario.letra_turno }}
+                            </div>
+                        </div>
+                        <div class="programacion-info">
+                            <strong>Programación:</strong> {{ horario.programacion.nombre }}<br>
+                            <strong>Centro:</strong> {{ horario.programacion.centro_operativo.nombre }}<br>
+                            <small class="text-muted">
+                                Período: {{ horario.programacion.fecha_inicio|date:"d/m/Y" }} - 
+                                {{ horario.programacion.fecha_fin|date:"d/m/Y" }}
+                            </small>
+                        </div>
+                    </div>
+                {% endfor %}
+            </div>
+        {% else %}
+            <div class="empty-state">
+                <div class="empty-icon">📋</div>
+                <h4 class="empty-title">No hay horarios asignados</h4>
+                <p class="empty-message">
+                    {% if is_filtered %}
+                        No se encontraron horarios con los filtros aplicados.
+                    {% else %}
+                        Este empleado no tiene horarios asignados aún.
+                    {% endif %}
+                </p>
+                {% if is_filtered %}
+                    <a href="{% url 'usuarios:horarios_tercero' tercero.pk %}" class="btn btn-primary">
+                        Ver Todos los Horarios
+                    </a>
+                {% endif %}
+            </div>
+        {% endif %}
+    </div>
+</div>
+{% endblock %}
+
+{% block extrajs %}
+{{ block.super }}
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // Filtros automáticos
+    const fechaDesde = document.getElementById('fecha_desde');
+    const fechaHasta = document.getElementById('fecha_hasta');
+    const programacionSelect = document.getElementById('programacion');
+    
+    // Auto-submit al cambiar fechas
+    [fechaDesde, fechaHasta, programacionSelect].forEach(element => {
+        if (element) {
+            element.addEventListener('change', function() {
+                // Pequeño delay para mejor UX
+                setTimeout(() => {
+                    document.getElementById('filtersForm').submit();
+                }, 300);
+            });
+        }
+    });
+    
+    // Validación de fechas
+    if (fechaDesde && fechaHasta) {
+        fechaDesde.addEventListener('change', function() {
+            if (fechaHasta.value && this.value > fechaHasta.value) {
+                fechaHasta.value = this.value;
+            }
+        });
+        
+        fechaHasta.addEventListener('change', function() {
+            if (fechaDesde.value && this.value < fechaDesde.value) {
+                fechaDesde.value = this.value;
+            }
+        });
+    }
+});
+</script>
+{% endblock %}

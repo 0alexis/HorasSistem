@@ -5,6 +5,8 @@ from rest_framework.decorators import action
 from rest_framework.response import Response
 from rest_framework_simplejwt.tokens import RefreshToken
 from django.contrib.auth import authenticate, get_user_model
+
+from programacion_turnos.models import AsignacionTurno, ProgramacionHorario
 from .models import Usuario, Rol
 from .serializers import UsuarioSerializer, UsuarioCreateSerializer, RolSerializer
 from django.shortcuts import render, redirect
@@ -131,6 +133,58 @@ def tercero_update(request, pk):
         form = TerceroForm(instance=tercero)
     return render(request, 'usuarios/tercero_form.html', {'form': form, 'tercero': tercero})
 
+def horarios_tercero(request, tercero_id):
+    
+    tercero = get_object_or_404(Tercero, pk=tercero_id)
+    
+    # Obtener todos los horarios del tercero
+    horarios = AsignacionTurno.objects.filter(tercero=tercero).select_related(
+        'programacion', 'programacion__centro_operativo'
+    ).order_by('dia')
+    
+    # Filtros
+    fecha_desde = request.GET.get('fecha_desde', '').strip()
+    fecha_hasta = request.GET.get('fecha_hasta', '').strip()
+    programacion_filtro = request.GET.get('programacion', '').strip()
+    
+    # Aplicar filtros
+    is_filtered = False
+    if fecha_desde:
+        horarios = horarios.filter(dia__gte=fecha_desde)
+        is_filtered = True
+    if fecha_hasta:
+        horarios = horarios.filter(dia__lte=fecha_hasta)
+        is_filtered = True
+    if programacion_filtro:
+        horarios = horarios.filter(programacion_id=programacion_filtro)
+        is_filtered = True
+    
+    # Estadísticas
+    total_horarios = AsignacionTurno.objects.filter(tercero=tercero).count()
+    programaciones_count = AsignacionTurno.objects.filter(tercero=tercero).values('programacion').distinct().count()
+    dias_trabajados = AsignacionTurno.objects.filter(tercero=tercero).values('dia').distinct().count()
+    turnos_unicos = AsignacionTurno.objects.filter(tercero=tercero).values('letra_turno').distinct().count()
+    
+    # Programaciones para el filtro
+    programaciones = ProgramacionHorario.objects.filter(
+        asignaciones__tercero=tercero
+    ).distinct().order_by('nombre')
+    
+    context = {
+        'tercero': tercero,
+        'horarios': horarios,
+        'programaciones': programaciones,
+        'fecha_desde': fecha_desde,
+        'fecha_hasta': fecha_hasta,
+        'programacion_filtro': programacion_filtro,
+        'is_filtered': is_filtered,
+        'total_horarios': total_horarios,
+        'programaciones_count': programaciones_count,
+        'dias_trabajados': dias_trabajados,
+        'turnos_unicos': turnos_unicos,
+    }
+    
+    return render(request, 'programacion_turnos/horarios_tercero.html', context)
 
 
 ############CENTRO DE COSTO############

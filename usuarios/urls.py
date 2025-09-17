@@ -47,4 +47,9 @@ urlpatterns = [
     path('usuario_acess/<int:pk>/', views.user_detail, name='user_detail'),
     path('usuario_acess/<int:pk>/toggle-status/', views.user_toggle_status, name='user_toggle_status'),
 
+    #######HORARIOS TERCEROS######
+    path('horarios/tercero/<int:tercero_id>/', views.horarios_tercero, name='horarios_tercero'),
+
+
+
 ]
