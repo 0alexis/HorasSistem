@@ -593,7 +593,7 @@
         <div class="header-main">
             <h1>
                 {% if form.instance.pk %}
-                    ✏️ Editar Proyecto
+                     Editar Proyecto
                 {% else %}
                     ➕ Nuevo Proyecto
                 {% endif %}
@@ -608,7 +608,7 @@
         </div>
         <div class="header-actions">
             <a href="{% url 'empresas:proyectos_list' %}" class="btn-secondary">
-                ← Volver a Lista
+                 Volver a Lista
             </a>
         </div>
     </div>
@@ -616,7 +616,7 @@
     <!-- Indicador de estado -->
     {% if form.instance.pk %}
         <div class="status-edit status-indicator">
-            ✏️ Modo de edición - Proyecto: {{ form.instance.nombre }}
+            Modo de edición - Proyecto: {{ form.instance.nombre }}
         </div>
     {% else %}
         <div class="status-draft status-indicator">
@@ -696,7 +696,7 @@
                                         <!-- Header compacto con contador y acciones -->
                                         <div class="centros-header">
                                             <div class="centros-counter-compact" id="centros-counter">
-                                                � <span id="counter-text">0 seleccionados</span>
+                                                 <span id="counter-text">0 seleccionados</span>
                                             </div>
                                             <div class="centros-actions-compact">
                                                 <button type="button" class="action-btn-compact select-all" id="select-all-btn">
@@ -756,21 +756,21 @@
                                 
                                 <div class="form-grid">
                                     
-                                                                    <!-- Fecha de inicio -->
-                                                                    <div class="field-group {% if form.fecha_inicio.errors %}field-error{% endif %}">
-                                                                        <label for="{{ form.fecha_inicio.id_for_label }}" class="field-label">
-                                                                            🚀 Fecha de Inicio
-                                                                        </label>
-                                                                        {{ form.fecha_inicio }}
-                                                                        {% if form.fecha_inicio.errors %}
-                                                                            {% for error in form.fecha_inicio.errors %}
-                                                                                <div class="error-message">⚠️ {{ error }}</div>
-                                                                            {% endfor %}
-                                                                        {% endif %}
-                                                                        <div class="field-help">
-                                                                            {{ form.fecha_inicio.help_text }}
-                                                                        </div>
-                                                                    </div>
+                              <!-- Fecha de inicio -->
+                             <div class="field-group {% if form.fecha_inicio.errors %}field-error{% endif %}">
+                                  <label for="{{ form.fecha_inicio.id_for_label }}" class="field-label">
+                                         🚀 Fecha de Inicio
+                                    </label>
+                                    {{ form.fecha_inicio }}
+                                        {% if form.fecha_inicio.errors %}
+                                         {% for error in form.fecha_inicio.errors %}
+                                     <div class="error-message">⚠️ {{ error }}</div>
+                                            {% endfor %}
+                                               {% endif %}
+                                                <div class="field-help">
+                                                  {{ form.fecha_inicio.help_text }}
+                                               </div>
+                                        </div>
                                                 
                                                                     <!-- Fecha de fin -->
                                                                     <div class="field-group {% if form.fecha_fin.errors %}field-error{% endif %}">

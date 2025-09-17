@@ -3,6 +3,8 @@
 
 {% block extrastyle %}
 {{ block.super }}
+
+<link rel="stylesheet" href="{% static 'admin/css/components/ui-components.css' %}">
 <style>
     /* Variables empresariales REGENCY */
     :root {
@@ -365,103 +367,6 @@
         border: 1px solid #fca5a5;
     }
 
-    /* Botones de acción COMPACTOS HORIZONTALES */
-    .btn-actions {
-        display: flex;
-        gap: 0.25rem; /* Espacio mínimo */
-        flex-wrap: nowrap; /* Sin wrap */
-        justify-content: flex-start;
-        min-width: 160px;
-    }
-
-    .btn-sm {
-        padding: 0.3rem 0.5rem; /* Muy compacto */
-        font-size: 0.7rem;
-        border-radius: 4px;
-        text-decoration: none;
-        font-weight: 500;
-        transition: all 0.2s ease;
-        display: inline-flex;
-        align-items: center;
-        gap: 0.2rem;
-        border: none;
-        cursor: pointer;
-        min-width: 45px; /* Muy pequeño */
-        justify-content: center;
-        white-space: nowrap;
-    }
-
-    .btn-primary {
-        background: var(--regency-red);
-        color: white;
-    }
-
-    .btn-primary:hover {
-        background: var(--regency-red-dark);
-        color: white;
-        text-decoration: none;
-        transform: translateY(-1px);
-    }
-
-    .btn-info {
-        background: #0ea5e9;
-        color: white;
-    }
-
-    .btn-info:hover {
-        background: #0284c7;
-        color: white;
-        text-decoration: none;
-        transform: translateY(-1px);
-    }
-
-    .btn-warning {
-        background: #f59e0b;
-        color: white;
-    }
-
-    .btn-warning:hover {
-        background: #d97706;
-        color: white;
-        text-decoration: none;
-        transform: translateY(-1px);
-    }
-
-    .btn-danger {
-        background: #dc2626;
-        color: white;
-    }
-
-    .btn-danger:hover {
-        background: #b91c1c;
-        color: white;
-        text-decoration: none;
-        transform: translateY(-1px);
-    }
-
-    .btn-regency {
-        background: var(--regency-red);
-        color: white;
-        border: none;
-        padding: 0.75rem 1.5rem;
-        border-radius: var(--border-radius);
-        font-weight: 500;
-        font-size: 0.9rem;
-        cursor: pointer;
-        transition: all 0.2s ease;
-        text-decoration: none;
-        display: inline-flex;
-        align-items: center;
-        gap: 0.5rem;
-    }
-
-    .btn-regency:hover {
-        background: var(--regency-red-dark);
-        color: white;
-        text-decoration: none;
-        transform: translateY(-1px);
-    }
-
     /* Estado vacío */
     .empty-state {
         text-align: center;
@@ -608,7 +513,7 @@
         .data-table td {
             padding: 0.4rem 0.2rem;
         }
-
+;
         .btn-actions {
             flex-direction: column;
             gap: 0.15rem;
@@ -660,7 +565,7 @@
             </p>
         </div>
         <div class="header-actions">
-            <a href="{% url 'empresas:proyecto_create' %}" class="btn-regency">
+            <a href="{% url 'empresas:proyecto_create' %}" class="btn-regency btn-new">
                 ➕ Nuevo Proyecto
             </a>
         </div>
@@ -737,12 +642,12 @@
                 <table class="data-table">
                     <thead>
                         <tr>
-                            <th class="project-info">📊 Proyecto</th>
-                            <th>🏢 Empresa</th>
+                            <th class="project-info"> Proyecto</th>
+                            <th> Empresa</th>
                             <th class="dates-info">📅 Fechas</th>
-                            <th class="centros-info">🏭 Centros</th>
-                            <th>⚙️ Estado</th>
-                            <th>🔧 Acciones</th>
+                            <th class="centros-info"> Centros</th>
+                            <th> Estado</th>
+                            <th> Acciones</th>
                         </tr>
                     </thead>
                     <tbody>
@@ -831,20 +736,20 @@
                             <td>
                                 <div class="btn-actions">
                                     <a href="{% url 'empresas:proyecto_detail' proyecto.id_proyecto %}" 
-                                       class="btn-sm btn-info" 
+                                       class="btn-action btn-view" 
                                        title="Ver detalles">
                                         Ver
                                     </a>
                                     <a href="{% url 'empresas:proyecto_update' proyecto.id_proyecto %}" 
-                                       class="btn-sm btn-warning" 
+                                       class="btn-action btn-edit" 
                                        title="Editar">
                                         Edit
                                     </a>
                                     <a href="{% url 'empresas:proyecto_delete' proyecto.id_proyecto %}" 
-                                       class="btn-sm btn-danger" 
+                                       class="btn-action btn-delete" 
                                        title="Eliminar"
                                        onclick="return confirm('⚠️ ¿Eliminar proyecto?')">
-                                        Del
+                                        Elim
                                     </a>
                                 </div>
                             </td>

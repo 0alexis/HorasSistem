@@ -3,6 +3,9 @@
 
 {% block extrastyle %}
 {{ block.super }}
+
+
+<link rel="stylesheet" href="{% static 'admin/css/components/ui-components.css' %}">
 <style>
     /* ========== VARIABLES EMPRESARIALES REGENCY ========== */
     :root {
@@ -179,51 +182,6 @@
         flex-wrap: wrap;
     }
 
-    .btn-regency {
-        background: var(--regency-red);
-        color: white;
-        border: none;
-        padding: 0.75rem 1.5rem;
-        border-radius: var(--border-radius);
-        font-weight: 500;
-        font-size: 0.9rem;
-        cursor: pointer;
-        transition: all 0.2s ease;
-        text-decoration: none;
-        display: inline-flex;
-        align-items: center;
-        gap: 0.5rem;
-    }
-
-    .btn-regency:hover {
-        background: var(--regency-red-dark);
-        color: white;
-        text-decoration: none;
-        transform: translateY(-1px);
-    }
-
-    .btn-outline {
-        background: transparent;
-        color: var(--regency-gray-dark);
-        border: 1px solid #d1d5db;
-        padding: 0.75rem 1.5rem;
-        border-radius: var(--border-radius);
-        font-weight: 500;
-        cursor: pointer;
-        transition: all 0.2s ease;
-        text-decoration: none;
-        display: inline-flex;
-        align-items: center;
-        gap: 0.5rem;
-    }
-
-    .btn-outline:hover {
-        background: var(--regency-gray);
-        border-color: #9ca3af;
-        color: var(--regency-text);
-        text-decoration: none;
-    }
-
     /* ========== RESPONSIVE ========== */
     @media (max-width: 768px) {
         .detail-container {
@@ -273,7 +231,7 @@
             </p>
         </div>
         <div class="header-actions">
-            <a href="{% url 'empresas:unidades_negocio_list' %}" class="btn-outline">
+            <a href="{% url 'empresas:unidades_negocio_list' %}" class="btn-secondary">
                 📋 Ver Listado
             </a>
         </div>
@@ -382,11 +340,11 @@
 
         <!-- Botones -->
         <div class="detail-actions">
-            <a href="{% url 'empresas:unidad_negocio_update' pk=unidad.pk %}" class="btn-regency">
-                ✏️ Editar
+            <a href="{% url 'empresas:unidad_negocio_update' pk=unidad.pk %}" class="btn-action btn-update">
+                Editar
             </a>
-            <a href="{% url 'empresas:unidades_negocio_list' %}" class="btn-outline">
-                ← Volver al Listado
+            <a href="{% url 'empresas:unidades_negocio_list' %}" class="btn-action btn-list">
+                 Volver al Listado
             </a>
         </div>
     </div>

@@ -3,6 +3,9 @@
 
 {% block extrastyle %}
 {{ block.super }}
+
+<link rel="stylesheet" href="{% static 'admin/css/components/ui-components.css' %}">
+
 <style>
     /* Variables empresariales REGENCY */
     :root {
@@ -450,17 +453,6 @@
     </div>
 
 
-
-    <!-- Formulario -->
-    <div class="form-card">
-        <div class="card-header-regency">
-            {% if cargo %}
-                ✏️ Editar Cargo: {{ cargo.nombre }}
-            {% else %}
-                ➕ Crear Nuevo Cargo Predefinido
-            {% endif %}
-        </div>
-
         <!-- Mostrar errores del formulario si existen -->
         {% if form.errors %}
         <div class="form-errors">
@@ -585,15 +577,15 @@
 
             <!-- Acciones del formulario -->
             <div class="form-actions">
-                <a href="{% url 'empresas:cargopredefinido_list' %}" class="btn-outline">
+                <a href="{% url 'empresas:cargopredefinido_list' %}" class="btn-action btn-delete">
                     ❌ Cancelar
                 </a>
                 {% if cargo %}
-                    <a href="{% url 'empresas:cargopredefinido_detail' cargo.id_cargo_predefinido %}" class="btn-secondary">
-                        👁️ Ver Detalle
+                    <a href="{% url 'empresas:cargopredefinido_detail' cargo.id_cargo_predefinido %}" class="btn-action btn-details">
+                         Ver Detalle
                     </a>
                 {% endif %}
-                <button type="submit" class="btn-regency">
+                <button type="submit" class="btn-action btn-update">
                     {% if cargo %}
                         💾 {{ action|default:"Actualizar" }} Cargo
                     {% else %}

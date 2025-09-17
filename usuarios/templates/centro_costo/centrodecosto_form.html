@@ -3,6 +3,8 @@
 
 {% block extrastyle %}
 {{ block.super }}
+
+<link rel="stylesheet" href="{% static 'admin/css/components/ui-components.css' %}">
 <style>
     /* Variables consistentes con el proyecto */
     :root {
@@ -214,91 +216,6 @@
         font-size: 0.7rem;
     }
 
-    /* Botones empresariales */
-    .btn-regency {
-        background: var(--regency-red);
-        color: white;
-        border: none;
-        padding: 0.75rem 1.25rem;
-        border-radius: var(--border-radius);
-        font-weight: 500;
-        font-size: 0.9rem;
-        cursor: pointer;
-        transition: all 0.2s ease;
-        text-decoration: none;
-        display: inline-flex;
-        align-items: center;
-        justify-content: center;
-        gap: 0.5rem;
-        box-shadow: var(--shadow-sm);
-    }
-
-    .btn-regency:hover {
-        background: var(--regency-red-dark);
-        color: white;
-        text-decoration: none;
-        transform: translateY(-1px);
-        box-shadow: var(--shadow-md);
-    }
-
-    .btn-regency-outline {
-        background: transparent;
-        color: var(--regency-red);
-        border: 1px solid var(--regency-red);
-        padding: 0.75rem 1.25rem;
-        border-radius: var(--border-radius);
-        font-weight: 500;
-        font-size: 0.9rem;
-        cursor: pointer;
-        transition: all 0.2s ease;
-        text-decoration: none;
-        display: inline-flex;
-        align-items: center;
-        justify-content: center;
-        gap: 0.5rem;
-    }
-
-    .btn-regency-outline:hover {
-        background: var(--regency-red);
-        color: white;
-        text-decoration: none;
-        transform: translateY(-1px);
-    }
-
-    .btn-secondary {
-        background: #6b7280;
-        color: white;
-        border: 1px solid #6b7280;
-        padding: 0.75rem 1.25rem;
-        border-radius: var(--border-radius);
-        font-weight: 500;
-        font-size: 0.9rem;
-        cursor: pointer;
-        transition: all 0.2s ease;
-        text-decoration: none;
-        display: inline-flex;
-        align-items: center;
-        gap: 0.5rem;
-    }
-
-    .btn-secondary:hover {
-        background: #4b5563;
-        border-color: #4b5563;
-        color: white;
-        text-decoration: none;
-    }
-
-    .btn-lg {
-        padding: 0.9rem 1.5rem;
-        font-size: 1rem;
-        font-weight: 600;
-    }
-
-    .btn-sm {
-        padding: 0.4rem 0.75rem;
-        font-size: 0.8rem;
-    }
-
     /* Área de botones */
     .form-actions {
         background: #f8fafc;
@@ -469,9 +386,6 @@
             <p class="form-subtitle">Gestión de centros de costos del sistema REGENCY</p>
         </div>
         <div class="header-actions">
-            <a href="{% url 'usuarios:centrodecosto_list' %}" class="btn-secondary btn-sm">
-                 Lista de Centros
-            </a>
         </div>
     </div>
 
@@ -531,18 +445,16 @@
             <!-- Acciones del formulario -->
             <div class="form-actions">
                 <div class="actions-primary">
-                    <button type="submit" class="btn-regency btn-lg">
+                    <button type="submit" class="btn-action btn-update">
                         💾 {% if centrodecosto %}Actualizar Centro{% else %}Crear Centro{% endif %}
                     </button>
                 </div>
                 <div class="actions-secondary">
-                    <a href="{% url 'usuarios:centrodecosto_list' %}" class="btn-secondary">
-                        ← Volver a la Lista
+                    <a href="{% url 'usuarios:centrodecosto_list' %}" class="btn-action btn-list">
+                        Volver a la Lista
                     </a>
                     {% if centrodecosto %}
-                        <a href="{% url 'usuarios:centrodecosto_detail' centrodecosto.pk %}" class="btn-regency-outline">
-                             Ver Detalle
-                        </a>
+
                     {% endif %}
                 </div>
             </div>

@@ -3,6 +3,9 @@
 
 {% block extrastyle %}
 {{ block.super }}
+
+<link rel="stylesheet" href="{% static 'admin/css/components/ui-components.css' %}">
+
 <style>
     /* ========== VARIABLES EMPRESARIALES REGENCY ========== */
     :root {
@@ -149,52 +152,6 @@
         justify-content: flex-end;
         flex-wrap: wrap;
     }
-
-    .btn-regency {
-        background: var(--regency-red);
-        color: white;
-        border: none;
-        padding: 0.75rem 1.5rem;
-        border-radius: var(--border-radius);
-        font-weight: 500;
-        font-size: 0.9rem;
-        cursor: pointer;
-        transition: all 0.2s ease;
-        text-decoration: none;
-        display: inline-flex;
-        align-items: center;
-        gap: 0.5rem;
-    }
-
-    .btn-regency:hover {
-        background: var(--regency-red-dark);
-        color: white;
-        text-decoration: none;
-        transform: translateY(-1px);
-    }
-
-    .btn-outline {
-        background: transparent;
-        color: var(--regency-gray-dark);
-        border: 1px solid #d1d5db;
-        padding: 0.75rem 1.5rem;
-        border-radius: var(--border-radius);
-        font-weight: 500;
-        cursor: pointer;
-        transition: all 0.2s ease;
-        text-decoration: none;
-        display: inline-flex;
-        align-items: center;
-        gap: 0.5rem;
-    }
-
-    .btn-outline:hover {
-        background: var(--regency-gray);
-        border-color: #9ca3af;
-        color: var(--regency-text);
-        text-decoration: none;
-    }
-
     /* ========== RESPONSIVE ========== */
     @media (max-width: 768px) {
         .delete-container {
@@ -244,8 +201,8 @@
             </p>
         </div>
         <div class="header-actions">
-            <a href="{% url 'empresas:unidades_negocio_list' %}" class="btn-outline">
-                ← Volver al Listado
+            <a href="{% url 'empresas:unidades_negocio_list' %}" class="btn-regency btn-list">
+                Volver al Listado
             </a>
         </div>
     </div>
@@ -280,12 +237,9 @@
 
         <!-- Botones -->
         <div class="confirm-actions">
-            <a href="{% url 'empresas:unidades_negocio_list' %}" class="btn-outline">
-                 Cancelar
-            </a>
             <form method="post">
                 {% csrf_token %}
-                <button type="submit" class="btn-regency">
+                <button type="submit" class="btn-action btn-delete">
                      Confirmar Eliminación
                 </button>
             </form>

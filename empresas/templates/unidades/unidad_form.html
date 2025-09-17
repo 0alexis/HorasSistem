@@ -3,6 +3,9 @@
 
 {% block extrastyle %}
 {{ block.super }}
+
+
+<link rel="stylesheet" href="{% static 'admin/css/components/ui-components.css' %}">
 <style>
     /* ========== VARIABLES EMPRESARIALES REGENCY ========== */
     :root {
@@ -431,7 +434,7 @@
             </p>
         </div>
         <div class="header-actions">
-            <a href="{% url 'empresas:unidades_negocio_list' %}" class="btn-outline">
+            <a href="{% url 'empresas:unidades_negocio_list' %}" class="btn-secondary">
                 📋 Ver Lista
             </a>
         </div>
@@ -610,16 +613,16 @@
 
             <!-- Botones -->
             <div class="form-actions">
-                <a href="{% url 'empresas:unidades_negocio_list' %}" class="btn-outline">
+                <a href="{% url 'empresas:unidades_negocio_list' %}" class="btn-action btn-delete">
                     ❌ Cancelar
                 </a>
                 {% if object %}
-                    <button type="submit" class="btn-regency">
+                    <button type="submit" class="btn-action btn-update">
                         💾 Actualizar Unidad
                     </button>
                 {% else %}
-                    <button type="submit" class="btn-regency">
-                        🏢 Crear Unidad
+                    <button type="submit" class="btn-action btn-create">
+                         Crear Unidad
                     </button>
                 {% endif %}
             </div>
